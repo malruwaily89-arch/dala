@@ -8,6 +8,7 @@ const DAY_NAMES = ["الأحد", "الاثنين", "الثلاثاء", "الأر
 export function PublicBookingSlots({ tenantId, days }: { tenantId: string; days: Date[] }) {
   const [selectedDay, setSelectedDay] = useState(0);
   const [slots, setSlots] = useState<string[]>([]);
+  const [loadError, setLoadError] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function currentSelection() {
@@ -19,18 +20,25 @@ export function PublicBookingSlots({ tenantId, days }: { tenantId: string; days:
 
   function loadSlots(dayIndex: number) {
     startTransition(async () => {
+      setLoadError(false);
       const { serviceId, staffId } = currentSelection();
       if (!serviceId || !staffId) {
         setSlots([]);
         return;
       }
-      const result = await fetchSlotsAction({
-        tenantId,
-        staffId,
-        serviceId,
-        dateIso: days[dayIndex].toISOString(),
-      });
-      setSlots(result);
+      try {
+        const result = await fetchSlotsAction({
+          tenantId,
+          staffId,
+          serviceId,
+          dateIso: days[dayIndex].toISOString(),
+        });
+        setSlots(result);
+      } catch {
+        // فشل التحديث (انقطاع/مراجع قديمة) لا ينهار التطبيق — تعرض رسالة ودّية
+        setSlots([]);
+        setLoadError(true);
+      }
     });
   }
 
@@ -71,7 +79,11 @@ export function PublicBookingSlots({ tenantId, days }: { tenantId: string; days:
       {pending ? (
         <p className="mt-4 text-sm text-zinc-400">جارٍ البحث عن المواعيد المتاحة…</p>
       ) : slots.length === 0 ? (
-        <p className="mt-4 text-sm text-zinc-500">لا مواعيد متاحة هذا اليوم — جرّبي يوماً آخر.</p>
+        <p className="mt-4 text-sm text-zinc-500">
+          {loadError
+            ? "تعذر جلب المواعيد — أعيدي المحاولة بتغيير اليوم أو الخدمة."
+            : "لا مواعيد متاحة هذا اليوم — جرّبي يوماً آخر."}
+        </p>
       ) : (
         <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
           {slots.map((iso) => (
