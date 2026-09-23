@@ -6,12 +6,20 @@ export default function Home() {
       <div className="mx-auto max-w-5xl px-6">
         <header className="flex items-center justify-between py-6">
           <span className="text-2xl font-extrabold text-brand">سيدة</span>
-          <Link
-            href="/login"
-            className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-semibold hover:bg-white"
-          >
-            دخول الصالونات
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/pricing"
+              className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-semibold hover:bg-white"
+            >
+              الأسعار
+            </Link>
+            <Link
+              href="/login"
+              className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-semibold hover:bg-white"
+            >
+              دخول الصالونات
+            </Link>
+          </div>
         </header>
 
         <section className="py-16 text-center md:py-24">

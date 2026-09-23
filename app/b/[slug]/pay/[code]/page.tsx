@@ -16,48 +16,79 @@ export default async function PayPage({
   });
   if (!appt || appt.tenant.slug !== slug) notFound();
 
+  const tenant = appt.tenant;
   const status = APPT_STATUS[appt.status] ?? { label: appt.status, color: "bg-zinc-100" };
+  const confirmed = appt.status === "confirmed";
 
   return (
-    <main className="flex flex-1 items-center justify-center bg-zinc-50 px-6 py-10">
-      <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
-          <p className="text-3xl">{appt.status === "confirmed" ? "✅" : "⏳"}</p>
-          <h1 className="mt-3 text-2xl font-extrabold">
-            {appt.status === "confirmed"
-              ? "حجزك مؤكد!"
-              : "أكملي دفع العربون لتثبيت حجزك"}
+    <main
+      dir="rtl"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-b from-rose-50 via-pink-50 to-white px-6 py-12"
+      style={{ ["--brand"]: tenant.brandColor } as React.CSSProperties}
+    >
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-20 right-1/3 h-64 w-64 rounded-full bg-pink-200/50 blur-3xl" />
+        <div className="absolute -bottom-16 left-1/4 h-56 w-56 rounded-full bg-rose-200/40 blur-3xl" />
+      </div>
+
+      <div className="relative w-full max-w-md">
+        {/* هوية الصالون */}
+        <header className="mb-6 flex flex-col items-center text-center">
+          <div className="rounded-[24px] border-2 border-white bg-white p-1.5 shadow-lg shadow-pink-200/60">
+            {tenant.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={tenant.logoUrl} alt={tenant.name} className="h-14 w-14 rounded-[18px] object-cover" />
+            ) : (
+              <div
+                className="flex h-14 w-14 items-center justify-center rounded-[18px] text-xl font-extrabold text-white"
+                style={{ backgroundColor: tenant.brandColor }}
+              >
+                {tenant.name.replace(/^(صالون|مركز)\s*/, "").charAt(0)}
+              </div>
+            )}
+          </div>
+          <p className="mt-3 text-sm font-bold text-zinc-700">{tenant.name}</p>
+        </header>
+
+        <div className="rounded-[36px] border border-pink-100 bg-white/90 p-9 text-center shadow-xl shadow-pink-100/60 backdrop-blur">
+          <p className="text-4xl">{confirmed ? "✅" : "⏳"}</p>
+          <h1 className="mt-4 text-2xl font-extrabold text-zinc-800">
+            {confirmed ? "حجزك مؤكد!" : "أكملي دفع العربون لتثبيت حجزك"}
           </h1>
-          <span className={`mt-3 inline-block rounded-full px-4 py-1.5 text-xs font-bold ${status.color}`}>
+          <span className={`mt-4 inline-block rounded-full px-4 py-1.5 text-xs font-bold ${status.color}`}>
             {status.label}
           </span>
 
-          <dl className="mt-6 space-y-3 rounded-xl bg-zinc-50 p-5 text-start text-sm">
+          <dl className="mt-7 space-y-3.5 rounded-[28px] bg-pink-50/70 p-6 text-start text-sm">
             <Row k="رقم الحجز" v={appt.bookingCode} mono />
             <Row k="الخدمة" v={`${appt.service.name} (${appt.service.durationMinutes} دقيقة)`} />
             <Row k="الموظفة" v={appt.staff.name} />
             <Row k="الوقت" v={formatDateTime(appt.startsAt)} />
             <Row k="سعر الخدمة" v={formatSar(appt.service.price)} />
-            {appt.depositAmount > 0 && (
-              <Row k="العربون المطلوب" v={formatSar(appt.depositAmount)} strong />
-            )}
+            {appt.depositAmount > 0 && <Row k="العربون المطلوب" v={formatSar(appt.depositAmount)} strong />}
           </dl>
 
-          {appt.status === "pending_deposit" && (
-            <div className="mt-6 space-y-4">
-              {appt.tenant.bankIban && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-start text-sm">
+          {!confirmed && (
+            <div className="mt-8 space-y-5">
+              {tenant.bankIban && (
+                <div className="rounded-[24px] border-2 border-amber-100 bg-amber-50/70 p-4 text-start text-sm">
                   <p className="font-bold text-amber-800">تحويل بنكي على:</p>
-                  <p className="mt-1 text-zinc-700">{appt.tenant.bankName}</p>
+                  <p className="mt-1 text-zinc-700">{tenant.bankName}</p>
                   <p dir="ltr" className="mt-1 font-mono text-sm text-zinc-700">
-                    {appt.tenant.bankIban}
+                    {tenant.bankIban}
                   </p>
                 </div>
               )}
               <form action={simulatePaymentAction}>
                 <input type="hidden" name="code" value={appt.bookingCode} />
                 <input type="hidden" name="slug" value={slug} />
-                <button className="w-full rounded-full bg-brand py-4 font-bold text-white shadow-lg shadow-pink-900/20 transition hover:opacity-90">
+                <button
+                  className="w-full rounded-full py-4 text-lg font-extrabold text-white transition hover:opacity-90"
+                  style={{
+                    backgroundColor: "var(--brand)",
+                    boxShadow: "0 12px 30px -8px color-mix(in srgb, var(--brand) 45%, transparent)",
+                  }}
+                >
                   الدفع الإلكتروني — {formatSar(appt.depositAmount)}
                 </button>
               </form>
@@ -67,12 +98,18 @@ export default async function PayPage({
             </div>
           )}
 
-          {appt.status === "confirmed" && (
-            <p className="mt-6 text-sm text-zinc-600">
-              ستصلك رسالة تذكير قبل موعدك. نراك قريباً في {appt.tenant.name} 🌸
+          {confirmed && (
+            <p className="mt-8 text-sm leading-6 text-zinc-600">
+              ستصلك رسالة تذكير قبل موعدك.
+              <br />
+              نراك قريباً في {tenant.name} 🌸
             </p>
           )}
         </div>
+
+        <footer className="mt-8 text-center text-xs text-zinc-400">
+          مدعوم بـ <span className="font-bold text-zinc-500">سيدة</span>
+        </footer>
       </div>
     </main>
   );
@@ -94,8 +131,9 @@ function Row({
       <dt className="text-zinc-500">{k}</dt>
       <dd
         className={`${mono ? "font-mono" : ""} ${
-          strong ? "text-base font-extrabold text-brand" : "font-bold"
+          strong ? "text-base font-extrabold" : "font-bold"
         }`}
+        style={strong ? { color: "var(--brand)" } : undefined}
       >
         {v}
       </dd>

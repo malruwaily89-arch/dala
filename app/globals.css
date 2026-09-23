@@ -3,7 +3,7 @@
 :root {
   --background: #fafaf9;
   --foreground: #27272a;
-  --brand: #9d174d; /* وردي عميق */
+  --brand: #be185d; /* وردي عميق */
 }
 
 @theme inline {
@@ -15,4 +15,11 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* إخفاء عناصر واجهة التطبيق عند الطباعة (مستند العرض) */
+@media print {
+  .no-print {
+    display: none !important;
+  }
 }

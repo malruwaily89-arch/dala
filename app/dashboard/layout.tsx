@@ -9,6 +9,7 @@ const NAV = [
   { href: "/dashboard/customers", label: "العميلات" },
   { href: "/dashboard/services", label: "الخدمات" },
   { href: "/dashboard/staff", label: "الموظفات" },
+  { href: "/dashboard/branding", label: "مظهر الصالون" },
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {

@@ -22,6 +22,8 @@ model Tenant {
   bankName    String? // حساب تحويل العربون
   bankIban    String?
   whatsappNumber String?
+  logoUrl     String? // شعار الصالون (علامته التجارية)
+  brandColor  String  @default("#be185d") // لونه المميز
   createdAt   DateTime  @default(now())
 
   users        User[]

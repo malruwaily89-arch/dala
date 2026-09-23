@@ -5,6 +5,7 @@ import { fetchSlotsAction } from "./fetch-slots";
 
 const DAY_NAMES = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
+/** الأوقات داخل بطاقة "٣" — البطاقة والعنوان يرسمهما page.tsx */
 export function PublicBookingSlots({ tenantId, days }: { tenantId: string; days: Date[] }) {
   const [selectedDay, setSelectedDay] = useState(0);
   const [slots, setSlots] = useState<string[]>([]);
@@ -58,49 +59,56 @@ export function PublicBookingSlots({ tenantId, days }: { tenantId: string; days:
   }, [selectedDay]);
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <h2 className="font-bold">3. اختاري اليوم والوقت</h2>
-
-      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+    <div>
+      {/* شريط الأيام */}
+      <div className="flex gap-2.5 overflow-x-auto pb-1.5">
         {days.map((d, i) => (
           <button
             key={i}
             type="button"
             onClick={() => setSelectedDay(i)}
-            className={`shrink-0 rounded-xl border px-4 py-2.5 text-center text-xs font-bold transition ${
+            style={
               selectedDay === i
-                ? "border-brand bg-brand text-white"
-                : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
+                ? { backgroundColor: "var(--brand)", borderColor: "var(--brand)" }
+                : undefined
+            }
+            className={`shrink-0 rounded-[20px] border-2 px-4.5 py-3 transition ${
+              selectedDay === i
+                ? "border-transparent text-white shadow-md"
+                : "border-pink-100 bg-white text-zinc-600 hover:border-pink-300"
             }`}
           >
-            <span className="block">{DAY_NAMES[d.getDay()]}</span>
-            <span className="block font-normal">{d.getDate()}</span>
+            <span className="block text-xs font-bold">{DAY_NAMES[d.getDay()]}</span>
+            <span className="block text-sm">{d.getDate()}</span>
           </button>
         ))}
       </div>
 
-      {slots.length === 0 ? (
-        pending ? (
-          <p className="mt-4 text-sm text-zinc-400">جارٍ البحث عن المواعيد المتاحة…</p>
-        ) : (
-          <p className="mt-4 text-sm text-zinc-500">
+      {/* الأوقات */}
+      <div className="mt-5 min-h-24">
+        {pending ? (
+          <p className="text-sm text-zinc-400">جارٍ البحث عن أجمل الأوقات المتاحة…</p>
+        ) : slots.length === 0 ? (
+          <p className="text-sm text-zinc-500">
             {loadError
               ? "تعذر جلب المواعيد — أعيدي المحاولة بتغيير اليوم أو الخدمة."
               : "لا مواعيد متاحة هذا اليوم — جرّبي يوماً آخر."}
           </p>
-        )
-      ) : (
-        <div className="relative mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
-          {slots.map((iso) => (
-            <label key={iso} className="cursor-pointer">
-              <input type="radio" name="slotIso" value={iso} required className="peer hidden" />
-              <span className="block rounded-lg border border-zinc-200 py-2 text-center text-sm font-bold text-zinc-700 transition peer-checked:border-brand peer-checked:bg-brand peer-checked:text-white">
-                {new Date(iso).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
-              </span>
-            </label>
-          ))}
-        </div>
-      )}
-    </section>
+        ) : (
+          <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-5">
+            {slots.map((iso) => (
+              <label key={iso} className="cursor-pointer">
+                <input type="radio" name="slotIso" value={iso} required className="peer sr-only" />
+                <span
+                  className="block rounded-[18px] border-2 border-pink-100 bg-white py-2.5 text-center text-sm font-extrabold text-zinc-700 transition peer-checked:border-transparent peer-checked:bg-brand peer-checked:text-white"
+                >
+                  {new Date(iso).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
