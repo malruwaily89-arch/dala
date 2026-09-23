@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { notifyWhatsApp } from "@/lib/whatsapp";
 
 /** محاكاة بوابة الدفع — تُستبدل بـ Moyasar/Tap في الإنتاج */
 export async function simulatePaymentAction(formData: FormData) {
@@ -24,19 +25,11 @@ export async function simulatePaymentAction(formData: FormData) {
     },
   });
 
-  await db.messageLog.create({
-    data: {
-      tenantId: appt.tenantId,
-      appointmentId: appt.id,
-      direction: "out",
-      waMessageId: `sim_${Date.now()}`,
-      templateName: "deposit_confirmed",
-      payload: JSON.stringify({
-        to: appt.customer.phone,
-        body: `تم تأكيد حجزك ✅ رقم الحجز: ${appt.bookingCode}`,
-      }),
-      status: "sent",
-    },
+  await notifyWhatsApp({
+    tenantId: appt.tenantId,
+    appointmentId: appt.id,
+    to: appt.customer.phone,
+    body: `تم تأكيد حجزك ✅ رقم الحجز: ${appt.bookingCode}`,
   });
 
   revalidatePath("/dashboard");

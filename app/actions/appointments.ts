@@ -5,21 +5,12 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { createAppointmentTx } from "@/lib/scheduling";
+import { notifyWhatsApp } from "@/lib/whatsapp";
 import { formatDateTime, formatSar } from "@/lib/utils";
 
-/** تسجيل رسالة (محاكاة واتساب — تُستبدل بـ Meta Cloud API في الإنتاج) */
+/** تسجيل رسالة — يُرسل فعلياً عبر Meta Cloud API عند توفر المفاتيح، وإلا محاكاة */
 async function logWhatsApp(tenantId: string, appointmentId: string | null, to: string, body: string) {
-  await db.messageLog.create({
-    data: {
-      tenantId,
-      appointmentId,
-      direction: "out",
-      waMessageId: `sim_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      templateName: "simulation",
-      payload: JSON.stringify({ to, body }),
-      status: "sent",
-    },
-  });
+  await notifyWhatsApp({ tenantId, appointmentId, to, body });
 }
 
 /** تأكيد استلام العربون يدوياً (تحويل بنكي/STC Pay) */
