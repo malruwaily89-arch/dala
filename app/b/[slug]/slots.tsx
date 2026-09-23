@@ -43,8 +43,11 @@ export function PublicBookingSlots({ tenantId, days }: { tenantId: string; days:
   }
 
   useEffect(() => {
-    // الاشتراك في تغييرات النموذج (خارج React) ثم التحميل داخل transition
-    const handler = () => loadSlots(selectedDay);
+    // أعد التحميل فقط عند تغيير الخدمة أو الموظفة — وليس عند اختيار الوقت
+    const handler = (e: Event) => {
+      const t = e.target as HTMLInputElement | null;
+      if (t && (t.name === "serviceId" || t.name === "staffId")) loadSlots(selectedDay);
+    };
     document.addEventListener("change", handler);
     const timer = setTimeout(() => loadSlots(selectedDay), 0);
     return () => {
@@ -76,16 +79,18 @@ export function PublicBookingSlots({ tenantId, days }: { tenantId: string; days:
         ))}
       </div>
 
-      {pending ? (
-        <p className="mt-4 text-sm text-zinc-400">جارٍ البحث عن المواعيد المتاحة…</p>
-      ) : slots.length === 0 ? (
-        <p className="mt-4 text-sm text-zinc-500">
-          {loadError
-            ? "تعذر جلب المواعيد — أعيدي المحاولة بتغيير اليوم أو الخدمة."
-            : "لا مواعيد متاحة هذا اليوم — جرّبي يوماً آخر."}
-        </p>
+      {slots.length === 0 ? (
+        pending ? (
+          <p className="mt-4 text-sm text-zinc-400">جارٍ البحث عن المواعيد المتاحة…</p>
+        ) : (
+          <p className="mt-4 text-sm text-zinc-500">
+            {loadError
+              ? "تعذر جلب المواعيد — أعيدي المحاولة بتغيير اليوم أو الخدمة."
+              : "لا مواعيد متاحة هذا اليوم — جرّبي يوماً آخر."}
+          </p>
+        )
       ) : (
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
+        <div className="relative mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
           {slots.map((iso) => (
             <label key={iso} className="cursor-pointer">
               <input type="radio" name="slotIso" value={iso} required className="peer hidden" />
