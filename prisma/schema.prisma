@@ -1,0 +1,180 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// الصالون (المستأجر)
+model Tenant {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique // رابط الحجز العام: /b/{slug}
+  phone       String
+  plan        String    @default("trial") // trial | basic | pro
+  planExpires DateTime?
+  bankName    String? // حساب تحويل العربون
+  bankIban    String?
+  whatsappNumber String?
+  createdAt   DateTime  @default(now())
+
+  users        User[]
+  services     Service[]
+  staff        Staff[]
+  customers    Customer[]
+  appointments Appointment[]
+  waitlist     Waitlist[]
+  messageLogs  MessageLog[]
+
+  @@map("tenants")
+}
+
+// مستخدم لوحة التحكم (مالك الصالون)
+model User {
+  id           String   @id @default(cuid())
+  tenantId     String
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("owner") // owner | admin
+  createdAt    DateTime @default(now())
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions Session[]
+
+  @@map("users")
+}
+
+// جلسة تسجيل الدخول
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// الخدمة
+model Service {
+  id              String  @id @default(cuid())
+  tenantId        String
+  name            String
+  durationMinutes Int     @default(60)
+  price           Float
+  depositAmount   Float   @default(0) // العربون المطلوب
+  isActive        Boolean @default(true)
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@map("services")
+}
+
+// الموظفة
+model Staff {
+  id           String  @id @default(cuid())
+  tenantId     String
+  name         String
+  phone        String?
+  workingHours String  @default("{\"start\":\"09:00\",\"end\":\"21:00\",\"days\":[0,1,2,3,4,6]}")
+  isActive     Boolean @default(true)
+  createdAt    DateTime @default(now())
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@map("staff")
+}
+
+// العميلة
+model Customer {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  phone       String
+  notes       String?
+  noShowCount Int      @default(0) // عداد عدم الحضور (قائمة سوداء ناعمة)
+  createdAt   DateTime @default(now())
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+  waitlist     Waitlist[]
+
+  @@unique([tenantId, phone])
+  @@map("customers")
+}
+
+// الموعد (القلب النابض)
+model Appointment {
+  id             String    @id @default(cuid())
+  tenantId       String
+  bookingCode    String    @unique // رقم الحجز للعرض: SY-XXXXXX
+  customerId     String
+  staffId        String
+  serviceId      String
+  startsAt       DateTime
+  endsAt         DateTime
+  status         String    @default("pending_deposit") // pending_deposit | confirmed | done | no_show | cancelled
+  depositAmount  Float     @default(0)
+  depositPaidAt  DateTime?
+  paymentMethod  String? // gateway | manual_transfer
+  paymentRef     String? // رقم عملية الدفع من بوابة الدفع (مطابقة تلقائية)
+  createdVia     String    @default("dashboard") // whatsapp | link | dashboard
+  reminderSentAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  messageLogs    MessageLog[]
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id])
+  staff    Staff    @relation(fields: [staffId], references: [id])
+  service  Service  @relation(fields: [serviceId], references: [id])
+
+  @@index([tenantId, startsAt])
+  @@index([status])
+  @@map("appointments")
+}
+
+// قائمة الانتظار
+model Waitlist {
+  id              String    @id @default(cuid())
+  tenantId        String
+  customerId      String
+  serviceId       String?
+  preferredWindow String? // مثال: "مساءً" أو نطاق زمني
+  notifiedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("waitlist")
+}
+
+// سجل الرسائل (واتساب)
+model MessageLog {
+  id            String    @id @default(cuid())
+  tenantId      String
+  appointmentId String?
+  direction     String // out | in
+  waMessageId   String? // idempotency ضد الإرسال المكرر
+  templateName  String?
+  payload       String?
+  status        String    @default("queued") // queued | sent | delivered | failed
+  sentAt        DateTime  @default(now())
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@map("message_logs")
+}
