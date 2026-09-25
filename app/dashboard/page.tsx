@@ -22,10 +22,14 @@ export default async function TodayPage() {
   const stats = {
     todayCount: appointments.length,
     pendingDeposits: appointments.filter((a) => a.status === "pending_deposit").length,
+    confirmedCount: appointments.filter((a) => a.status === "confirmed").length,
+    doneCount: appointments.filter((a) => a.status === "done").length,
+    cancelledCount: appointments.filter((a) => a.status === "cancelled").length,
+    noShowCount: appointments.filter((a) => a.status === "no_show").length,
     expectedRevenue: appointments
       .filter((a) => a.status !== "cancelled" && a.status !== "no_show")
       .reduce((sum, a) => sum + a.service.price, 0),
-    collectedDeposits: appointments
+    todayRevenue: appointments
       .filter((a) => a.depositPaidAt)
       .reduce((sum, a) => sum + a.depositAmount, 0),
   };
@@ -39,7 +43,14 @@ export default async function TodayPage() {
         <StatCard label="مواعيد اليوم" value={String(stats.todayCount)} />
         <StatCard label="بانتظار العربون" value={String(stats.pendingDeposits)} highlight={stats.pendingDeposits > 0} />
         <StatCard label="إيراد متوقع" value={formatSar(stats.expectedRevenue)} />
-        <StatCard label="عربونات محصّلة" value={formatSar(stats.collectedDeposits)} />
+        <StatCard label="إجمالي إيرادات اليوم" value={formatSar(stats.todayRevenue)} />
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <MiniStat label="مؤكدة" value={stats.confirmedCount} className="border-emerald-200 bg-emerald-50 text-emerald-800" />
+        <MiniStat label="مكتملة" value={stats.doneCount} className="border-sky-200 bg-sky-50 text-sky-800" />
+        <MiniStat label="ملغاة" value={stats.cancelledCount} className="border-zinc-200 bg-zinc-50 text-zinc-600" />
+        <MiniStat label="لم تحضر" value={stats.noShowCount} className="border-rose-200 bg-rose-50 text-rose-700" />
       </div>
 
       <h2 className="mt-10 text-lg font-bold">جدول اليوم</h2>
@@ -126,6 +137,15 @@ function StatCard({ label, value, highlight }: { label: string; value: string; h
     >
       <p className="text-sm font-semibold text-zinc-500">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">{value}</p>
+    </div>
+  );
+}
+
+function MiniStat({ label, value, className = "" }: { label: string; value: number; className?: string }) {
+  return (
+    <div className={`rounded-lg border px-4 py-3 text-center ${className}`}>
+      <p className="text-xl font-extrabold">{value}</p>
+      <p className="text-xs font-semibold opacity-80">{label}</p>
     </div>
   );
 }

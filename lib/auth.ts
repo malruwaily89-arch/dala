@@ -1,8 +1,9 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { db } from "./db";
 
-const SESSION_COOKIE = "sayyida_session";
+const SESSION_COOKIE = "dalal_session";
 const SESSION_DAYS = 30;
 
 // تشفير كلمة المرور بـ scrypt (بدون اعتماديات خارجية)
@@ -57,5 +58,12 @@ export async function getCurrentUser() {
 export async function requireUser() {
   const user = await getCurrentUser();
   if (!user) throw new Error("غير مصرح");
+  return user;
+}
+
+// يتأكد أن المستخدم SUPER_ADMIN وإلا يعيد توجيهه إلى تسجيل الدخول
+export async function requireSuperAdmin() {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "SUPER_ADMIN") redirect("/login");
   return user;
 }

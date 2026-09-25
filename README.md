@@ -1,4 +1,4 @@
-# سيدة — نظام إدارة مواعيد الصالونات
+# دلال — نظام إدارة مواعيد الصالونات
 
 Micro-SaaS لإدارة حجوزات الصالونات النسائية: صفحة حجز عامة لكل صالون،
 عربون إلكتروني يمنع الغائبات، منع تعارض المواعيد، وقائمة انتظار ذكية.
@@ -78,13 +78,13 @@ prisma/schema.prisma        9 جداول (متعدد المستأجرين من �
 
 ```bash
 # 1) تحقق الاشتراك (يجب أن يعيد challenge)
-curl "http://localhost:3210/api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=sayyida-test-verify-token&hub.challenge=hello"
+curl "http://localhost:3210/api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=dalal-test-verify-token&hub.challenge=hello"
 
 # 2) إرسال فعلي لجوالك المسجل (بعد وضع المفتاحين)
 curl -X POST "https://graph.facebook.com/v21.0/$WHATSAPP_PHONE_NUMBER_ID/messages" \
   -H "Authorization: Bearer $WHATSAPP_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"messaging_product":"whatsapp","to":"<جوالك>","type":"text","text":{"body":"سلام من سيدة!"}}'
+  -d '{"messaging_product":"whatsapp","to":"<جوالك>","type":"text","text":{"body":"سلام من دلال!"}}'
 ```
 
 ### أين تُراقب الرسائل؟

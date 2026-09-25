@@ -14,7 +14,7 @@ export async function loginAction(formData: FormData) {
     redirect("/login?error=invalid");
   }
   await createSession(user.id);
-  redirect("/dashboard");
+  redirect(user.role === "SUPER_ADMIN" ? "/admin" : "/dashboard");
 }
 
 export async function logoutAction() {

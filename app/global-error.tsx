@@ -14,7 +14,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[سيدة] خطأ غير ملتقط:", error);
+    console.error("[دلال] خطأ غير ملتقط:", error);
   }, [error]);
 
   return (

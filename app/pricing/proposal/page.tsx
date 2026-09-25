@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PrintButton } from "./print-button";
 
 export const metadata = {
-  title: "عرض مشروع — سيدة للصالونات ذات الحركة الكثيفة",
+  title: "عرض مشروع — دلال للصالونات ذات الحركة الكثيفة",
 };
 
 export default function ProposalPage() {
@@ -22,7 +22,7 @@ export default function ProposalPage() {
           {/* الترويسة */}
           <header className="flex items-start justify-between border-b-2 border-pink-100 pb-6">
             <div>
-              <h1 className="text-3xl font-extrabold text-brand">سيدة</h1>
+              <h1 className="text-3xl font-extrabold text-brand">دلال</h1>
               <p className="mt-1 text-sm text-zinc-500">نظام إدارة مواعيد الصالونات</p>
             </div>
             <div className="text-left text-xs text-zinc-400">
@@ -106,9 +106,36 @@ export default function ProposalPage() {
             </p>
           </section>
 
+          {/* باقة برو للمشاريع الكبيرة */}
+          <section className="mt-6 rounded-[24px] border-2 border-amber-300 bg-gradient-to-l from-amber-50 to-purple-50 p-6 text-center">
+            <p className="flex items-center justify-center gap-2 text-sm font-bold text-purple-800">
+              الاحترافية برو
+              <span className="rounded-full bg-gradient-to-l from-amber-400 to-purple-500 px-3 py-0.5 text-xs font-bold text-white">
+                برو ✨
+              </span>
+            </p>
+            <p className="mt-2">
+              <span className="text-4xl font-extrabold text-amber-600">1,299 ريال</span>
+              <span className="text-zinc-400"> / شهرياً</span>
+            </p>
+            <p className="mt-1 text-xs text-zinc-400">أو 12,990 ريال سنوياً (شهران مجاناً)</p>
+            <ul className="mx-auto mt-4 grid max-w-md gap-2 text-start text-sm leading-6 text-zinc-700">
+              {[
+                "كل ميزات الاحترافية",
+                "تقارير متقدمة: مقارنة شهرية، ذروة الأيام والساعات، معدلات التحصيل والإلغاء",
+                "تقييم كل موظفة وكل خدمة على حدة، وتحديد الأعلى والأحوج للتحسين تلقائياً",
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2">
+                  <span className="text-amber-500">✓</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </section>
+
           {/* المقارنة */}
           <section className="mt-8">
-            <h3 className="text-base font-extrabold text-zinc-800">٤. لماذا سيدة وليس حلاً عالمياً؟</h3>
+            <h3 className="text-base font-extrabold text-zinc-800">٤. لماذا دلال وليس حلاً عالمياً؟</h3>
             <div className="mt-4 grid gap-4 text-sm leading-6 text-zinc-700 sm:grid-cols-2">
               <div className="rounded-[18px] border border-zinc-200 p-4">
                 <p className="font-extrabold text-zinc-800">الحلول العالمية (Fresha وغيرها)</p>
@@ -118,7 +145,7 @@ export default function ProposalPage() {
                 </p>
               </div>
               <div className="rounded-[18px] border border-pink-100 bg-pink-50/50 p-4">
-                <p className="font-extrabold text-brand">سيدة</p>
+                <p className="font-extrabold text-brand">دلال</p>
                 <p className="mt-1.5 text-zinc-500">
                   999 ريال بلا حد موظفات، عربية بالكامل، بميزات مصممة لسوقك (عرابون، واتساب،
                   سناب شات)، ومالك لا يمر عبرنا — يصل حسابك مباشرة.
@@ -143,7 +170,7 @@ export default function ProposalPage() {
               جاهزون لعرض مباشر لصالونك — تواصل معنا وسنجدول التجربة في نفس الأسبوع.
             </p>
             <p dir="ltr" className="mt-2 text-center font-mono text-xs text-gray-400">
-              sayyida.sa — sayyida.sa/pricing — sayyida.sa/b/demo-salon
+              dalal.sa — dalal.sa/pricing — dalal.sa/b/demo-salon
             </p>
           </footer>
         </article>

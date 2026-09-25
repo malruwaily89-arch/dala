@@ -1,7 +1,6 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { formatSar, formatDateTime, APPT_STATUS } from "@/lib/utils";
-import { simulatePaymentAction } from "./actions";
 
 export default async function PayPage({
   params,
@@ -70,45 +69,35 @@ export default async function PayPage({
 
           {!confirmed && (
             <div className="mt-8 space-y-5">
-              {tenant.bankIban && (
-                <div className="rounded-[24px] border-2 border-amber-100 bg-amber-50/70 p-4 text-start text-sm">
-                  <p className="font-bold text-amber-800">تحويل بنكي على:</p>
-                  <p className="mt-1 text-zinc-700">{tenant.bankName}</p>
-                  <p dir="ltr" className="mt-1 font-mono text-sm text-zinc-700">
-                    {tenant.bankIban}
-                  </p>
-                </div>
-              )}
-              <form action={simulatePaymentAction}>
-                <input type="hidden" name="code" value={appt.bookingCode} />
-                <input type="hidden" name="slug" value={slug} />
-                <button
-                  className="w-full rounded-full py-4 text-lg font-extrabold text-white transition hover:opacity-90"
-                  style={{
-                    backgroundColor: "var(--brand)",
-                    boxShadow: "0 12px 30px -8px color-mix(in srgb, var(--brand) 45%, transparent)",
-                  }}
-                >
-                  الدفع الإلكتروني — {formatSar(appt.depositAmount)}
-                </button>
-              </form>
-              <p className="text-xs text-zinc-400">
-                لديك ساعتان لإتمام الدفع حتى يُتاح الموعد لغيرك.
-              </p>
+              <div className="rounded-[24px] border-2 border-zinc-200 bg-zinc-50 p-5 text-center">
+                <p className="text-lg font-extrabold text-zinc-700">الدفع معطّل في النسخة التجريبية</p>
+                <p className="mt-2 text-sm leading-6 text-zinc-500">
+                  هذه نسخة تجريبية بدون دفع حقيقي. سيتواصل معك {tenant.name} لتأكيد حجزك.
+                </p>
+              </div>
             </div>
           )}
 
           {confirmed && (
-            <p className="mt-8 text-sm leading-6 text-zinc-600">
-              ستصلك رسالة تذكير قبل موعدك.
-              <br />
-              نراك قريباً في {tenant.name} 🌸
-            </p>
+            <>
+              <p className="mt-8 text-sm leading-6 text-zinc-600">
+                ستصلك رسالة تذكير قبل موعدك.
+                <br />
+                نراك قريباً في {tenant.name} 🌸
+              </p>
+              <a
+                href={`/b/${slug}/booking/${code}`}
+                className="mt-5 inline-block text-sm font-bold underline"
+                style={{ color: "var(--brand)" }}
+              >
+                عرض تفاصيل الحجز أو تعديل الموعد
+              </a>
+            </>
           )}
         </div>
 
         <footer className="mt-8 text-center text-xs text-zinc-400">
-          مدعوم بـ <span className="font-bold text-zinc-500">سيدة</span>
+          مدعوم بـ <span className="font-bold text-zinc-500">دلال</span>
         </footer>
       </div>
     </main>

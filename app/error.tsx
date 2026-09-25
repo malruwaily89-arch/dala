@@ -11,7 +11,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[سيدة] خطأ في الصفحة:", error);
+    console.error("[دلال] خطأ في الصفحة:", error);
   }, [error]);
 
   return (

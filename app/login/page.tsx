@@ -9,14 +9,14 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const user = await getCurrentUser();
-  if (user) redirect("/dashboard");
+  if (user) redirect(user.role === "SUPER_ADMIN" ? "/admin" : "/dashboard");
   const { error } = await searchParams;
 
   return (
     <main className="flex flex-1 items-center justify-center px-6">
       <div className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
         <Link href="/" className="text-2xl font-extrabold text-brand">
-          سيدة
+          دلال
         </Link>
         <h1 className="mt-6 text-xl font-bold">تسجيل دخول الصالون</h1>
         <p className="mt-1 text-sm text-zinc-500">أدخلي بيانات حسابك للوصول إلى لوحة التحكم.</p>

@@ -1,20 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafaf9;
-  --foreground: #27272a;
-  --brand: #be185d; /* وردي عميق */
+  --background: #faf5eb;
+  --foreground: #1a0a2e;
+  --brand: #2d1b4e;
+  --brand-gold: #c9a84c;
+  --brand-light: #5c2d91;
+  --font-tajawal: "Tajawal", "system-ui", sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-brand: var(--brand);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-light: var(--brand-light);
+  --font-sans: var(--font-tajawal);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* إخفاء عناصر واجهة التطبيق عند الطباعة (مستند العرض) */

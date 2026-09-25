@@ -9,6 +9,8 @@ const NAV = [
   { href: "/dashboard/customers", label: "العميلات" },
   { href: "/dashboard/services", label: "الخدمات" },
   { href: "/dashboard/staff", label: "الموظفات" },
+  { href: "/dashboard/ratings", label: "التقييمات" },
+  { href: "/dashboard/reports", label: "التقارير" },
   { href: "/dashboard/branding", label: "مظهر الصالون" },
 ];
 
@@ -18,16 +20,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-screen flex-1">
-      <aside className="flex w-56 shrink-0 flex-col border-l border-zinc-200 bg-white p-4 max-md:hidden">
+      <aside className="flex w-56 shrink-0 flex-col border-l border-pink-100 bg-white p-4 max-md:hidden">
         <Link href="/dashboard" className="px-2 text-2xl font-extrabold text-brand">
-          سيدة
+          دلال
         </Link>
         <nav className="mt-8 flex flex-col gap-1">
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-lg px-3 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-pink-50 hover:text-brand"
+              className="rounded-xl px-3 py-2.5 text-sm font-semibold text-zinc-700 transition-all duration-300 hover:bg-pink-50 hover:text-brand"
             >
               {item.label}
             </Link>

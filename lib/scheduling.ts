@@ -115,6 +115,43 @@ export async function createAppointmentTx(params: {
   });
 }
 
+/**
+ * تعديل موعد قائم إلى وقت جديد — يعيد حساب endsAt بمدة نفس الخدمة
+ * ويتحقق من عدم التعارض مع مواعيد أخرى (باستثناء الحجز نفسه).
+ */
+export async function rescheduleAppointmentTx(params: {
+  appointmentId: string;
+  tenantId: string;
+  newStartsAt: Date;
+}) {
+  const { appointmentId, tenantId, newStartsAt } = params;
+
+  const appt = await db.appointment.findFirst({
+    where: { id: appointmentId, tenantId },
+    include: { service: true },
+  });
+  if (!appt) throw new Error("الحجز غير موجود");
+
+  const newEndsAt = addMinutes(newStartsAt, appt.service.durationMinutes);
+
+  const conflict = await db.appointment.findFirst({
+    where: {
+      tenantId,
+      staffId: appt.staffId,
+      id: { not: appointmentId },
+      status: { in: ["pending_deposit", "confirmed"] },
+      startsAt: { lt: newEndsAt },
+      endsAt: { gt: newStartsAt },
+    },
+  });
+  if (conflict) throw new Error("عذراً، هذا الموعد حُجز للتو. اختاري وقتاً آخر.");
+
+  return db.appointment.update({
+    where: { id: appointmentId },
+    data: { startsAt: newStartsAt, endsAt: newEndsAt, rescheduledAt: new Date() },
+  });
+}
+
 async function generateUniqueBookingCode(attempt = 0): Promise<string> {
   const code = generateBookingCode();
   const exists = await db.appointment.findUnique({ where: { bookingCode: code } });

@@ -83,7 +83,7 @@ export default async function PublicBookingPage({
         )}
 
         <footer className="mt-16 pb-6 text-center text-xs text-zinc-400">
-          مدعوم بـ <span className="font-bold text-zinc-500">سيدة</span> — نظام حجوزات الصالونات
+          مدعوم بـ <span className="font-bold text-zinc-500">دلال</span> — نظام حجوزات الصالونات
         </footer>
       </div>
     </main>

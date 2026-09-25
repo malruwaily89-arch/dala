@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth";
 import { createAppointmentTx } from "@/lib/scheduling";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 import { formatDateTime, formatSar } from "@/lib/utils";
+import { sendRatingRequestWhatsApp } from "@/app/b/[slug]/booking/[code]/actions";
 
 /** تسجيل رسالة — يُرسل فعلياً عبر Meta Cloud API عند توفر المفاتيح، وإلا محاكاة */
 async function logWhatsApp(tenantId: string, appointmentId: string | null, to: string, body: string) {
@@ -40,10 +41,13 @@ export async function confirmDepositAction(formData: FormData) {
 export async function completeAppointmentAction(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id"));
-  await db.appointment.updateMany({
+  const updated = await db.appointment.updateMany({
     where: { id, tenantId: user.tenantId, status: "confirmed" },
     data: { status: "done" },
   });
+  if (updated.count > 0) {
+    await sendRatingRequestWhatsApp(id);
+  }
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/appointments");
 }

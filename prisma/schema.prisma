@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,7 +17,8 @@ model Tenant {
   name        String
   slug        String    @unique // رابط الحجز العام: /b/{slug}
   phone       String
-  plan        String    @default("trial") // trial | basic | pro
+  city        String? // المدينة: الرياض / جدة / الدمام ...
+  plan        String    @default("trial") // trial | basic | pro | advanced | basic_pro | pro_pro | advanced_pro
   planExpires DateTime?
   bankName    String? // حساب تحويل العربون
   bankIban    String?
@@ -33,18 +34,21 @@ model Tenant {
   appointments Appointment[]
   waitlist     Waitlist[]
   messageLogs  MessageLog[]
+  subscriptions Subscription[]
+  payments     Payment[]
+  ratings      Rating[]
 
   @@map("tenants")
 }
 
-// مستخدم لوحة التحكم (مالك الصالون)
+// مستخدم لوحة التحكم (مالك الصالون أو مدير المنصة)
 model User {
   id           String   @id @default(cuid())
   tenantId     String
   email        String   @unique
   passwordHash String
   name         String
-  role         String   @default("owner") // owner | admin
+  role         String   @default("OWNER") // OWNER | SUPER_ADMIN
   createdAt    DateTime @default(now())
 
   tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -111,6 +115,7 @@ model Customer {
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   appointments Appointment[]
   waitlist     Waitlist[]
+  ratings      Rating[]
 
   @@unique([tenantId, phone])
   @@map("customers")
@@ -133,9 +138,11 @@ model Appointment {
   paymentRef     String? // رقم عملية الدفع من بوابة الدفع (مطابقة تلقائية)
   createdVia     String    @default("dashboard") // whatsapp | link | dashboard
   reminderSentAt DateTime?
+  rescheduledAt  DateTime? // آخر مرة تم فيها تعديل موعد الحجز (تغيير التاريخ/الوقت)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   messageLogs    MessageLog[]
+  rating         Rating?
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   customer Customer @relation(fields: [customerId], references: [id])
@@ -145,6 +152,24 @@ model Appointment {
   @@index([tenantId, startsAt])
   @@index([status])
   @@map("appointments")
+}
+
+// تقييم الزبونة للخدمة بعد إتمامها
+model Rating {
+  id            String   @id @default(cuid())
+  appointmentId String   @unique
+  tenantId      String
+  customerId    String
+  score         Int // 1-5
+  comment       String?
+  createdAt     DateTime @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("ratings")
 }
 
 // قائمة الانتظار
@@ -179,4 +204,45 @@ model MessageLog {
   appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
 
   @@map("message_logs")
+}
+
+// اشتراك الصالون
+model Subscription {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  plan               String // BASIC | PRO | ADVANCED | BASIC_PRO | PRO_PRO | ADVANCED_PRO
+  status             String    @default("trialing") // trialing | active | past_due | suspended | canceled
+  startedAt          DateTime  @default(now())
+  currentPeriodStart DateTime  @default(now())
+  currentPeriodEnd   DateTime
+  canceledAt         DateTime?
+  createdAt          DateTime  @default(now())
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+// دفعة من الصالون
+model Payment {
+  id             String    @id @default(cuid())
+  tenantId       String
+  subscriptionId String?
+  amount         Float
+  currency       String    @default("SAR")
+  status         String    @default("pending") // pending | paid | failed | refunded
+  provider       String    @default("moyasar") // moyasar
+  providerRef    String?
+  paidAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("payments")
 }
