@@ -2,29 +2,44 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { loginAction } from "@/app/actions/auth";
+import { LocaleProvider, useLocale } from "@/lib/i18n/locale-context";
+import { LanguageToggle } from "@/components/marketing/language-toggle";
 
 function ErrorMessage() {
   const searchParams = useSearchParams();
+  const { t } = useLocale();
   const error = searchParams.get("error");
   if (!error) return null;
   return (
     <p className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
-      {error === "invalid" ? "البريد أو كلمة المرور غير صحيحة." : "يرجى تعبئة جميع الحقول."}
+      {error === "invalid" ? t.login.errorInvalid : t.login.errorMissing}
     </p>
   );
 }
 
-export default function LoginPage() {
+function LoginCard() {
+  const { t, dir } = useLocale();
+
   return (
-    <main className="flex flex-1 items-center justify-center px-6">
-      <div className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-        <Link href="/" className="text-2xl font-extrabold text-brand">
-          دلال
-        </Link>
-        <h1 className="mt-6 text-xl font-bold">تسجيل دخول الصالون</h1>
-        <p className="mt-1 text-sm text-zinc-500">أدخلي بيانات حسابك للوصول إلى لوحة التحكم.</p>
+    <main dir={dir} className="relative flex flex-1 items-center justify-center overflow-hidden bg-gradient-to-b from-[#1a0a2e] via-[#2d1b4e] to-[#4a2075] px-6 py-16">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-24 right-1/4 h-72 w-72 rounded-full bg-[#c9a84c]/25 blur-3xl" />
+        <div className="absolute bottom-0 -left-24 h-64 w-64 rounded-full bg-[#5c2d91]/50 blur-3xl" />
+      </div>
+
+      <div className="relative w-full max-w-sm rounded-[32px] border border-[#c9a84c]/25 bg-white/95 p-8 shadow-2xl shadow-black/30 backdrop-blur">
+        <div className="flex items-center justify-between">
+          <Link href="/" aria-label="دلال">
+            <Image src="/dalal-logo.png" alt="دلال" width={140} height={90} className="h-auto w-28" priority />
+          </Link>
+          <LanguageToggle className="text-xs" />
+        </div>
+
+        <h1 className="mt-6 text-xl font-extrabold text-[#2d1b4e]">{t.login.title}</h1>
+        <p className="mt-1 text-sm text-zinc-500">{t.login.subtitle}</p>
 
         <Suspense fallback={null}>
           <ErrorMessage />
@@ -32,8 +47,8 @@ export default function LoginPage() {
 
         <form action={loginAction} className="mt-6 space-y-4">
           <div>
-            <label htmlFor="email" className="mb-1 block text-sm font-semibold">
-              البريد الإلكتروني
+            <label htmlFor="email" className="mb-1 block text-sm font-semibold text-zinc-700">
+              {t.login.email}
             </label>
             <input
               id="email"
@@ -41,30 +56,42 @@ export default function LoginPage() {
               type="email"
               dir="ltr"
               required
-              className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-zinc-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
               placeholder="you@salon.sa"
             />
           </div>
           <div>
-            <label htmlFor="password" className="mb-1 block text-sm font-semibold">
-              كلمة المرور
+            <label htmlFor="password" className="mb-1 block text-sm font-semibold text-zinc-700">
+              {t.login.password}
             </label>
             <input
               id="password"
               name="password"
               type="password"
               required
-              className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-zinc-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
             />
           </div>
           <button
             type="submit"
-            className="w-full rounded-full bg-brand py-3 font-bold text-white transition hover:opacity-90"
+            className="w-full rounded-full bg-[#c9a84c] py-3 font-bold text-[#1a0a2e] shadow-lg transition hover:opacity-90"
           >
-            دخول
+            {t.login.submit}
           </button>
         </form>
+
+        <Link href="/" className="mt-6 block text-center text-xs font-semibold text-zinc-400 hover:text-brand">
+          ← {t.login.backHome}
+        </Link>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <LocaleProvider>
+      <LoginCard />
+    </LocaleProvider>
   );
 }

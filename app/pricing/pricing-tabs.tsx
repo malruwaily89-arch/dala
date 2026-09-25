@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { PackageCard, type Package } from "./package-card";
+import { PackageCard } from "./package-card";
+import { type Package } from "@/lib/pricing-data";
+import { useLocale } from "@/lib/i18n/locale-context";
 
 export function PricingTabs({ regular, pro }: { regular: Package[]; pro: Package[] }) {
   const [tab, setTab] = useState<"regular" | "pro">("regular");
+  const { t } = useLocale();
   const packages = tab === "regular" ? regular : pro;
 
   return (
@@ -17,18 +20,16 @@ export function PricingTabs({ regular, pro }: { regular: Package[]; pro: Package
             tab === "regular" ? "bg-brand text-white shadow" : "text-zinc-500"
           }`}
         >
-          الباقات العادية
+          {t.pricingPage.tabRegular}
         </button>
         <button
           type="button"
           onClick={() => setTab("pro")}
           className={`flex-1 rounded-full py-2.5 text-sm font-bold transition ${
-            tab === "pro"
-              ? "bg-[#c9a84c] text-[#1a0a2e] shadow"
-              : "text-zinc-500"
+            tab === "pro" ? "bg-[#c9a84c] text-[#1a0a2e] shadow" : "text-zinc-500"
           }`}
         >
-          الباقات برو ✨
+          {t.pricingPage.tabPro}
         </button>
       </div>
 
