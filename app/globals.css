@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf5eb;
-  --foreground: #1a0a2e;
-  --brand: #2d1b4e;
-  --brand-gold: #c9a84c;
-  --brand-light: #5c2d91;
-  --font-tajawal: "Tajawal", "system-ui", sans-serif;
+  --background: #fdfbf2;
+  --foreground: #3d1a24;
+  --brand: #4a1f28;
+  --brand-gold: #c9a05a;
+  --brand-light: #6f2e3f;
+  --font-heading: var(--font-playfair), var(--font-tajawal), serif;
+  --font-body: var(--font-inter), var(--font-tajawal), sans-serif;
 }
 
 @theme inline {
@@ -15,7 +16,8 @@
   --color-brand: var(--brand);
   --color-brand-gold: var(--brand-gold);
   --color-brand-light: var(--brand-light);
-  --font-sans: var(--font-tajawal);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-heading);
 }
 
 body {

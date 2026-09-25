@@ -16,15 +16,21 @@ export function SiteHeader() {
       <nav className="flex items-center gap-2 md:gap-3">
         <Link
           href="/pricing"
-          className="hidden rounded-full border border-[#c9a84c]/50 bg-white/10 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:border-[#c9a84c] hover:bg-white/15 sm:inline-block"
+          className="hidden rounded-full border border-brand/20 px-4 py-2 text-sm font-semibold text-brand transition-all duration-300 hover:border-brand-gold hover:bg-brand-gold/10 sm:inline-block"
         >
           {t.nav.pricing}
         </Link>
         <Link
           href="/login"
-          className="rounded-full border border-[#c9a84c]/50 bg-white/10 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:border-[#c9a84c] hover:bg-white/15"
+          className="rounded-full border border-brand/20 px-4 py-2 text-sm font-semibold text-brand transition-all duration-300 hover:border-brand-gold hover:bg-brand-gold/10"
         >
           {t.nav.login}
+        </Link>
+        <Link
+          href="/login"
+          className="hidden rounded-full bg-brand px-5 py-2 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:bg-brand-light sm:inline-block"
+        >
+          {t.hero.ctaPrimary}
         </Link>
         <LanguageToggle />
       </nav>

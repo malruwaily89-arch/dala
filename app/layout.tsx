@@ -1,11 +1,25 @@
 import type { Metadata } from "next";
-import { Tajawal } from "next/font/google";
+import { Tajawal, Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
   weight: ["400", "500", "700", "800"],
   variable: "--font-tajawal",
+  display: "swap",
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800", "900"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -25,8 +39,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ar" dir="rtl" className={`h-full antialiased ${tajawal.variable}`}>
-      <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900 font-sans">
+    <html
+      lang="ar"
+      dir="rtl"
+      className={`h-full antialiased ${tajawal.variable} ${playfairDisplay.variable} ${inter.variable}`}
+    >
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         {children}
       </body>
     </html>

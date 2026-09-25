@@ -32,13 +32,13 @@ export function BookingShell({
   return (
     <main
       dir={dir}
-      className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#faf5eb] via-[#f5eddb] to-white"
+      className="relative min-h-screen overflow-hidden bg-background"
       style={{ ["--brand"]: tenant.brandColor } as React.CSSProperties}
     >
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 right-1/4 h-72 w-72 rounded-full bg-[#c9a84c]/25 blur-3xl" />
-        <div className="absolute top-1/2 -left-24 h-64 w-64 rounded-full bg-[#5c2d91]/20 blur-3xl" />
-        <div className="absolute -bottom-20 right-1/3 h-56 w-56 rounded-full bg-[#2d1b4e]/10 blur-3xl" />
+        <div className="absolute -top-24 right-1/4 h-72 w-72 rounded-full bg-brand-gold/15 blur-3xl" />
+        <div className="absolute top-1/2 -left-24 h-64 w-64 rounded-full bg-brand/10 blur-3xl" />
+        <div className="absolute -bottom-20 right-1/3 h-56 w-56 rounded-full bg-brand/5 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-2xl px-6 py-12">
@@ -47,7 +47,7 @@ export function BookingShell({
         </div>
 
         <header className="flex flex-col items-center text-center">
-          <div className="rounded-[28px] border-2 border-white bg-white p-1.5 shadow-lg shadow-[#c9a84c]/20">
+          <div className="rounded-[28px] border-2 border-white bg-white p-1.5 shadow-lg shadow-brand-gold/20">
             {tenant.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={tenant.logoUrl} alt={tenant.name} className="h-20 w-20 rounded-[22px] object-cover" />
@@ -60,8 +60,8 @@ export function BookingShell({
               </div>
             )}
           </div>
-          <h1 className="mt-5 text-3xl font-extrabold text-brand">{tenant.name}</h1>
-          <p className="mt-2 text-sm text-zinc-500">{t.booking.subtitle}</p>
+          <h1 className="mt-5 font-serif text-3xl font-bold text-brand">{tenant.name}</h1>
+          <p className="mt-2 text-sm text-brand/50">{t.booking.subtitle}</p>
         </header>
 
         {error && (
@@ -69,15 +69,15 @@ export function BookingShell({
         )}
 
         {services.length === 0 || staff.length === 0 ? (
-          <div className="mt-10 rounded-[32px] border border-dashed border-[#c9a84c]/40 bg-white/70 p-14 text-center text-sm text-zinc-500 backdrop-blur">
+          <div className="mt-10 rounded-[32px] border border-dashed border-brand-gold/40 bg-white/70 p-14 text-center text-sm text-brand/50 backdrop-blur">
             {t.booking.updating}
           </div>
         ) : (
           <BookingForm slug={slug} services={services} staff={staff} days={dayDates} tenantId={tenant.id} bookAction={bookAction} />
         )}
 
-        <footer className="mt-16 pb-6 text-center text-xs text-zinc-400">
-          {t.booking.poweredBy} <span className="font-bold text-zinc-500">{t.booking.systemName}</span> — {t.booking.systemTag}
+        <footer className="mt-16 pb-6 text-center text-xs text-brand/40">
+          {t.booking.poweredBy} <span className="font-bold text-brand/60">{t.booking.systemName}</span> — {t.booking.systemTag}
         </footer>
       </div>
     </main>
@@ -100,7 +100,7 @@ function SectionTitle({ n, title }: { n: string; title: string }) {
 
 function Section({ children }: { children: React.ReactNode }) {
   return (
-    <section className="rounded-[32px] border border-[#c9a84c]/20 bg-white/80 p-7 shadow-md shadow-[#c9a84c]/10 backdrop-blur-sm">
+    <section className="rounded-[32px] border border-brand-gold/20 bg-white/80 p-7 shadow-md shadow-brand-gold/10 backdrop-blur-sm">
       {children}
     </section>
   );
@@ -158,7 +158,7 @@ function BookingForm({
           {services.map((s, i) => (
             <label
               key={s.id}
-              className="flex cursor-pointer items-center gap-3.5 rounded-[24px] border-2 border-[#c9a84c]/20 bg-white p-4 transition hover:border-[#c9a84c]/40 hover:shadow-sm has-checked:border-[var(--brand)] has-checked:shadow-sm"
+              className="flex cursor-pointer items-center gap-3.5 rounded-[24px] border-2 border-brand-gold/20 bg-white p-4 transition hover:border-brand-gold/40 hover:shadow-sm has-checked:border-[var(--brand)] has-checked:shadow-sm"
             >
               <input
                 type="radio"
@@ -191,7 +191,7 @@ function BookingForm({
           {staff.map((st, i) => (
             <label
               key={st.id}
-              className="flex cursor-pointer items-center gap-3.5 rounded-[24px] border-2 border-[#c9a84c]/20 bg-white p-4 transition hover:border-[#c9a84c]/40 has-checked:border-[var(--brand)]"
+              className="flex cursor-pointer items-center gap-3.5 rounded-[24px] border-2 border-brand-gold/20 bg-white p-4 transition hover:border-brand-gold/40 has-checked:border-[var(--brand)]"
             >
               <input
                 type="radio"
@@ -215,7 +215,7 @@ function BookingForm({
       </Section>
 
       {/* 3. اليوم والوقت */}
-      <div className="rounded-[32px] border border-[#c9a84c]/20 bg-white/80 p-7 shadow-md shadow-[#c9a84c]/10 backdrop-blur-sm">
+      <div className="rounded-[32px] border border-brand-gold/20 bg-white/80 p-7 shadow-md shadow-brand-gold/10 backdrop-blur-sm">
         <SectionTitle n="٣" title={t.booking.step3} />
         <div className="mt-5">
           <PublicBookingSlots tenantId={tenantId} days={days} />
@@ -232,7 +232,7 @@ function BookingForm({
               name="name"
               required
               placeholder={t.booking.yourNamePlaceholder}
-              className="w-full rounded-[20px] border-2 border-[#c9a84c]/20 bg-white px-4 py-3.5 text-sm transition focus:border-[var(--brand)] focus:outline-none focus:ring-4"
+              className="w-full rounded-[20px] border-2 border-brand-gold/20 bg-white px-4 py-3.5 text-sm transition focus:border-[var(--brand)] focus:outline-none focus:ring-4"
               style={{ "--tw-ring-color": "color-mix(in srgb, var(--brand) 15%, transparent)" } as React.CSSProperties}
             />
           </label>
@@ -244,7 +244,7 @@ function BookingForm({
               dir="ltr"
               required
               placeholder="05xxxxxxxx"
-              className="w-full rounded-[20px] border-2 border-[#c9a84c]/20 bg-white px-4 py-3.5 text-sm transition focus:border-[var(--brand)] focus:outline-none focus:ring-4"
+              className="w-full rounded-[20px] border-2 border-brand-gold/20 bg-white px-4 py-3.5 text-sm transition focus:border-[var(--brand)] focus:outline-none focus:ring-4"
               style={{ "--tw-ring-color": "color-mix(in srgb, var(--brand) 15%, transparent)" } as React.CSSProperties}
             />
           </label>

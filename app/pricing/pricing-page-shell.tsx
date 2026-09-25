@@ -13,9 +13,13 @@ export function PricingPageShell({ regular, pro }: { regular: Package[]; pro: Pa
 
   return (
     <div dir={dir}>
-      <main className="flex-1 bg-[#faf5eb]">
-        <div className="bg-gradient-to-b from-[#1a0a2e] via-[#2d1b4e] to-[#4a2075]">
-          <div className="mx-auto max-w-6xl px-6 pb-12">
+      <main className="flex-1 bg-background">
+        <div className="relative">
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -top-24 right-1/4 h-72 w-72 rounded-full bg-brand-gold/10 blur-3xl" />
+            <div className="absolute top-40 -left-24 h-64 w-64 rounded-full bg-brand/5 blur-3xl" />
+          </div>
+          <div className="relative mx-auto max-w-6xl px-6 pb-12">
             <SiteHeader />
             <PricingHero />
           </div>
