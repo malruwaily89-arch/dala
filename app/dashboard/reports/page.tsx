@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { getMonthlyReport, getAdvancedReport } from "@/app/actions/reports";
 import { EmptyState } from "../ui";
 import { formatSar, isProPlan } from "@/lib/utils";
+import { ReportExportButtons } from "./ReportExportButtons";
 
 export default async function ReportsPage() {
   const user = await requireUser();
@@ -13,9 +14,19 @@ export default async function ReportsPage() {
   const monthLabel = new Date().toLocaleDateString("ar-SA", { month: "long", year: "numeric" });
 
   return (
-    <div>
-      <h1 className="text-2xl font-extrabold">تقرير الشهر</h1>
-      <p className="mt-1 text-sm text-zinc-500">ملخص أداء صالونك خلال {monthLabel}.</p>
+    <div id="report-content">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold">تقرير الشهر</h1>
+          <p className="mt-1 text-sm text-zinc-500">ملخص أداء صالونك خلال {monthLabel}.</p>
+        </div>
+        <ReportExportButtons
+          report={report}
+          advanced={advanced}
+          monthLabel={monthLabel}
+          targetElementId="report-content"
+        />
+      </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard label="مواعيد مؤكدة" value={String(report.confirmedCount)} />
