@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fdfbf2;
-  --foreground: #3d1a24;
-  --brand: #4a1f28;
+  --background: #f0e6f6;
+  --foreground: #2e1065;
+  --brand: #7c3aed;
   --brand-gold: #c9a05a;
-  --brand-light: #6f2e3f;
+  --brand-light: #8b5cf6;
   --font-heading: var(--font-playfair), var(--font-tajawal), serif;
   --font-body: var(--font-inter), var(--font-tajawal), sans-serif;
 }
