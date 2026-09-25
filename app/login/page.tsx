@@ -1,23 +1,22 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { loginAction } from "@/app/actions/auth";
 
-export default function LoginPage() {
-  const router = useRouter();
+function ErrorMessage() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
-  const [isPending, startTransition] = useTransition();
+  if (!error) return null;
+  return (
+    <p className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+      {error === "invalid" ? "البريد أو كلمة المرور غير صحيحة." : "يرجى تعبئة جميع الحقول."}
+    </p>
+  );
+}
 
-  async function handleSubmit(formData: FormData) {
-    startTransition(async () => {
-      await loginAction(formData);
-      router.refresh();
-    });
-  }
-
+export default function LoginPage() {
   return (
     <main className="flex flex-1 items-center justify-center px-6">
       <div className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
@@ -27,13 +26,11 @@ export default function LoginPage() {
         <h1 className="mt-6 text-xl font-bold">تسجيل دخول الصالون</h1>
         <p className="mt-1 text-sm text-zinc-500">أدخلي بيانات حسابك للوصول إلى لوحة التحكم.</p>
 
-        {error && (
-          <p className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
-            {error === "invalid" ? "البريد أو كلمة المرور غير صحيحة." : "يرجى تعبئة جميع الحقول."}
-          </p>
-        )}
+        <Suspense fallback={null}>
+          <ErrorMessage />
+        </Suspense>
 
-        <form action={handleSubmit} className="mt-6 space-y-4">
+        <form action={loginAction} className="mt-6 space-y-4">
           <div>
             <label htmlFor="email" className="mb-1 block text-sm font-semibold">
               البريد الإلكتروني
@@ -62,10 +59,9 @@ export default function LoginPage() {
           </div>
           <button
             type="submit"
-            disabled={isPending}
-            className="w-full rounded-full bg-brand py-3 font-bold text-white transition hover:opacity-90 disabled:opacity-60"
+            className="w-full rounded-full bg-brand py-3 font-bold text-white transition hover:opacity-90"
           >
-            {isPending ? "جاري الدخول..." : "دخول"}
+            دخول
           </button>
         </form>
       </div>
