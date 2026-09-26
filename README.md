@@ -20,6 +20,21 @@ npx next build && npx next start   # الإنتاج
 
 انسخ `.env.example` إلى `.env` وعدّل `DATABASE_URL` عند الحاجة.
 
+## النشر على VPS (خلف Caddy)
+
+```bash
+cp .env.example .env            # عبّئ القيم
+docker compose up -d --build    # يبني الصورة ويشغّل الحاوية dala
+```
+
+الحاوية لا تفتح أي منفذ على السيرفر، وCaddy يصلها عبر شبكة Docker (`CADDY_NETWORK` في `.env` إن اختلف اسمها عن `mohammedalruwaily89_default`). أضف للـ Caddyfile:
+
+```
+d-alal.com, www.d-alal.com {
+	reverse_proxy dala:3211
+}
+```
+
 ## حساب تجريبي جاهز
 
 | | |

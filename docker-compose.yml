@@ -1,0 +1,16 @@
+# Self-hosting on the VPS behind the existing Caddy container.
+# No host ports are published: Caddy reaches the app over its Docker network as dala:3211.
+services:
+  dala:
+    build: .
+    image: dala:latest
+    container_name: dala
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - caddy
+
+networks:
+  caddy:
+    external: true
+    name: ${CADDY_NETWORK:-mohammedalruwaily89_default}
