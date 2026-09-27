@@ -157,20 +157,45 @@ export async function toggleServiceAction(formData: FormData) {
 }
 
 /** إدارة الموظفات */
+/** يقرأ أيام العمل المختارة (checkboxes باسم day) — الأحد=0 ... السبت=6. بدون اختيار = كل الأيام ما عدا الجمعة */
+function parseSelectedDays(formData: FormData): number[] {
+  const values = formData.getAll("day").map((d) => Number(d)).filter((d) => d >= 0 && d <= 6 && !Number.isNaN(d));
+  return values.length > 0 ? values.sort() : [0, 1, 2, 3, 4, 6];
+}
+
 export async function createStaffAction(formData: FormData) {
   const user = await requireUser();
   const name = String(formData.get("name") || "").trim();
   const phone = String(formData.get("phone") || "").trim() || null;
   const start = String(formData.get("workStart") || "09:00");
   const end = String(formData.get("workEnd") || "21:00");
+  const days = parseSelectedDays(formData);
   if (!name) redirect("/dashboard/staff?error=missing");
   await db.staff.create({
     data: {
       tenantId: user.tenantId,
       name,
       phone,
-      workingHours: JSON.stringify({ start, end, days: [0, 1, 2, 3, 4, 6] }),
+      workingHours: JSON.stringify({ start, end, days }),
     },
+  });
+  revalidatePath("/dashboard/staff");
+}
+
+/** تعديل ساعات وأيام عمل موظفة موجودة */
+export async function updateStaffScheduleAction(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id"));
+  const start = String(formData.get("workStart") || "09:00");
+  const end = String(formData.get("workEnd") || "21:00");
+  const days = parseSelectedDays(formData);
+
+  const staff = await db.staff.findFirst({ where: { id, tenantId: user.tenantId } });
+  if (!staff) redirect("/dashboard/staff?error=1");
+
+  await db.staff.update({
+    where: { id },
+    data: { workingHours: JSON.stringify({ start, end, days }) },
   });
   revalidatePath("/dashboard/staff");
 }

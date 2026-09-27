@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { parseWorkingHours } from "@/lib/scheduling";
-import { createStaffAction, toggleStaffAction } from "@/app/actions/appointments";
+import { createStaffAction, toggleStaffAction, updateStaffScheduleAction } from "@/app/actions/appointments";
 import { getStaffPerformanceReport } from "@/app/actions/reports";
 import { formatSar } from "@/lib/utils";
 import { EmptyState, Banner } from "../ui";
@@ -11,6 +11,8 @@ const PERFORMANCE_LABEL: Record<string, { label: string; className: string }> = 
   active: { label: "نشطة", className: "bg-emerald-100 text-emerald-700" },
   quiet: { label: "هادئة", className: "bg-zinc-100 text-zinc-500" },
 };
+
+const DAY_NAMES = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
 export default async function StaffPage({
   searchParams,
@@ -29,24 +31,25 @@ export default async function StaffPage({
   ]);
   const perfById = new Map(performance.rows.map((r) => [r.id, r]));
 
-  const DAY_NAMES = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
-
   return (
     <div>
       <h1 className="text-2xl font-extrabold">الموظفات</h1>
       <p className="mt-1 text-sm text-zinc-500">
-        ساعات عمل كل موظفة تحدد المواعيد المتاحة في صفحة الحجز.
+        ساعات وأيام عمل كل موظفة تحدد المواعيد المتاحة في صفحة الحجز.
       </p>
 
       {error && <Banner>{error}</Banner>}
 
       <details className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <summary className="cursor-pointer font-bold text-brand">+ موظفة جديدة</summary>
-        <form action={createStaffAction} className="mt-4 flex flex-wrap items-end gap-3">
-          <Field name="name" label="الاسم" type="text" />
-          <Field name="phone" label="الجوال (اختياري)" type="tel" />
-          <Field name="workStart" label="من" type="time" />
-          <Field name="workEnd" label="إلى" type="time" />
+        <form action={createStaffAction} className="mt-4 space-y-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <Field name="name" label="الاسم" type="text" />
+            <Field name="phone" label="الجوال (اختياري)" type="tel" />
+            <Field name="workStart" label="من" type="time" defaultValue="09:00" />
+            <Field name="workEnd" label="إلى" type="time" defaultValue="21:00" />
+          </div>
+          <DaysPicker defaultDays={[0, 1, 2, 3, 4, 6]} />
           <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white hover:opacity-90">
             حفظ
           </button>
@@ -93,6 +96,21 @@ export default async function StaffPage({
                     </button>
                   </form>
                 </div>
+
+                <details className="mt-3 border-t border-zinc-100 pt-3">
+                  <summary className="cursor-pointer text-xs font-bold text-brand">تعديل ساعات وأيام العمل</summary>
+                  <form action={updateStaffScheduleAction} className="mt-3 space-y-3">
+                    <input type="hidden" name="id" value={s.id} />
+                    <div className="flex flex-wrap items-end gap-3">
+                      <Field name="workStart" label="من" type="time" defaultValue={hours.start} />
+                      <Field name="workEnd" label="إلى" type="time" defaultValue={hours.end} />
+                    </div>
+                    <DaysPicker defaultDays={hours.days} />
+                    <button className="rounded-full bg-zinc-800 px-5 py-2 text-xs font-bold text-white hover:opacity-90">
+                      حفظ التعديل
+                    </button>
+                  </form>
+                </details>
 
                 {perf && (
                   <div className="mt-3 grid grid-cols-2 gap-2 border-t border-zinc-100 pt-3 sm:grid-cols-4">
@@ -164,17 +182,53 @@ function MetricBox({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Field({ name, label, type }: { name: string; label: string; type: string }) {
+function Field({
+  name,
+  label,
+  type,
+  defaultValue,
+}: {
+  name: string;
+  label: string;
+  type: string;
+  defaultValue?: string;
+}) {
   return (
     <label className="block flex-1">
       <span className="mb-1 block text-sm font-semibold">{label}</span>
       <input
         name={name}
         type={type}
+        defaultValue={defaultValue}
         dir={type === "tel" ? "ltr" : undefined}
         required={type !== "tel"}
         className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
       />
     </label>
+  );
+}
+
+function DaysPicker({ defaultDays }: { defaultDays: number[] }) {
+  return (
+    <div>
+      <span className="mb-1.5 block text-sm font-semibold">أيام العمل</span>
+      <div className="flex flex-wrap gap-2">
+        {DAY_NAMES.map((label, day) => (
+          <label
+            key={day}
+            className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-300 px-3 py-2 text-sm has-[:checked]:border-brand has-[:checked]:bg-brand/5 has-[:checked]:font-bold has-[:checked]:text-brand"
+          >
+            <input
+              type="checkbox"
+              name="day"
+              value={day}
+              defaultChecked={defaultDays.includes(day)}
+              className="accent-brand"
+            />
+            {label}
+          </label>
+        ))}
+      </div>
+    </div>
   );
 }
