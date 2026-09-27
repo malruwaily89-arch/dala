@@ -51,6 +51,11 @@ model User {
   role         String   @default("OWNER") // OWNER | SUPER_ADMIN
   createdAt    DateTime @default(now())
 
+  // تفعيل البريد الإلكتروني
+  emailVerifiedAt      DateTime?
+  verifyToken          String?   @unique
+  verifyTokenExpiresAt DateTime?
+
   tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   sessions Session[]
 

@@ -3,8 +3,9 @@
 import { randomBytes } from "crypto";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { createSession, destroySession, hashPassword, verifyPassword } from "@/lib/auth";
+import { createSession, destroySession, hashPassword, verifyPassword, getCurrentUser } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { generateVerifyToken, sendVerificationEmail } from "@/lib/email";
 
 function generateSlug(name: string): string {
   const base = name
@@ -69,6 +70,8 @@ export async function signupAction(formData: FormData) {
 
   const now = new Date();
   const trialEnd = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  const verifyToken = generateVerifyToken();
+  const verifyTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
   const tenant = await db.tenant.create({
     data: {
@@ -83,6 +86,8 @@ export async function signupAction(formData: FormData) {
           passwordHash: hashPassword(password),
           name: `مالكة ${name}`,
           role: "OWNER",
+          verifyToken,
+          verifyTokenExpiresAt,
         },
       },
       subscriptions: {
@@ -99,6 +104,44 @@ export async function signupAction(formData: FormData) {
   });
 
   const owner = tenant.users[0];
+
+  try {
+    await sendVerificationEmail(email, verifyToken);
+  } catch (e) {
+    // لا نفشل التسجيل بسبب خطأ إرسال البريد — الحساب يبقى شغّالاً وتقدر تطلب إعادة الإرسال لاحقاً
+    console.log("[signup] فشل إرسال إيميل التفعيل:", e instanceof Error ? e.message : e);
+  }
+
   await createSession(owner.id);
   redirect("/dashboard");
+}
+
+/** إعادة إرسال إيميل التفعيل للمستخدم الحالي (تُستدعى من بانر لوحة التحكم) */
+export async function resendVerificationAction() {
+  const user = await getCurrentUser();
+  if (!user || user.emailVerifiedAt) redirect("/dashboard");
+
+  const ip = await getClientIp();
+  if (!checkRateLimit(`resend-verify:${user.id}`, 3, 15 * 60 * 1000)) {
+    redirect("/dashboard?verify_error=too_many");
+  }
+  if (!checkRateLimit(`resend-verify:ip:${ip}`, 10, 15 * 60 * 1000)) {
+    redirect("/dashboard?verify_error=too_many");
+  }
+
+  const verifyToken = generateVerifyToken();
+  const verifyTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await db.user.update({
+    where: { id: user.id },
+    data: { verifyToken, verifyTokenExpiresAt },
+  });
+
+  let failed = false;
+  try {
+    await sendVerificationEmail(user.email, verifyToken);
+  } catch (e) {
+    console.log("[resend-verify] فشل إرسال إيميل التفعيل:", e instanceof Error ? e.message : e);
+    failed = true;
+  }
+  redirect(failed ? "/dashboard?verify_error=1" : "/dashboard?verify_sent=1");
 }

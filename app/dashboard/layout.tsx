@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
 import { getCurrentUser } from "@/lib/auth";
+import { VerifyEmailBanner } from "./VerifyEmailBanner";
 
 const NAV = [
   { href: "/dashboard", label: "اليوم" },
@@ -57,7 +59,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
         ))}
       </nav>
 
-      <main className="flex-1 overflow-x-hidden p-6 pb-24 md:p-10">{children}</main>
+      <main className="flex-1 overflow-x-hidden p-6 pb-24 md:p-10">
+        {!user.emailVerifiedAt && (
+          <Suspense fallback={null}>
+            <VerifyEmailBanner email={user.email} />
+          </Suspense>
+        )}
+        {children}
+      </main>
     </div>
   );
 }

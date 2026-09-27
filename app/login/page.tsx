@@ -8,6 +8,25 @@ import { loginAction } from "@/app/actions/auth";
 import { LocaleProvider, useLocale } from "@/lib/i18n/locale-context";
 import { LanguageToggle } from "@/components/marketing/language-toggle";
 
+function VerifyMessage() {
+  const searchParams = useSearchParams();
+  const { t } = useLocale();
+  const verify = searchParams.get("verify");
+  if (!verify) return null;
+  if (verify === "success") {
+    return (
+      <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+        {t.login.verifySuccess}
+      </p>
+    );
+  }
+  return (
+    <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
+      {t.login.verifyInvalid}
+    </p>
+  );
+}
+
 function ErrorMessage() {
   const searchParams = useSearchParams();
   const { t } = useLocale();
@@ -46,6 +65,7 @@ function LoginCard() {
         <p className="mt-1 text-sm text-brand/50">{t.login.subtitle}</p>
 
         <Suspense fallback={null}>
+          <VerifyMessage />
           <ErrorMessage />
         </Suspense>
 

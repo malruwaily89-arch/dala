@@ -321,6 +321,7 @@ export async function createSalonAction(formData: FormData) {
           passwordHash: hashPassword(password),
           name: `مالكة ${name}`,
           role: "OWNER",
+          emailVerifiedAt: new Date(),
         },
       },
       subscriptions: {
