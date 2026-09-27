@@ -97,7 +97,7 @@ model Staff {
   tenantId     String
   name         String
   phone        String?
-  workingHours String  @default("{\"start\":\"09:00\",\"end\":\"21:00\",\"days\":[0,1,2,3,4,6]}")
+  workingHours String  @default("{\"start\":\"00:00\",\"end\":\"23:59\",\"days\":[0,1,2,3,4,5,6]}")
   isActive     Boolean @default(true)
   createdAt    DateTime @default(now())
 

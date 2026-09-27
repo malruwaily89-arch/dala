@@ -12,7 +12,7 @@ export function parseWorkingHours(json: string): WorkingHours {
     const parsed = JSON.parse(json) as WorkingHours;
     if (parsed?.start && parsed?.end && Array.isArray(parsed.days)) return parsed;
   } catch {}
-  return { start: "09:00", end: "21:00", days: [0, 1, 2, 3, 4, 6] };
+  return { start: "00:00", end: "23:59", days: [0, 1, 2, 3, 4, 5, 6] };
 }
 
 const SLOT_STEP_MIN = 30;

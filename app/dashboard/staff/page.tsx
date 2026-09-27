@@ -46,10 +46,10 @@ export default async function StaffPage({
           <div className="flex flex-wrap items-end gap-3">
             <Field name="name" label="الاسم" type="text" />
             <Field name="phone" label="الجوال (اختياري)" type="tel" />
-            <Field name="workStart" label="من" type="time" defaultValue="09:00" />
-            <Field name="workEnd" label="إلى" type="time" defaultValue="21:00" />
+            <Field name="workStart" label="من" type="time" defaultValue="00:00" />
+            <Field name="workEnd" label="إلى" type="time" defaultValue="23:59" />
           </div>
-          <DaysPicker defaultDays={[0, 1, 2, 3, 4, 6]} />
+          <DaysPicker defaultDays={[0, 1, 2, 3, 4, 5, 6]} />
           <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white hover:opacity-90">
             حفظ
           </button>
