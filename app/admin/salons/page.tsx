@@ -119,6 +119,9 @@ export default async function SalonsPage({
           {salons.map((s) => (
             <details key={s.id} className="rounded-lg border border-zinc-200 p-4">
               <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2">
+                <span dir="ltr" className="rounded-full bg-brand-gold/15 px-2 py-0.5 text-xs font-bold text-brand-gold">
+                  D{s.sequenceNumber}
+                </span>
                 <span className="font-bold">{s.name}</span>
                 <span dir="ltr" className="text-xs text-zinc-400">/b/{s.slug}</span>
                 <span className="text-xs text-zinc-500">{s.ownerEmail}</span>

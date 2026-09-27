@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { createAppointmentTx } from "@/lib/scheduling";
+import { canCancelAppointments, canAddAppointments, canManageStaffSchedules } from "@/lib/permissions";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 import { formatDateTime, formatSar } from "@/lib/utils";
 import { sendRatingRequestWhatsApp } from "@/app/b/[slug]/booking/[code]/actions";
@@ -76,6 +77,7 @@ export async function noShowAction(formData: FormData) {
 /** إلغاء الموعد + إخطار قائمة الانتظار */
 export async function cancelAppointmentAction(formData: FormData) {
   const user = await requireUser();
+  if (!canCancelAppointments(user)) redirect("/dashboard/appointments?error=forbidden");
   const id = String(formData.get("id"));
   const appt = await db.appointment.findFirst({
     where: { id, tenantId: user.tenantId, status: { in: ["pending_deposit", "confirmed"] } },
@@ -91,6 +93,7 @@ export async function cancelAppointmentAction(formData: FormData) {
 /** إنشاء موعد من لوحة التحكم */
 export async function createAppointmentAdminAction(formData: FormData) {
   const user = await requireUser();
+  if (!canAddAppointments(user)) redirect("/dashboard/appointments?error=forbidden");
   const customerId = String(formData.get("customerId"));
   const staffId = String(formData.get("staffId"));
   const serviceId = String(formData.get("serviceId"));
@@ -123,14 +126,18 @@ export async function createCustomerAction(formData: FormData) {
   const user = await requireUser();
   const name = String(formData.get("name") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
-  if (!name || !phone) redirect("/dashboard/customers?error=missing");
-  await db.customer.upsert({
+  const returnTo = String(formData.get("returnTo") || "/dashboard/customers");
+  if (!name || !phone) redirect(`${returnTo}?error=missing`);
+
+  const existing = await db.customer.findUnique({
     where: { tenantId_phone: { tenantId: user.tenantId, phone } },
-    update: { name },
-    create: { tenantId: user.tenantId, name, phone },
   });
+  if (existing) redirect(`${returnTo}?error=phone_exists`);
+
+  await db.customer.create({ data: { tenantId: user.tenantId, name, phone } });
   revalidatePath("/dashboard/customers");
   revalidatePath("/dashboard/appointments");
+  redirect(returnTo);
 }
 
 /** إدارة الخدمات */
@@ -156,6 +163,21 @@ export async function toggleServiceAction(formData: FormData) {
   revalidatePath("/dashboard/services");
 }
 
+/** حذف خدمة نهائياً — يُرفض لو عندها مواعيد سابقة (نقترح الإيقاف بدلاً من الحذف حينها) */
+export async function deleteServiceAction(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id"));
+  const service = await db.service.findFirst({ where: { id, tenantId: user.tenantId } });
+  if (!service) redirect("/dashboard/services?error=1");
+
+  const appointmentCount = await db.appointment.count({ where: { serviceId: id } });
+  if (appointmentCount > 0) redirect("/dashboard/services?error=has_appointments");
+
+  await db.service.delete({ where: { id } });
+  revalidatePath("/dashboard/services");
+  redirect("/dashboard/services?deleted=1");
+}
+
 /** إدارة الموظفات */
 /** يقرأ أيام العمل المختارة (checkboxes باسم day) — الأحد=0 ... السبت=6. بدون اختيار = كل أيام الأسبوع */
 function parseSelectedDays(formData: FormData): number[] {
@@ -165,7 +187,9 @@ function parseSelectedDays(formData: FormData): number[] {
 
 export async function createStaffAction(formData: FormData) {
   const user = await requireUser();
+  if (!canManageStaffSchedules(user)) redirect("/dashboard/staff?error=forbidden");
   const name = String(formData.get("name") || "").trim();
+  const jobTitle = String(formData.get("jobTitle") || "").trim() || null;
   const phone = String(formData.get("phone") || "").trim() || null;
   const start = String(formData.get("workStart") || "00:00");
   const end = String(formData.get("workEnd") || "23:59");
@@ -175,6 +199,7 @@ export async function createStaffAction(formData: FormData) {
     data: {
       tenantId: user.tenantId,
       name,
+      jobTitle,
       phone,
       workingHours: JSON.stringify({ start, end, days }),
     },
@@ -185,6 +210,7 @@ export async function createStaffAction(formData: FormData) {
 /** تعديل ساعات وأيام عمل موظفة موجودة */
 export async function updateStaffScheduleAction(formData: FormData) {
   const user = await requireUser();
+  if (!canManageStaffSchedules(user)) redirect("/dashboard/staff?error=forbidden");
   const id = String(formData.get("id"));
   const start = String(formData.get("workStart") || "00:00");
   const end = String(formData.get("workEnd") || "23:59");

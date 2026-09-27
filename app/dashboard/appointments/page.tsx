@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { APPT_STATUS, formatDateTime } from "@/lib/utils";
+import { canAddAppointments, canCancelAppointments, canViewAppointmentStatus } from "@/lib/permissions";
 import { EmptyState, Banner } from "../ui";
 import {
   confirmDepositAction,
@@ -9,6 +10,11 @@ import {
   createAppointmentAdminAction,
   createCustomerAction,
 } from "@/app/actions/appointments";
+
+const ERROR_MESSAGES: Record<string, string> = {
+  missing: "يرجى تعبئة جميع الحقول المطلوبة.",
+  phone_exists: "رقم الجوال هذا مسجّل مسبقاً لعميلة أخرى — لا يمكن تكراره.",
+};
 
 export default async function AppointmentsPage({
   searchParams,
@@ -35,27 +41,29 @@ export default async function AppointmentsPage({
       <h1 className="text-2xl font-extrabold">المواعيد</h1>
       <p className="mt-1 text-sm text-zinc-500">كل الحجوزات — القادمة والسابقة.</p>
 
-      {error && <Banner>{error}</Banner>}
+      {error && <Banner>{ERROR_MESSAGES[error] ?? error}</Banner>}
       {ok && <Banner success>تم إنشاء الموعد بنجاح.</Banner>}
 
       {/* إنشاء موعد */}
-      <details className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <summary className="cursor-pointer font-bold text-brand">+ موعد جديد</summary>
-        <form action={createAppointmentAdminAction} className="mt-4 grid gap-3 sm:grid-cols-2">
-          <Select name="customerId" label="العميلة" options={customers.map((c) => ({ v: c.id, l: `${c.name} (${c.phone})` }))} />
-          <Select name="staffId" label="الموظفة" options={staff.map((s) => ({ v: s.id, l: s.name }))} />
-          <Select name="serviceId" label="الخدمة" options={services.map((s) => ({ v: s.id, l: s.name }))} />
-          <div className="grid grid-cols-2 gap-3">
-            <Input name="date" label="التاريخ" type="date" />
-            <Input name="time" label="الوقت" type="time" />
-          </div>
-          <div className="sm:col-span-2">
-            <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white hover:opacity-90">
-              إنشاء الموعد
-            </button>
-          </div>
-        </form>
-      </details>
+      {canAddAppointments(user) && (
+        <details className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <summary className="cursor-pointer font-bold text-brand">+ موعد جديد</summary>
+          <form action={createAppointmentAdminAction} className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Select name="customerId" label="العميلة" options={customers.map((c) => ({ v: c.id, l: `${c.name} (${c.phone})` }))} />
+            <Select name="staffId" label="الموظفة" options={staff.map((s) => ({ v: s.id, l: s.name }))} />
+            <Select name="serviceId" label="الخدمة" options={services.map((s) => ({ v: s.id, l: s.name }))} />
+            <div className="grid grid-cols-2 gap-3">
+              <Input name="date" label="التاريخ" type="date" />
+              <Input name="time" label="الوقت" type="time" />
+            </div>
+            <div className="sm:col-span-2">
+              <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white hover:opacity-90">
+                إنشاء الموعد
+              </button>
+            </div>
+          </form>
+        </details>
+      )}
 
       {appointments.length === 0 ? (
         <EmptyState text="لا مواعيد بعد." />
@@ -74,9 +82,11 @@ export default async function AppointmentsPage({
                     {appt.customer.name} · {appt.service.name} · {appt.staff.name} · {appt.bookingCode}
                   </p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${status.color}`}>
-                  {status.label}
-                </span>
+                {canViewAppointmentStatus(user) && (
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${status.color}`}>
+                    {status.label}
+                  </span>
+                )}
                 {appt.status === "pending_deposit" && (
                   <form action={confirmDepositAction}>
                     <input type="hidden" name="id" value={appt.id} />
@@ -89,7 +99,7 @@ export default async function AppointmentsPage({
                     <MiniBtn className="bg-sky-600 text-white">مكتمل</MiniBtn>
                   </form>
                 )}
-                {(appt.status === "pending_deposit" || appt.status === "confirmed") && (
+                {(appt.status === "pending_deposit" || appt.status === "confirmed") && canCancelAppointments(user) && (
                   <form action={cancelAppointmentAction}>
                     <input type="hidden" name="id" value={appt.id} />
                     <MiniBtn className="border border-zinc-300 text-zinc-500">إلغاء</MiniBtn>
@@ -105,6 +115,7 @@ export default async function AppointmentsPage({
       <details className="mt-8 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <summary className="cursor-pointer font-bold text-brand">+ عميلة جديدة</summary>
         <form action={createCustomerAction} className="mt-4 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="returnTo" value="/dashboard/appointments" />
           <Input name="name" label="الاسم" type="text" />
           <Input name="phone" label="الجوال" type="tel" />
           <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white hover:opacity-90">

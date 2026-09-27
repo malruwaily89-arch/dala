@@ -1,10 +1,20 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { parseWorkingHours } from "@/lib/scheduling";
 import { createStaffAction, toggleStaffAction, updateStaffScheduleAction } from "@/app/actions/appointments";
 import { getStaffPerformanceReport } from "@/app/actions/reports";
 import { formatSar } from "@/lib/utils";
+import { canManageStaffSchedules, canViewReportsAndFinance, isStaffAccount } from "@/lib/permissions";
 import { EmptyState, Banner } from "../ui";
+import { CreateStaffLoginForm, EditStaffPermissionsForm } from "./StaffAccountForm";
+
+const ERROR_MESSAGES: Record<string, string> = {
+  missing: "يرجى تعبئة جميع الحقول المطلوبة.",
+  forbidden: "ليس لديك صلاحية لهذا الإجراء — راجعي المالكة.",
+  password: "كلمة المرور يجب أن تكون 6 أحرف على الأقل.",
+  exists: "هذا البريد الإلكتروني مستخدم مسبقاً.",
+};
 
 const PERFORMANCE_LABEL: Record<string, { label: string; className: string }> = {
   busy: { label: "مشغولة جداً", className: "bg-rose-100 text-rose-700" },
@@ -17,15 +27,16 @@ const DAY_NAMES = ["الأحد", "الاثنين", "الثلاثاء", "الأر
 export default async function StaffPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; ok?: string }>;
 }) {
   const user = await requireUser();
-  const { error } = await searchParams;
+  const { error, ok } = await searchParams;
 
   const [staff, performance] = await Promise.all([
     db.staff.findMany({
       where: { tenantId: user.tenantId },
       orderBy: [{ isActive: "desc" }, { name: "asc" }],
+      include: { loginUser: true },
     }),
     getStaffPerformanceReport(),
   ]);
@@ -38,23 +49,27 @@ export default async function StaffPage({
         ساعات وأيام عمل كل موظفة تحدد المواعيد المتاحة في صفحة الحجز.
       </p>
 
-      {error && <Banner>{error}</Banner>}
+      {error && <Banner>{ERROR_MESSAGES[error] ?? error}</Banner>}
+      {ok && <Banner success>تم تنفيذ الإجراء بنجاح.</Banner>}
 
-      <details className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <summary className="cursor-pointer font-bold text-brand">+ موظفة جديدة</summary>
-        <form action={createStaffAction} className="mt-4 space-y-4">
-          <div className="flex flex-wrap items-end gap-3">
-            <Field name="name" label="الاسم" type="text" />
-            <Field name="phone" label="الجوال (اختياري)" type="tel" />
-            <Field name="workStart" label="من" type="time" defaultValue="00:00" />
-            <Field name="workEnd" label="إلى" type="time" defaultValue="23:59" />
-          </div>
-          <DaysPicker defaultDays={[0, 1, 2, 3, 4, 5, 6]} />
-          <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white hover:opacity-90">
-            حفظ
-          </button>
-        </form>
-      </details>
+      {canManageStaffSchedules(user) && (
+        <details className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <summary className="cursor-pointer font-bold text-brand">+ موظفة جديدة</summary>
+          <form action={createStaffAction} className="mt-4 space-y-4">
+            <div className="flex flex-wrap items-end gap-3">
+              <Field name="name" label="الاسم" type="text" />
+              <Field name="jobTitle" label="المسمى الوظيفي (اختياري)" type="text" optional />
+              <Field name="phone" label="الجوال (اختياري)" type="tel" />
+              <Field name="workStart" label="من" type="time" defaultValue="00:00" />
+              <Field name="workEnd" label="إلى" type="time" defaultValue="23:59" />
+            </div>
+            <DaysPicker defaultDays={[0, 1, 2, 3, 4, 5, 6]} />
+            <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white hover:opacity-90">
+              حفظ
+            </button>
+          </form>
+        </details>
+      )}
 
       {staff.length === 0 ? (
         <EmptyState text="أضيفي أول موظفة لتفعيل الحجوزات." />
@@ -71,7 +86,10 @@ export default async function StaffPage({
               >
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                   <div className="min-w-56 flex-1">
-                    <p className="font-bold">{s.name}</p>
+                    <p className="font-bold">
+                      {s.name}
+                      {s.jobTitle && <span className="ms-2 text-xs font-semibold text-brand/60">— {s.jobTitle}</span>}
+                    </p>
                     <p className="text-sm text-zinc-600">
                       {hours.start} — {hours.end} ·{" "}
                       {hours.days.map((d) => DAY_NAMES[d]).join("، ")}
@@ -89,6 +107,12 @@ export default async function StaffPage({
                   >
                     {s.isActive ? "على رأس العمل" : "موقوفة"}
                   </span>
+                  <Link
+                    href={`/dashboard/staff/${s.id}/schedule`}
+                    className="rounded-full border border-brand/20 bg-brand/5 px-4 py-2 text-xs font-bold text-brand hover:bg-brand/10"
+                  >
+                    الجدول
+                  </Link>
                   <form action={toggleStaffAction}>
                     <input type="hidden" name="id" value={s.id} />
                     <button className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-bold text-zinc-600 hover:bg-zinc-50">
@@ -97,22 +121,48 @@ export default async function StaffPage({
                   </form>
                 </div>
 
-                <details className="mt-3 border-t border-zinc-100 pt-3">
-                  <summary className="cursor-pointer text-xs font-bold text-brand">تعديل ساعات وأيام العمل</summary>
-                  <form action={updateStaffScheduleAction} className="mt-3 space-y-3">
-                    <input type="hidden" name="id" value={s.id} />
-                    <div className="flex flex-wrap items-end gap-3">
-                      <Field name="workStart" label="من" type="time" defaultValue={hours.start} />
-                      <Field name="workEnd" label="إلى" type="time" defaultValue={hours.end} />
-                    </div>
-                    <DaysPicker defaultDays={hours.days} />
-                    <button className="rounded-full bg-zinc-800 px-5 py-2 text-xs font-bold text-white hover:opacity-90">
-                      حفظ التعديل
-                    </button>
-                  </form>
-                </details>
+                {canManageStaffSchedules(user) && (
+                  <details className="mt-3 border-t border-zinc-100 pt-3">
+                    <summary className="cursor-pointer text-xs font-bold text-brand">تعديل ساعات وأيام العمل</summary>
+                    <form action={updateStaffScheduleAction} className="mt-3 space-y-3">
+                      <input type="hidden" name="id" value={s.id} />
+                      <div className="flex flex-wrap items-end gap-3">
+                        <Field name="workStart" label="من" type="time" defaultValue={hours.start} />
+                        <Field name="workEnd" label="إلى" type="time" defaultValue={hours.end} />
+                      </div>
+                      <DaysPicker defaultDays={hours.days} />
+                      <button className="rounded-full bg-zinc-800 px-5 py-2 text-xs font-bold text-white hover:opacity-90">
+                        حفظ التعديل
+                      </button>
+                    </form>
+                  </details>
+                )}
 
-                {perf && (
+                {!isStaffAccount(user) && (
+                  <details className="mt-3 border-t border-zinc-100 pt-3">
+                    <summary className="cursor-pointer text-xs font-bold text-brand">
+                      حساب الدخول والصلاحيات {s.loginUser ? "(مفعّل)" : "(غير مُنشأ)"}
+                    </summary>
+                    <div className="mt-3">
+                      {s.loginUser ? (
+                        <EditStaffPermissionsForm
+                          userId={s.loginUser.id}
+                          email={s.loginUser.email}
+                          permissions={{
+                            canCancelAppointments: s.loginUser.canCancelAppointments,
+                            canAddAppointments: s.loginUser.canAddAppointments,
+                            canViewAppointmentStatus: s.loginUser.canViewAppointmentStatus,
+                            canManageStaffSchedules: s.loginUser.canManageStaffSchedules,
+                          }}
+                        />
+                      ) : (
+                        <CreateStaffLoginForm staffId={s.id} />
+                      )}
+                    </div>
+                  </details>
+                )}
+
+                {canViewReportsAndFinance(user) && perf && (
                   <div className="mt-3 grid grid-cols-2 gap-2 border-t border-zinc-100 pt-3 sm:grid-cols-4">
                     <MetricBox label="مواعيد اليوم" value={String(perf.todayCount)} />
                     <MetricBox label="مواعيد الشهر" value={String(perf.monthCount)} />
@@ -126,7 +176,7 @@ export default async function StaffPage({
         </ul>
       )}
 
-      {staff.length > 0 && (
+      {staff.length > 0 && canViewReportsAndFinance(user) && (
         <>
           <h2 className="mt-10 text-lg font-bold">ملخص المبالغ المحصّلة لكل موظفة</h2>
           <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
@@ -187,11 +237,13 @@ function Field({
   label,
   type,
   defaultValue,
+  optional = false,
 }: {
   name: string;
   label: string;
   type: string;
   defaultValue?: string;
+  optional?: boolean;
 }) {
   return (
     <label className="block flex-1">
@@ -201,7 +253,7 @@ function Field({
         type={type}
         defaultValue={defaultValue}
         dir={type === "tel" ? "ltr" : undefined}
-        required={type !== "tel"}
+        required={!optional && type !== "tel"}
         className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
       />
     </label>

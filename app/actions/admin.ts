@@ -270,6 +270,7 @@ export async function getSalonsForManagement() {
 
   return tenants.map((t) => ({
     id: t.id,
+    sequenceNumber: t.sequenceNumber,
     name: t.name,
     slug: t.slug,
     phone: t.phone,

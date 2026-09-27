@@ -14,6 +14,7 @@ datasource db {
 // الصالون (المستأجر)
 model Tenant {
   id          String    @id @default(cuid())
+  sequenceNumber Int    @unique @default(autoincrement()) // هوية الصالون بالنظام: يُعرض كـ D1, D2... ثابت لا يتغيّر ولا يُحذف
   name        String
   slug        String    @unique // رابط الحجز العام: /b/{slug}
   phone       String
@@ -48,7 +49,7 @@ model User {
   email        String   @unique
   passwordHash String
   name         String
-  role         String   @default("OWNER") // OWNER | SUPER_ADMIN
+  role         String   @default("OWNER") // OWNER | STAFF | SUPER_ADMIN
   createdAt    DateTime @default(now())
 
   // تفعيل البريد الإلكتروني
@@ -56,7 +57,15 @@ model User {
   verifyToken          String?   @unique
   verifyTokenExpiresAt DateTime?
 
+  // حساب موظفة (role=STAFF): ربط بسجل الموظفة + صلاحياتها الممنوحة من المالكة
+  staffId                   String?  @unique
+  canCancelAppointments     Boolean  @default(false)
+  canAddAppointments        Boolean  @default(false)
+  canViewAppointmentStatus  Boolean  @default(true)
+  canManageStaffSchedules   Boolean  @default(false)
+
   tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  staff    Staff?    @relation(fields: [staffId], references: [id], onDelete: SetNull)
   sessions Session[]
 
   @@map("users")
@@ -96,6 +105,7 @@ model Staff {
   id           String  @id @default(cuid())
   tenantId     String
   name         String
+  jobTitle     String? // المسمى الوظيفي (مثال: أخصائية تجميل)
   phone        String?
   workingHours String  @default("{\"start\":\"00:00\",\"end\":\"23:59\",\"days\":[0,1,2,3,4,5,6]}")
   isActive     Boolean @default(true)
@@ -103,6 +113,7 @@ model Staff {
 
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   appointments Appointment[]
+  loginUser    User?
 
   @@map("staff")
 }

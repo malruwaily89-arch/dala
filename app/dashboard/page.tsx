@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { startOfDay, endOfDay } from "@/lib/scheduling";
 import { APPT_STATUS, formatSar, formatTime } from "@/lib/utils";
+import { canCancelAppointments, canViewAppointmentStatus, canViewReportsAndFinance } from "@/lib/permissions";
 import {
   confirmDepositAction,
   completeAppointmentAction,
@@ -42,8 +43,12 @@ export default async function TodayPage() {
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="مواعيد اليوم" value={String(stats.todayCount)} />
         <StatCard label="بانتظار العربون" value={String(stats.pendingDeposits)} highlight={stats.pendingDeposits > 0} />
-        <StatCard label="إيراد متوقع" value={formatSar(stats.expectedRevenue)} />
-        <StatCard label="إجمالي إيرادات اليوم" value={formatSar(stats.todayRevenue)} />
+        {canViewReportsAndFinance(user) && (
+          <>
+            <StatCard label="إيراد متوقع" value={formatSar(stats.expectedRevenue)} />
+            <StatCard label="إجمالي إيرادات اليوم" value={formatSar(stats.todayRevenue)} />
+          </>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -80,9 +85,11 @@ export default async function TodayPage() {
                     {appt.service.name} — مع {appt.staff.name} · {appt.bookingCode}
                   </p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${status.color}`}>
-                  {status.label}
-                </span>
+                {canViewAppointmentStatus(user) && (
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${status.color}`}>
+                    {status.label}
+                  </span>
+                )}
                 <div className="flex flex-wrap gap-2">
                   {appt.status === "pending_deposit" && (
                     <form action={confirmDepositAction}>
@@ -102,7 +109,7 @@ export default async function TodayPage() {
                       </form>
                     </>
                   )}
-                  {(appt.status === "pending_deposit" || appt.status === "confirmed") && (
+                  {(appt.status === "pending_deposit" || appt.status === "confirmed") && canCancelAppointments(user) && (
                     <form action={cancelAppointmentAction}>
                       <input type="hidden" name="id" value={appt.id} />
                       <ActionBtn className="border border-zinc-300 text-zinc-500">إلغاء</ActionBtn>
