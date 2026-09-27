@@ -264,7 +264,7 @@ export async function getSalonsForManagement() {
     orderBy: { createdAt: "desc" },
     include: {
       subscriptions: { orderBy: { createdAt: "desc" }, take: 1 },
-      users: { where: { role: "OWNER" }, take: 1, select: { email: true } },
+      users: { where: { role: "OWNER" }, take: 1, select: { id: true, email: true } },
     },
   });
 
@@ -273,6 +273,7 @@ export async function getSalonsForManagement() {
     name: t.name,
     slug: t.slug,
     phone: t.phone,
+    ownerUserId: t.users[0]?.id ?? null,
     ownerEmail: t.users[0]?.email ?? "—",
     subscriptionId: t.subscriptions[0]?.id ?? null,
     plan: t.subscriptions[0]?.plan ?? "—",
@@ -377,6 +378,48 @@ export async function updateSalonStatusAction(formData: FormData) {
   revalidatePath("/admin/churn");
   revalidatePath("/admin/overdue");
   redirect("/admin/salons?ok=1");
+}
+
+/** حذف صالون نهائياً (يحذف تبعاً له كل مستخدميه وحجوزاته وبياناته — Cascade من Prisma) */
+export async function deleteSalonAction(formData: FormData) {
+  await requireSuperAdmin();
+
+  const tenantId = String(formData.get("tenantId") || "");
+  if (!tenantId) redirect("/admin/salons?error=1");
+
+  const tenant = await db.tenant.findUnique({ where: { id: tenantId }, select: { slug: true } });
+  if (!tenant || PLATFORM_SLUGS.includes(tenant.slug)) {
+    redirect("/admin/salons?error=1");
+  }
+
+  await db.tenant.delete({ where: { id: tenantId } });
+
+  revalidatePath("/admin/salons");
+  revalidatePath("/admin");
+  redirect("/admin/salons?deleted=1");
+}
+
+/** حذف مستخدم واحد فقط (بدون حذف الصالون) — يُستخدم عند تعدد المستخدمين لنفس الصالون */
+export async function deleteUserAction(formData: FormData) {
+  const currentAdmin = await requireSuperAdmin();
+
+  const userId = String(formData.get("userId") || "");
+  if (!userId) redirect("/admin/salons?error=1");
+  if (userId === currentAdmin.id) redirect("/admin/salons?error=1"); // لا تحذفي حسابك أثناء استخدامه
+
+  const target = await db.user.findUnique({ where: { id: userId }, select: { role: true } });
+  if (!target) redirect("/admin/salons?error=1");
+
+  if (target.role === "SUPER_ADMIN") {
+    const remainingAdmins = await db.user.count({ where: { role: "SUPER_ADMIN" } });
+    if (remainingAdmins <= 1) redirect("/admin/salons?error=1"); // لا تحذفي آخر سوبر أدمن
+  }
+
+  await db.user.delete({ where: { id: userId } });
+
+  revalidatePath("/admin/salons");
+  revalidatePath("/admin");
+  redirect("/admin/salons?deleted=1");
 }
 
 /** تسجيل دفعة يدوية للصالون */

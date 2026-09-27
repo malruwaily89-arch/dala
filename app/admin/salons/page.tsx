@@ -5,16 +5,17 @@ import {
   updateSalonStatusAction,
   recordManualPaymentAction,
 } from "@/app/actions/admin";
+import { DeleteSalonForm, DeleteUserForm } from "./DangerZoneForms";
 
 const PLANS = ["BASIC", "PRO", "ADVANCED", "BASIC_PRO", "PRO_PRO", "ADVANCED_PRO"];
 
 export default async function SalonsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ok?: string; error?: string }>;
+  searchParams: Promise<{ ok?: string; error?: string; deleted?: string }>;
 }) {
   const salons = await getSalonsForManagement();
-  const { ok, error } = await searchParams;
+  const { ok, error, deleted } = await searchParams;
 
   return (
     <div className="space-y-8">
@@ -30,7 +31,12 @@ export default async function SalonsPage({
       )}
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-800">
-          {error === "exists" ? "الرابط أو البريد مستخدم مسبقاً." : "تحقق من الحقول المطلوبة."}
+          {error === "exists" ? "الرابط أو البريد مستخدم مسبقاً." : "تحقق من الحقول المطلوبة، أو أن هذا الإجراء غير مسموح (مثل حذف آخر سوبر أدمن)."}
+        </div>
+      )}
+      {deleted && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+          تم الحذف بنجاح.
         </div>
       )}
 
@@ -181,6 +187,16 @@ export default async function SalonsPage({
                     </button>
                   </div>
                 </form>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
+                <p className="text-xs font-bold text-rose-700">منطقة الخطر — الحذف نهائي ولا يمكن التراجع عنه</p>
+                <div className="flex flex-wrap gap-2">
+                  {s.ownerUserId && (
+                    <DeleteUserForm userId={s.ownerUserId} userEmail={s.ownerEmail} />
+                  )}
+                  <DeleteSalonForm tenantId={s.id} tenantName={s.name} />
+                </div>
               </div>
             </details>
           ))}
