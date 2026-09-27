@@ -6,6 +6,20 @@ import type { getMonthlyReport, getAdvancedReport } from "@/app/actions/reports"
 type MonthlyReport = Awaited<ReturnType<typeof getMonthlyReport>>;
 type AdvancedReport = Awaited<ReturnType<typeof getAdvancedReport>>;
 
+function downloadBlob(buffer: ArrayBuffer, filename: string) {
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 export function ReportExportButtons({
   report,
   advanced,
@@ -22,9 +36,19 @@ export function ReportExportButtons({
   async function handleExportExcel() {
     setBusy("excel");
     try {
-      const XLSX = await import("xlsx");
+      const ExcelJS = await import("exceljs");
+      const workbook = new ExcelJS.Workbook();
 
-      const summarySheet = XLSX.utils.json_to_sheet([
+      function addKeyValueSheet(name: string, rows: { المؤشر: string; القيمة: string | number }[]) {
+        const sheet = workbook.addWorksheet(name);
+        sheet.columns = [
+          { header: "المؤشر", key: "k", width: 32 },
+          { header: "القيمة", key: "v", width: 22 },
+        ];
+        sheet.addRows(rows.map((r) => ({ k: r.المؤشر, v: r.القيمة })));
+      }
+
+      addKeyValueSheet("ملخص التقرير", [
         { المؤشر: "مواعيد مؤكدة", القيمة: report.confirmedCount },
         { المؤشر: "مواعيد مكتملة", القيمة: report.doneCount },
         { المؤشر: "مواعيد ملغاة", القيمة: report.cancelledCount },
@@ -35,27 +59,33 @@ export function ReportExportButtons({
         { المؤشر: "عربون من حجوزات مُعدَّلة", القيمة: report.rescheduledDepositTotal },
       ]);
 
-      const servicesSheet = XLSX.utils.json_to_sheet(
-        report.topServices.map((s) => ({ الخدمة: s.name, "عدد الحجوزات": s.count }))
-      );
+      const servicesSheet = workbook.addWorksheet("الخدمات");
+      servicesSheet.columns = [
+        { header: "الخدمة", key: "name", width: 30 },
+        { header: "عدد الحجوزات", key: "count", width: 18 },
+      ];
+      servicesSheet.addRows(report.topServices.map((s) => ({ name: s.name, count: s.count })));
 
-      const staffRows = report.topStaff.flatMap((s) =>
-        s.services.map((svc) => ({
-          الموظفة: s.name,
-          "إجمالي مواعيد الموظفة": s.count,
-          الخدمة: svc.name,
-          "عدد حجوزات الخدمة": svc.count,
-        }))
+      const staffSheet = workbook.addWorksheet("الموظفات");
+      staffSheet.columns = [
+        { header: "الموظفة", key: "staff", width: 22 },
+        { header: "إجمالي مواعيد الموظفة", key: "staffTotal", width: 22 },
+        { header: "الخدمة", key: "service", width: 22 },
+        { header: "عدد حجوزات الخدمة", key: "serviceCount", width: 20 },
+      ];
+      staffSheet.addRows(
+        report.topStaff.flatMap((s) =>
+          s.services.map((svc) => ({
+            staff: s.name,
+            staffTotal: s.count,
+            service: svc.name,
+            serviceCount: svc.count,
+          }))
+        )
       );
-      const staffSheet = XLSX.utils.json_to_sheet(staffRows);
-
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, summarySheet, "ملخص التقرير");
-      XLSX.utils.book_append_sheet(workbook, servicesSheet, "الخدمات");
-      XLSX.utils.book_append_sheet(workbook, staffSheet, "الموظفات");
 
       if (advanced) {
-        const advancedSheet = XLSX.utils.json_to_sheet([
+        addKeyValueSheet("تقارير متقدمة", [
           { المؤشر: "العربون المحصّل هذا الشهر", القيمة: advanced.currentCollected },
           { المؤشر: "العربون المحصّل الشهر السابق", القيمة: advanced.prevCollected },
           { المؤشر: "نسبة التغيّر", القيمة: `${advanced.revenueChangePercent.toFixed(1)}%` },
@@ -65,10 +95,10 @@ export function ReportExportButtons({
           { المؤشر: "معدل الإلغاء", القيمة: `${advanced.cancellationRate.toFixed(1)}%` },
           { المؤشر: "معدل عدم الحضور", القيمة: `${advanced.noShowRate.toFixed(1)}%` },
         ]);
-        XLSX.utils.book_append_sheet(workbook, advancedSheet, "تقارير متقدمة");
       }
 
-      XLSX.writeFile(workbook, `تقرير-${monthLabel}.xlsx`);
+      const buffer = await workbook.xlsx.writeBuffer();
+      downloadBlob(buffer as ArrayBuffer, `تقرير-${monthLabel}.xlsx`);
     } finally {
       setBusy(null);
     }
