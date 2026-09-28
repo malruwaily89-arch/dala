@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { parseWorkingHours } from "@/lib/scheduling";
+import { parseWorkingHours, weeklyCapacityHours } from "@/lib/scheduling";
 import { createStaffAction, toggleStaffAction, updateStaffScheduleAction } from "@/app/actions/appointments";
 import { getStaffPerformanceReport, getStaffAvailabilityReport } from "@/app/actions/reports";
 import { formatSar } from "@/lib/utils";
@@ -81,7 +81,7 @@ export default async function StaffPage({
             const hours = parseWorkingHours(s.workingHours);
             const perf = perfById.get(s.id);
             const avail = availById.get(s.id);
-            const perfInfo = perf ? PERFORMANCE_LABEL[perf.performanceLevel] : null;
+            const perfInfo = avail ? PERFORMANCE_LABEL[avail.busyLevel] : null;
             return (
               <li
                 key={s.id}
@@ -96,11 +96,15 @@ export default async function StaffPage({
                     <p className="text-sm text-zinc-600">
                       {hours.start} — {hours.end} ·{" "}
                       {hours.days.map((d) => DAY_NAMES[d]).join("، ")}
+                      <span className="ms-1.5 text-xs text-zinc-400">
+                        (= {formatHours(weeklyCapacityHours(hours))} أسبوعياً)
+                      </span>
                     </p>
                   </div>
                   {perfInfo && (
                     <span className={`rounded-full px-3 py-1 text-xs font-bold ${perfInfo.className}`}>
                       {perfInfo.label}
+                      {avail && ` (${Math.round(avail.busyRatio * 100)}%)`}
                     </span>
                   )}
                   <span
@@ -207,7 +211,8 @@ export default async function StaffPage({
               <tbody>
                 {staff.map((s) => {
                   const perf = perfById.get(s.id);
-                  const perfInfo = perf ? PERFORMANCE_LABEL[perf.performanceLevel] : null;
+                  const avail = availById.get(s.id);
+                  const perfInfo = avail ? PERFORMANCE_LABEL[avail.busyLevel] : null;
                   return (
                     <tr key={s.id} className="border-t border-zinc-100">
                       <td className="p-4 font-bold">{s.name}</td>
@@ -221,6 +226,7 @@ export default async function StaffPage({
                         {perfInfo && (
                           <span className={`rounded-full px-3 py-1 text-xs font-bold ${perfInfo.className}`}>
                             {perfInfo.label}
+                            {avail && ` (${Math.round(avail.busyRatio * 100)}%)`}
                           </span>
                         )}
                       </td>
@@ -234,6 +240,12 @@ export default async function StaffPage({
       )}
     </div>
   );
+}
+
+/** ٤٨ أو ٤٨.٥ — بدون كسور زائدة */
+function formatHours(hours: number): string {
+  const rounded = Math.round(hours * 10) / 10;
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} ساعة`;
 }
 
 function MetricBox({ label, value }: { label: string; value: string }) {

@@ -17,7 +17,11 @@ export function parseWorkingHours(json: string): WorkingHours {
 
 export const SLOT_STEP_MIN = 30;
 
-/** حدود ساعات عمل موظفة ليوم معيّن، كتاريخين (بداية/نهاية) */
+/**
+ * حدود ساعات عمل موظفة ليوم معيّن، كتاريخين (بداية/نهاية).
+ * لو النهاية <= البداية (مثال: تبدأ ٤:٠٠ م وتنتهي ١٢:٠٠ ص) فهذه نوبة تمتد لما بعد
+ * منتصف الليل — النهاية الفعلية تكون اليوم التالي.
+ */
 export function dayWorkWindow(day: Date, hours: Pick<WorkingHours, "start" | "end">) {
   const [h1, m1] = hours.start.split(":").map(Number);
   const [h2, m2] = hours.end.split(":").map(Number);
@@ -25,7 +29,18 @@ export function dayWorkWindow(day: Date, hours: Pick<WorkingHours, "start" | "en
   start.setHours(h1, m1, 0, 0);
   const end = new Date(day);
   end.setHours(h2, m2, 0, 0);
+  if (end.getTime() <= start.getTime()) {
+    end.setDate(end.getDate() + 1);
+  }
   return { start, end };
+}
+
+/** إجمالي ساعات عمل الموظفة أسبوعياً: ساعات اليوم الواحد × عدد أيام العمل */
+export function weeklyCapacityHours(hours: WorkingHours): number {
+  if (hours.days.length === 0) return 0;
+  const { start, end } = dayWorkWindow(new Date(2000, 0, 3), hours); // أي يوم مرجعي — المدة فقط هي المهمة
+  const dailyHours = (end.getTime() - start.getTime()) / 3_600_000;
+  return dailyHours * hours.days.length;
 }
 
 export type DayTimelineRow<T> = { kind: "appt"; appt: T } | { kind: "gap"; start: Date; end: Date };
@@ -92,31 +107,27 @@ export async function getAvailableSlots(params: {
 }): Promise<Date[]> {
   const { tenantId, staffId, serviceId, date } = params;
 
-  const [staff, service, dayAppointments] = await Promise.all([
+  const [staff, service] = await Promise.all([
     db.staff.findFirst({ where: { id: staffId, tenantId, isActive: true } }),
     db.service.findFirst({ where: { id: serviceId, tenantId, isActive: true } }),
-    db.appointment.findMany({
-      where: {
-        tenantId,
-        staffId,
-        status: { in: ["pending_deposit", "confirmed"] },
-        startsAt: { gte: startOfDay(date), lt: endOfDay(date) },
-      },
-      select: { startsAt: true, endsAt: true },
-    }),
   ]);
 
   if (!staff || !service) return [];
   const hours = parseWorkingHours(staff.workingHours);
   if (!hours.days.includes(date.getDay())) return [];
 
-  const [h1, m1] = hours.start.split(":").map(Number);
-  const [h2, m2] = hours.end.split(":").map(Number);
+  // النطاق الفعلي لساعات العمل — يمتد لليوم التالي تلقائياً لو النوبة تعبر منتصف الليل
+  const { start: workStart, end: workEnd } = dayWorkWindow(date, hours);
 
-  const workStart = new Date(date);
-  workStart.setHours(h1, m1, 0, 0);
-  const workEnd = new Date(date);
-  workEnd.setHours(h2, m2, 0, 0);
+  const dayAppointments = await db.appointment.findMany({
+    where: {
+      tenantId,
+      staffId,
+      status: { in: ["pending_deposit", "confirmed"] },
+      startsAt: { gte: workStart, lt: workEnd },
+    },
+    select: { startsAt: true, endsAt: true },
+  });
 
   const now = new Date();
   const slots: Date[] = [];

@@ -2,7 +2,14 @@
 
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { parseWorkingHours, countAvailableSlotsForDay, startOfDay, endOfDay } from "@/lib/scheduling";
+import {
+  parseWorkingHours,
+  countAvailableSlotsForDay,
+  dayWorkWindow,
+  weeklyCapacityHours,
+  startOfDay,
+  endOfDay,
+} from "@/lib/scheduling";
 
 /** بيانات تقرير الشهر الحالي المبسّط للوحة صاحبة الصالون */
 export async function getMonthlyReport() {
@@ -196,13 +203,6 @@ export async function getStaffPerformanceReport() {
     byStaff.set(a.staffId, list);
   }
 
-  // متوسط عدد المواعيد هذا الشهر بين كل الموظفات — أساس تحديد مستوى الأداء
-  const staffWithAppts = staffList.filter((s) => (byStaff.get(s.id)?.length ?? 0) > 0 || s.isActive);
-  const avgMonthCount =
-    staffWithAppts.length > 0
-      ? appointments.length / staffWithAppts.length
-      : 0;
-
   const rows = staffList.map((s) => {
     const monthAppts = byStaff.get(s.id) ?? [];
     const todayAppts = monthAppts.filter((a) => a.startsAt >= todayStart && a.startsAt <= todayEnd);
@@ -218,15 +218,6 @@ export async function getStaffPerformanceReport() {
     const collectedPriorDays = priorDaysAppts.reduce((sum, a) => sum + a.depositAmount, 0);
     const collectedMonthTotal = collectedToday + collectedPriorDays;
 
-    let performanceLevel: "busy" | "active" | "quiet" = "quiet";
-    if (avgMonthCount > 0) {
-      if (monthCount >= avgMonthCount * 1.5) performanceLevel = "busy";
-      else if (monthCount >= avgMonthCount * 0.7) performanceLevel = "active";
-      else performanceLevel = "quiet";
-    } else if (monthCount > 0) {
-      performanceLevel = "active";
-    }
-
     return {
       id: s.id,
       name: s.name,
@@ -236,11 +227,10 @@ export async function getStaffPerformanceReport() {
       collectedToday,
       collectedPriorDays,
       collectedMonthTotal,
-      performanceLevel,
     };
   });
 
-  return { rows, avgMonthCount };
+  return { rows };
 }
 
 /**
@@ -258,11 +248,13 @@ export async function getStaffAvailabilityReport() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
   const scanEnd = weekEnd > monthEnd ? weekEnd : monthEnd;
+  // نطاق أوسع بيوم: نوبة آخر يوم مُفحوص قد تمتد لما بعد منتصف الليل
+  const fetchEnd = new Date(scanEnd.getTime() + 24 * 60 * 60 * 1000);
 
   const [staffList, appointments] = await Promise.all([
     db.staff.findMany({ where: { tenantId }, orderBy: [{ isActive: "desc" }, { name: "asc" }] }),
     db.appointment.findMany({
-      where: { tenantId, startsAt: { gte: monthStart, lte: scanEnd }, status: { not: "cancelled" } },
+      where: { tenantId, startsAt: { gte: monthStart, lte: fetchEnd }, status: { not: "cancelled" } },
       select: { staffId: true, startsAt: true, endsAt: true },
     }),
   ]);
@@ -285,12 +277,21 @@ export async function getStaffAvailabilityReport() {
     let availableWeek = 0;
     let availableMonth = 0;
     for (let d = new Date(todayStart); d <= scanEnd; d = new Date(d.getTime() + 24 * 60 * 60 * 1000)) {
-      const dayAppts = staffAppts.filter((a) => a.startsAt.toDateString() === d.toDateString());
+      // تُنسب المواعيد لليوم حسب نطاق نوبة العمل الفعلي (قد يمتد بعد منتصف الليل) لا بتاريخ التقويم الخام
+      const { start: dayStart, end: dayEnd } = dayWorkWindow(d, hours);
+      const dayAppts = staffAppts.filter((a) => a.startsAt >= dayStart && a.startsAt < dayEnd);
       const count = countAvailableSlotsForDay(d, hours, dayAppts, now);
       if (d <= todayEnd) availableToday += count;
       if (d <= weekEnd) availableWeek += count;
       if (d <= monthEnd) availableMonth += count;
     }
+
+    // مستوى الانشغال: نسبة ساعات الحجوزات الفعلية هذا الأسبوع إلى إجمالي ساعات عملها الأسبوعية
+    const capacityHours = weeklyCapacityHours(hours);
+    const weekAppts = staffAppts.filter((a) => a.startsAt >= todayStart && a.startsAt <= weekEnd);
+    const bookedHoursWeek = weekAppts.reduce((sum, a) => sum + (a.endsAt.getTime() - a.startsAt.getTime()) / 3_600_000, 0);
+    const busyRatio = capacityHours > 0 ? bookedHoursWeek / capacityHours : 0;
+    const busyLevel: "busy" | "active" | "quiet" = busyRatio >= 0.7 ? "busy" : busyRatio >= 0.3 ? "active" : "quiet";
 
     return {
       id: s.id,
@@ -300,6 +301,10 @@ export async function getStaffAvailabilityReport() {
       availableWeek,
       bookedMonth: inRange(monthStart, monthEnd),
       availableMonth,
+      weeklyCapacityHours: capacityHours,
+      bookedHoursWeek,
+      busyRatio,
+      busyLevel,
     };
   });
 
