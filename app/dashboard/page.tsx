@@ -116,7 +116,9 @@ export default async function TodayPage() {
             const dayAppts = isWorkingToday
               ? (() => {
                   const { start, end } = dayWorkWindow(today, hours);
-                  return appointments.filter((a) => a.staffId === s.id && a.startsAt >= start && a.startsAt < end);
+                  return appointments.filter(
+                    (a) => a.staffId === s.id && a.status !== "cancelled" && a.startsAt >= start && a.startsAt < end
+                  );
                 })()
               : [];
             const rows = isWorkingToday ? buildDayTimeline(today, hours, dayAppts) : [];
