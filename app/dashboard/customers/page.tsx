@@ -32,14 +32,17 @@ export default async function CustomersPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  const now = new Date();
   const rows = customers.map((c) => {
-    // "زيارة" = حجز حقيقي لم يُلغَ (بانتظار عربون/مؤكد/مكتمل/لم تحضر) — الملغاة لم تحدث فعلياً
-    const realAppts = c.appointments.filter((a) => a.status !== "cancelled");
-    const totalVisits = realAppts.length;
+    // "زيارة" = موعد حقيقي حان وقته فعلاً ولم يُلغَ (مكتمل أو لم تحضر) — لا حجز قادم لم يحن بعد،
+    // ولا حجز مُلغى لم يحدث أصلاً
+    const realPastAppts = c.appointments.filter((a) => a.status !== "cancelled" && a.startsAt <= now);
+    const totalVisits = realPastAppts.length;
     const completedAppts = c.appointments.filter((a) => a.status === "done");
     const completedVisits = completedAppts.length;
     const totalSpent = completedAppts.reduce((sum, a) => sum + a.service.price, 0);
-    const lastVisit = c.appointments[0]?.startsAt ?? null;
+    // آخر زيارة = آخر موعد حضرته فعلاً، لا آخر سجل بالتاريخ (اللي ممكن يكون حجز قادم أو ملغى)
+    const lastVisit = completedAppts[0]?.startsAt ?? null;
     return { customer: c, totalVisits, completedVisits, totalSpent, lastVisit, tier: tierOf(completedVisits) };
   });
 

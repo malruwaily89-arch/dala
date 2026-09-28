@@ -48,32 +48,33 @@ export default async function TodayPage() {
     getStaffAvailabilityReport(),
   ]);
 
-  const visibleStaff = staffList.filter((s) => canViewStaffSchedule(user, s.id));
   const availById = new Map(availability.rows.map((r) => [r.id, r]));
+  // فقط الموظفات اللي عندهن وقت متاح فعلياً الآن — لا من إجازة اليوم ولا اللي حجزها كامل
+  const visibleStaff = staffList.filter(
+    (s) => canViewStaffSchedule(user, s.id) && (availById.get(s.id)?.availableToday ?? 0) > 0
+  );
   const availableToday = visibleStaff.reduce((sum, s) => sum + (availById.get(s.id)?.availableToday ?? 0), 0);
 
-  const apptsByStaff = new Map<string, Appt[]>();
-  for (const a of appointments) {
-    const list = apptsByStaff.get(a.staffId) ?? [];
-    list.push(a);
-    apptsByStaff.set(a.staffId, list);
-  }
+  // حساب موظفة مقيّدة (تشوف جدولها فقط) ما يشوف إحصائيات أو إجراءات على مواعيد زميلاتها
+  const visibleAppointments = appointments.filter((a) => canViewStaffSchedule(user, a.staffId));
 
   const today = startOfDay(new Date());
+  const now = new Date();
   const canBook = canAddAppointments(user);
 
   const stats = {
-    todayCount: appointments.length,
-    pendingDeposits: appointments.filter((a) => a.status === "pending_deposit").length,
-    confirmedCount: appointments.filter((a) => a.status === "confirmed").length,
-    doneCount: appointments.filter((a) => a.status === "done").length,
-    cancelledCount: appointments.filter((a) => a.status === "cancelled").length,
-    noShowCount: appointments.filter((a) => a.status === "no_show").length,
-    expectedRevenue: appointments
+    // "ملغاة" لها ميني-ستات خاص بها تحت — لا تُحتسب ضمن "مواعيد اليوم" نفسها
+    todayCount: visibleAppointments.filter((a) => a.status !== "cancelled").length,
+    pendingDeposits: visibleAppointments.filter((a) => a.status === "pending_deposit").length,
+    confirmedCount: visibleAppointments.filter((a) => a.status === "confirmed").length,
+    doneCount: visibleAppointments.filter((a) => a.status === "done").length,
+    cancelledCount: visibleAppointments.filter((a) => a.status === "cancelled").length,
+    noShowCount: visibleAppointments.filter((a) => a.status === "no_show").length,
+    expectedRevenue: visibleAppointments
       .filter((a) => a.status !== "cancelled" && a.status !== "no_show")
       .reduce((sum, a) => sum + a.service.price, 0),
-    todayRevenue: appointments
-      .filter((a) => a.depositPaidAt)
+    todayRevenue: visibleAppointments
+      .filter((a) => a.status !== "cancelled" && a.depositPaidAt)
       .reduce((sum, a) => sum + a.depositAmount, 0),
   };
 
@@ -101,51 +102,44 @@ export default async function TodayPage() {
         <MiniStat label="لم تحضر" value={stats.noShowCount} className="border-rose-200 bg-rose-50 text-rose-700" />
       </div>
 
-      <h2 className="mt-10 text-lg font-bold">جدول اليوم حسب الموظفة</h2>
+      <h2 className="mt-10 text-lg font-bold">مواعيد متاحة</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        الأوقات الفارغة قابلة للضغط لحجز موعد فوري{!canBook && " (يلزم صلاحية إضافة المواعيد)"}.
+        فقط الموظفات اللي عندهن وقت متاح الآن — الأوقات الفارغة قابلة للضغط لحجز موعد فوري
+        {!canBook && " (يلزم صلاحية إضافة المواعيد)"}.
       </p>
 
       {visibleStaff.length === 0 ? (
-        <EmptyState text="لا موظفات نشطات بعد." />
+        <EmptyState text="لا مواعيد متاحة الآن — كل الموظفات إما بإجازة اليوم أو جدولهن مكتمل." />
       ) : (
         <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
           {visibleStaff.map((s) => {
             const hours = parseWorkingHours(s.workingHours);
-            const isWorkingToday = hours.days.includes(today.getDay());
-            const dayAppts = isWorkingToday
-              ? (() => {
-                  const { start, end } = dayWorkWindow(today, hours);
-                  return appointments.filter(
-                    (a) => a.staffId === s.id && a.status !== "cancelled" && a.startsAt >= start && a.startsAt < end
-                  );
-                })()
-              : [];
-            const rows = isWorkingToday ? buildDayTimeline(today, hours, dayAppts) : [];
+            const { start, end } = dayWorkWindow(today, hours);
+            const dayAppts = visibleAppointments.filter(
+              (a) => a.staffId === s.id && a.status !== "cancelled" && a.startsAt >= start && a.startsAt < end
+            );
+            const rows = buildDayTimeline(today, hours, dayAppts);
 
             return (
               <div key={s.id} className="w-72 shrink-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
                 <div className="border-b border-zinc-100 bg-zinc-50/60 px-4 py-3">
                   <p className="font-bold text-zinc-800">{s.name}</p>
-                  <p className="text-xs text-zinc-500">{isWorkingToday ? `${hours.start} – ${hours.end}` : "إجازة اليوم"}</p>
+                  <p className="text-xs text-zinc-500">{hours.start} – {hours.end}</p>
                 </div>
                 <div className="max-h-[520px] space-y-2 overflow-y-auto p-3">
-                  {!isWorkingToday ? (
-                    <p className="py-6 text-center text-xs text-zinc-400">لا دوام لها اليوم.</p>
-                  ) : (
-                    rows.map((row, i) =>
-                      row.kind === "appt" ? (
-                        <ApptBlock key={row.appt.id} appt={row.appt} showStatus={canViewAppointmentStatus(user)} />
-                      ) : (
-                        <GapBlock
-                          key={`gap-${i}`}
-                          row={row}
-                          staffId={s.id}
-                          customers={customers}
-                          services={services}
-                          canBook={canBook}
-                        />
-                      )
+                  {rows.map((row, i) =>
+                    row.kind === "appt" ? (
+                      <ApptBlock key={row.appt.id} appt={row.appt} showStatus={canViewAppointmentStatus(user)} />
+                    ) : (
+                      <GapBlock
+                        key={`gap-${i}`}
+                        row={row}
+                        now={now}
+                        staffId={s.id}
+                        customers={customers}
+                        services={services}
+                        canBook={canBook}
+                      />
                     )
                   )}
                 </div>
@@ -155,11 +149,11 @@ export default async function TodayPage() {
         </div>
       )}
 
-      {appointments.length > 0 && (
+      {visibleAppointments.length > 0 && (
         <>
           <h2 className="mt-10 text-lg font-bold">إجراءات سريعة على مواعيد اليوم</h2>
           <ul className="mt-4 space-y-3">
-            {appointments.map((appt) => {
+            {visibleAppointments.map((appt) => {
               const status = APPT_STATUS[appt.status] ?? { label: appt.status, color: "bg-zinc-100" };
               return (
                 <li
@@ -247,18 +241,24 @@ function ApptBlock({ appt, showStatus }: { appt: Appt; showStatus: boolean }) {
 
 function GapBlock({
   row,
+  now,
   staffId,
   customers,
   services,
   canBook,
 }: {
   row: Extract<Row, { kind: "gap" }>;
+  now: Date;
   staffId: string;
   customers: { id: string; name: string; phone: string }[];
   services: { id: string; name: string }[];
   canBook: boolean;
 }) {
-  const label = `${formatTime(row.start)} – ${formatTime(row.end)} · متاح`;
+  // فراغ العرض (buildDayTimeline) لا يستثني الماضي — نقصّ بداية الحجز الفعلي على "الآن" هنا
+  const bookableStart = row.start > now ? row.start : now;
+  if (bookableStart >= row.end) return null; // الفراغ بالكامل مضى وقته، ما فيه شي يُحجز
+
+  const label = `${formatTime(bookableStart)} – ${formatTime(row.end)} · متاح`;
   if (!canBook) {
     return <div className="rounded-lg border border-dashed border-zinc-200 p-2.5 text-center text-xs text-zinc-400">{label}</div>;
   }
@@ -267,7 +267,7 @@ function GapBlock({
       <summary className="cursor-pointer list-none p-2.5 text-center text-xs font-bold text-brand-gold">{label}</summary>
       <form action={createAppointmentAdminAction} className="space-y-2 border-t border-brand-gold/20 p-2.5">
         <input type="hidden" name="staffId" value={staffId} />
-        <input type="hidden" name="slotIso" value={row.start.toISOString()} />
+        <input type="hidden" name="slotIso" value={bookableStart.toISOString()} />
         <select
           name="customerId"
           required

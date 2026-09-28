@@ -66,7 +66,12 @@ export function buildDayTimeline<T extends { startsAt: Date; endsAt: Date }>(
   return rows;
 }
 
-/** عدد الأوقات الفارغة (بشبكة 30 دقيقة) المتبقية فعلياً في يوم معيّن — يستثني وقت العمل الذي مضى فعلاً */
+/**
+ * عدد الأوقات الفارغة في يوم معيّن — على نفس شبكة الـ٣٠ دقيقة المُثبّتة على بداية الدوام
+ * التي يستخدمها ‏getAvailableSlots‏ فعليًا للحجز، خانة بخانة (لا حساب مدة الفراغ ثم قسمتها
+ * على ٣٠، لأن فراغًا غير مُحاذٍ للشبكة — مثلاً بعد خدمة ٤٥ دقيقة — كان يُحتسب خانة زائدة
+ * لا تقابل أي وقت حجز فعلي قابل للعرض للعميلة).
+ */
 export function countAvailableSlotsForDay(
   day: Date,
   hours: WorkingHours,
@@ -75,24 +80,16 @@ export function countAvailableSlotsForDay(
 ): number {
   if (!hours.days.includes(day.getDay())) return 0;
   const { start, end } = dayWorkWindow(day, hours);
-  let cursor = start.getTime() > now.getTime() ? start : now;
-  if (cursor.getTime() >= end.getTime()) return 0;
 
-  let free = 0;
-  const sorted = [...dayAppts].sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
-  for (const appt of sorted) {
-    if (appt.endsAt <= cursor) continue;
-    if (appt.startsAt > cursor) {
-      const gapEnd = appt.startsAt < end ? appt.startsAt : end;
-      free += Math.floor((gapEnd.getTime() - cursor.getTime()) / (SLOT_STEP_MIN * 60_000));
-    }
-    if (appt.endsAt > cursor) cursor = appt.endsAt < end ? appt.endsAt : end;
-    if (cursor.getTime() >= end.getTime()) break;
+  let count = 0;
+  for (let t = start.getTime(); t + SLOT_STEP_MIN * 60_000 <= end.getTime(); t += SLOT_STEP_MIN * 60_000) {
+    const slotStart = new Date(t);
+    const slotEnd = new Date(t + SLOT_STEP_MIN * 60_000);
+    if (slotStart.getTime() <= now.getTime()) continue; // لا حجوزات في الماضي
+    const busy = dayAppts.some((a) => slotStart < a.endsAt && a.startsAt < slotEnd);
+    if (!busy) count++;
   }
-  if (cursor.getTime() < end.getTime()) {
-    free += Math.floor((end.getTime() - cursor.getTime()) / (SLOT_STEP_MIN * 60_000));
-  }
-  return Math.max(free, 0);
+  return count;
 }
 
 /**
