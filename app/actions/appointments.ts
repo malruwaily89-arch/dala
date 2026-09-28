@@ -220,6 +220,7 @@ export async function updateStaffScheduleAction(formData: FormData) {
   const user = await requireUser();
   if (!canManageStaffSchedules(user)) redirect("/dashboard/staff?error=forbidden");
   const id = String(formData.get("id"));
+  const jobTitle = String(formData.get("jobTitle") || "").trim() || null;
   const start = String(formData.get("workStart") || "00:00");
   const end = String(formData.get("workEnd") || "23:59");
   const days = parseSelectedDays(formData);
@@ -229,7 +230,7 @@ export async function updateStaffScheduleAction(formData: FormData) {
 
   await db.staff.update({
     where: { id },
-    data: { workingHours: JSON.stringify({ start, end, days }) },
+    data: { jobTitle, workingHours: JSON.stringify({ start, end, days }) },
   });
   revalidatePath("/dashboard/staff");
 }

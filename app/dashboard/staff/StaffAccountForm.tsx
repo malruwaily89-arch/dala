@@ -30,7 +30,17 @@ function PermissionCheckboxes({
   );
 }
 
-export function CreateStaffLoginForm({ staffId }: { staffId: string }) {
+/** ملاحظة توضيحية بدل مربعات الصلاحيات للمسميات غير الإدارية */
+function RestrictedNote() {
+  return (
+    <p className="rounded-lg bg-zinc-50 p-3 text-xs text-zinc-500">
+      هذا الحساب يسمح فقط بالاطلاع على جدولها الخاص. لمنح صلاحيات إضافية (إضافة/إلغاء مواعيد،
+      إدارة جداول الموظفات)، غيّري مسمّاها الوظيفي إلى «موظفة استقبال» أو «مشرفة» أو «إدارية».
+    </p>
+  );
+}
+
+export function CreateStaffLoginForm({ staffId, restricted }: { staffId: string; restricted: boolean }) {
   return (
     <form action={createStaffLoginAction} className="space-y-3">
       <input type="hidden" name="staffId" value={staffId} />
@@ -57,8 +67,14 @@ export function CreateStaffLoginForm({ staffId }: { staffId: string }) {
           />
         </label>
       </div>
-      <p className="text-xs font-bold text-zinc-500">الصلاحيات الممنوحة</p>
-      <PermissionCheckboxes />
+      {restricted ? (
+        <RestrictedNote />
+      ) : (
+        <>
+          <p className="text-xs font-bold text-zinc-500">الصلاحيات الممنوحة</p>
+          <PermissionCheckboxes />
+        </>
+      )}
       <button className="rounded-full bg-brand px-5 py-2 text-xs font-bold text-white hover:opacity-90">
         إنشاء حساب الدخول
       </button>
@@ -70,23 +86,29 @@ export function EditStaffPermissionsForm({
   userId,
   email,
   permissions,
+  restricted,
 }: {
   userId: string;
   email: string;
   permissions: Record<string, boolean>;
+  restricted: boolean;
 }) {
   return (
     <div className="space-y-3">
       <p className="text-xs text-zinc-500">
         حساب الدخول: <span dir="ltr" className="font-semibold text-zinc-700">{email}</span>
       </p>
-      <form action={updateStaffPermissionsAction} className="space-y-3">
-        <input type="hidden" name="userId" value={userId} />
-        <PermissionCheckboxes defaults={permissions} />
-        <button className="rounded-full bg-zinc-800 px-5 py-2 text-xs font-bold text-white hover:opacity-90">
-          حفظ الصلاحيات
-        </button>
-      </form>
+      {restricted ? (
+        <RestrictedNote />
+      ) : (
+        <form action={updateStaffPermissionsAction} className="space-y-3">
+          <input type="hidden" name="userId" value={userId} />
+          <PermissionCheckboxes defaults={permissions} />
+          <button className="rounded-full bg-zinc-800 px-5 py-2 text-xs font-bold text-white hover:opacity-90">
+            حفظ الصلاحيات
+          </button>
+        </form>
+      )}
       <form
         action={deleteStaffLoginAction}
         onSubmit={(e) => {

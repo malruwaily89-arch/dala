@@ -5,7 +5,14 @@ import { parseWorkingHours, weeklyCapacityHours } from "@/lib/scheduling";
 import { createStaffAction, toggleStaffAction, updateStaffScheduleAction } from "@/app/actions/appointments";
 import { getStaffPerformanceReport, getStaffAvailabilityReport } from "@/app/actions/reports";
 import { formatSar } from "@/lib/utils";
-import { canManageStaffSchedules, canViewReportsAndFinance, canViewStaffSchedule, isStaffAccount } from "@/lib/permissions";
+import {
+  canManageStaffSchedules,
+  canViewReportsAndFinance,
+  canViewStaffSchedule,
+  isStaffAccount,
+  isManagementRole,
+  MANAGEMENT_JOB_TITLES,
+} from "@/lib/permissions";
 import { EmptyState, Banner } from "../ui";
 import { CreateStaffLoginForm, EditStaffPermissionsForm } from "./StaffAccountForm";
 
@@ -46,9 +53,15 @@ export default async function StaffPage({
 
   return (
     <div>
+      <datalist id="job-titles">
+        {MANAGEMENT_JOB_TITLES.map((t) => (
+          <option key={t} value={t} />
+        ))}
+      </datalist>
       <h1 className="text-2xl font-extrabold">الموظفات</h1>
       <p className="mt-1 text-sm text-zinc-500">
-        ساعات وأيام عمل كل موظفة تحدد المواعيد المتاحة في صفحة الحجز.
+        ساعات وأيام عمل كل موظفة تحدد المواعيد المتاحة في صفحة الحجز. المسميات «موظفة استقبال»،
+        «مشرفة»، و«إدارية» هي وحدها القابلة لمنحها صلاحيات إضافية — غيرها يُطّلع فقط على جدولها.
       </p>
 
       {error && <Banner>{ERROR_MESSAGES[error] ?? error}</Banner>}
@@ -60,7 +73,7 @@ export default async function StaffPage({
           <form action={createStaffAction} className="mt-4 space-y-4">
             <div className="flex flex-wrap items-end gap-3">
               <Field name="name" label="الاسم" type="text" />
-              <Field name="jobTitle" label="المسمى الوظيفي (اختياري)" type="text" optional />
+              <Field name="jobTitle" label="المسمى الوظيفي (اختياري)" type="text" optional list="job-titles" />
               <Field name="phone" label="الجوال (اختياري)" type="tel" />
               <Field name="workStart" label="من" type="time" defaultValue="00:00" />
               <Field name="workEnd" label="إلى" type="time" defaultValue="23:59" />
@@ -132,10 +145,11 @@ export default async function StaffPage({
 
                 {canManageStaffSchedules(user) && (
                   <details className="mt-3 border-t border-zinc-100 pt-3">
-                    <summary className="cursor-pointer text-xs font-bold text-brand">تعديل ساعات وأيام العمل</summary>
+                    <summary className="cursor-pointer text-xs font-bold text-brand">تعديل المسمى الوظيفي وساعات وأيام العمل</summary>
                     <form action={updateStaffScheduleAction} className="mt-3 space-y-3">
                       <input type="hidden" name="id" value={s.id} />
                       <div className="flex flex-wrap items-end gap-3">
+                        <Field name="jobTitle" label="المسمى الوظيفي (اختياري)" type="text" defaultValue={s.jobTitle ?? ""} optional list="job-titles" />
                         <Field name="workStart" label="من" type="time" defaultValue={hours.start} />
                         <Field name="workEnd" label="إلى" type="time" defaultValue={hours.end} />
                       </div>
@@ -157,6 +171,7 @@ export default async function StaffPage({
                         <EditStaffPermissionsForm
                           userId={s.loginUser.id}
                           email={s.loginUser.email}
+                          restricted={!isManagementRole(s.jobTitle)}
                           permissions={{
                             canCancelAppointments: s.loginUser.canCancelAppointments,
                             canAddAppointments: s.loginUser.canAddAppointments,
@@ -165,7 +180,7 @@ export default async function StaffPage({
                           }}
                         />
                       ) : (
-                        <CreateStaffLoginForm staffId={s.id} />
+                        <CreateStaffLoginForm staffId={s.id} restricted={!isManagementRole(s.jobTitle)} />
                       )}
                     </div>
                   </details>
@@ -278,12 +293,14 @@ function Field({
   type,
   defaultValue,
   optional = false,
+  list,
 }: {
   name: string;
   label: string;
   type: string;
   defaultValue?: string;
   optional?: boolean;
+  list?: string;
 }) {
   return (
     <label className="block flex-1">
@@ -294,6 +311,7 @@ function Field({
         defaultValue={defaultValue}
         dir={type === "tel" ? "ltr" : undefined}
         required={!optional && type !== "tel"}
+        list={list}
         className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
       />
     </label>

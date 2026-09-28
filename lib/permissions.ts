@@ -39,3 +39,14 @@ export function canViewStaffSchedule(user: CurrentUser, staffId: string): boolea
 export function isStaffAccount(user: CurrentUser): boolean {
   return user.role === "STAFF";
 }
+
+/**
+ * المسميات الوظيفية الإدارية: هذي وحدها من يُسمح لها بمنح صلاحيات موظفة (إلغاء/إضافة مواعيد،
+ * إدارة جداول الموظفات). أي مسمى آخر (أخصائية مكياج، أخصائية شعر...) حسابها — إن وُجد —
+ * يبقى مقيّداً على الاطلاع على جدولها الخاص فقط، بلا استثناء.
+ */
+export const MANAGEMENT_JOB_TITLES = ["موظفة استقبال", "مشرفة", "إدارية"];
+
+export function isManagementRole(jobTitle: string | null | undefined): boolean {
+  return !!jobTitle && MANAGEMENT_JOB_TITLES.includes(jobTitle.trim());
+}
