@@ -52,6 +52,9 @@ export async function sendVerificationEmail(to: string, token: string): Promise<
       subject: "فعّلي بريدك الإلكتروني — دلال",
       html: `
         <div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;">
+          <div style="text-align:center;margin-bottom:16px;">
+            <img src="${getBaseUrl()}/dalal-logo.png" alt="دلال" width="120" style="display:inline-block;" />
+          </div>
           <h2 style="color:#4a1f28;">مرحباً بك في دلال 👋</h2>
           <p style="color:#333;font-size:15px;line-height:1.7;">
             بقي خطوة وحدة بس — فعّلي بريدك الإلكتروني عشان تفعّلي كل مزايا حسابك.
