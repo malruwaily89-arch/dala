@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { createAppointmentTx } from "@/lib/scheduling";
+import { createAppointmentTx, getAvailableSlots } from "@/lib/scheduling";
 import { canCancelAppointments, canAddAppointments, canManageStaffSchedules } from "@/lib/permissions";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 import { formatDateTime, formatSar } from "@/lib/utils";
@@ -90,6 +90,15 @@ export async function cancelAppointmentAction(formData: FormData) {
   revalidatePath("/dashboard/appointments");
 }
 
+/** يجلب الأوقات المتاحة فعلياً (موظفة+خدمة+يوم) لقائمة الحجز اليدوي المنسدلة — نطاق البيانات مقيّد بمستأجر المستخدم الحالي */
+export async function fetchAdminSlotsAction(params: { staffId: string; serviceId: string; dateIso: string }): Promise<string[]> {
+  const user = await requireUser();
+  const { staffId, serviceId, dateIso } = params;
+  if (!staffId || !serviceId || !dateIso) return [];
+  const slots = await getAvailableSlots({ tenantId: user.tenantId, staffId, serviceId, date: new Date(dateIso) });
+  return slots.map((s) => s.toISOString());
+}
+
 /** إنشاء موعد من لوحة التحكم */
 export async function createAppointmentAdminAction(formData: FormData) {
   const user = await requireUser();
@@ -97,13 +106,12 @@ export async function createAppointmentAdminAction(formData: FormData) {
   const customerId = String(formData.get("customerId"));
   const staffId = String(formData.get("staffId"));
   const serviceId = String(formData.get("serviceId"));
-  const dateStr = String(formData.get("date")); // yyyy-mm-dd
-  const timeStr = String(formData.get("time")); // HH:mm
+  const slotIso = String(formData.get("slotIso") || "");
 
-  if (!customerId || !staffId || !serviceId || !dateStr || !timeStr) {
+  if (!customerId || !staffId || !serviceId || !slotIso) {
     redirect("/dashboard/appointments?error=missing");
   }
-  const startsAt = new Date(`${dateStr}T${timeStr}`);
+  const startsAt = new Date(slotIso);
   try {
     await createAppointmentTx({
       tenantId: user.tenantId,

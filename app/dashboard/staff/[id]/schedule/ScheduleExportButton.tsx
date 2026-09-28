@@ -13,9 +13,19 @@ export function ScheduleExportButton({
 
   async function handleExport() {
     setBusy(true);
+    const element = document.getElementById(targetElementId);
+    if (!element) {
+      setBusy(false);
+      return;
+    }
+
+    // الأقسام القابلة للطي (details) يجب أن تُفتح كلها أثناء التصوير وإلا يُفقد محتواها بالـ PDF
+    const detailsEls = Array.from(element.querySelectorAll("details"));
+    const wasOpen = detailsEls.map((d) => d.open);
+    detailsEls.forEach((d) => (d.open = true));
+
     try {
-      const element = document.getElementById(targetElementId);
-      if (!element) return;
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
       const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
         import("html2canvas"),
@@ -29,6 +39,7 @@ export function ScheduleExportButton({
       pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
       pdf.save(`${fileName}.pdf`);
     } finally {
+      detailsEls.forEach((d, i) => (d.open = wasOpen[i]));
       setBusy(false);
     }
   }

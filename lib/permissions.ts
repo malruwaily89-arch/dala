@@ -26,6 +26,16 @@ export function canViewReportsAndFinance(user: CurrentUser): boolean {
   return user.role !== "STAFF";
 }
 
+/**
+ * الاطلاع على جدول موظفة معينة (مواعيدها بالاسم والخدمة والعربون).
+ * المالكة والسوبر أدمن ومن لديها canManageStaffSchedules يشاهدون جدول أي موظفة.
+ * أي حساب موظفة آخر — بدون هذه الصلاحية — يشاهد جدوله الخاص فقط، لا جدول زميلاتها.
+ */
+export function canViewStaffSchedule(user: CurrentUser, staffId: string): boolean {
+  if (user.role !== "STAFF") return true;
+  return user.canManageStaffSchedules || user.staffId === staffId;
+}
+
 export function isStaffAccount(user: CurrentUser): boolean {
   return user.role === "STAFF";
 }

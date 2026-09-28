@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
+import { parseWorkingHours, countAvailableSlotsForDay, startOfDay, endOfDay } from "@/lib/scheduling";
 
 /** بيانات تقرير الشهر الحالي المبسّط للوحة صاحبة الصالون */
 export async function getMonthlyReport() {
@@ -240,4 +241,67 @@ export async function getStaffPerformanceReport() {
   });
 
   return { rows, avgMonthCount };
+}
+
+/**
+ * لكل موظفة: عدد المواعيد المحجوزة اليوم/هذا الأسبوع (٧ أيام قادمة)/هذا الشهر،
+ * مقابل عدد الأوقات المتاحة فعلياً (المتبقية من الآن) لنفس الفترات — حسب ساعات عملها.
+ */
+export async function getStaffAvailabilityReport() {
+  const user = await requireUser();
+  const tenantId = user.tenantId;
+  const now = new Date();
+
+  const todayStart = startOfDay(now);
+  const todayEnd = endOfDay(now);
+  const weekEnd = endOfDay(new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000));
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const scanEnd = weekEnd > monthEnd ? weekEnd : monthEnd;
+
+  const [staffList, appointments] = await Promise.all([
+    db.staff.findMany({ where: { tenantId }, orderBy: [{ isActive: "desc" }, { name: "asc" }] }),
+    db.appointment.findMany({
+      where: { tenantId, startsAt: { gte: monthStart, lte: scanEnd }, status: { not: "cancelled" } },
+      select: { staffId: true, startsAt: true, endsAt: true },
+    }),
+  ]);
+
+  const byStaff = new Map<string, { startsAt: Date; endsAt: Date }[]>();
+  for (const a of appointments) {
+    const list = byStaff.get(a.staffId) ?? [];
+    list.push(a);
+    byStaff.set(a.staffId, list);
+  }
+
+  const rows = staffList.map((s) => {
+    const hours = parseWorkingHours(s.workingHours);
+    const staffAppts = byStaff.get(s.id) ?? [];
+
+    const inRange = (start: Date, end: Date) =>
+      staffAppts.filter((a) => a.startsAt >= start && a.startsAt <= end).length;
+
+    let availableToday = 0;
+    let availableWeek = 0;
+    let availableMonth = 0;
+    for (let d = new Date(todayStart); d <= scanEnd; d = new Date(d.getTime() + 24 * 60 * 60 * 1000)) {
+      const dayAppts = staffAppts.filter((a) => a.startsAt.toDateString() === d.toDateString());
+      const count = countAvailableSlotsForDay(d, hours, dayAppts, now);
+      if (d <= todayEnd) availableToday += count;
+      if (d <= weekEnd) availableWeek += count;
+      if (d <= monthEnd) availableMonth += count;
+    }
+
+    return {
+      id: s.id,
+      bookedToday: inRange(todayStart, todayEnd),
+      availableToday,
+      bookedWeek: inRange(todayStart, weekEnd),
+      availableWeek,
+      bookedMonth: inRange(monthStart, monthEnd),
+      availableMonth,
+    };
+  });
+
+  return { rows };
 }

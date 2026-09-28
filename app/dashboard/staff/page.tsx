@@ -3,9 +3,9 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { parseWorkingHours } from "@/lib/scheduling";
 import { createStaffAction, toggleStaffAction, updateStaffScheduleAction } from "@/app/actions/appointments";
-import { getStaffPerformanceReport } from "@/app/actions/reports";
+import { getStaffPerformanceReport, getStaffAvailabilityReport } from "@/app/actions/reports";
 import { formatSar } from "@/lib/utils";
-import { canManageStaffSchedules, canViewReportsAndFinance, isStaffAccount } from "@/lib/permissions";
+import { canManageStaffSchedules, canViewReportsAndFinance, canViewStaffSchedule, isStaffAccount } from "@/lib/permissions";
 import { EmptyState, Banner } from "../ui";
 import { CreateStaffLoginForm, EditStaffPermissionsForm } from "./StaffAccountForm";
 
@@ -32,15 +32,17 @@ export default async function StaffPage({
   const user = await requireUser();
   const { error, ok } = await searchParams;
 
-  const [staff, performance] = await Promise.all([
+  const [staff, performance, availability] = await Promise.all([
     db.staff.findMany({
       where: { tenantId: user.tenantId },
       orderBy: [{ isActive: "desc" }, { name: "asc" }],
       include: { loginUser: true },
     }),
     getStaffPerformanceReport(),
+    getStaffAvailabilityReport(),
   ]);
   const perfById = new Map(performance.rows.map((r) => [r.id, r]));
+  const availById = new Map(availability.rows.map((r) => [r.id, r]));
 
   return (
     <div>
@@ -78,6 +80,7 @@ export default async function StaffPage({
           {staff.map((s) => {
             const hours = parseWorkingHours(s.workingHours);
             const perf = perfById.get(s.id);
+            const avail = availById.get(s.id);
             const perfInfo = perf ? PERFORMANCE_LABEL[perf.performanceLevel] : null;
             return (
               <li
@@ -107,12 +110,14 @@ export default async function StaffPage({
                   >
                     {s.isActive ? "على رأس العمل" : "موقوفة"}
                   </span>
-                  <Link
-                    href={`/dashboard/staff/${s.id}/schedule`}
-                    className="rounded-full border border-brand/20 bg-brand/5 px-4 py-2 text-xs font-bold text-brand hover:bg-brand/10"
-                  >
-                    الجدول
-                  </Link>
+                  {canViewStaffSchedule(user, s.id) && (
+                    <Link
+                      href={`/dashboard/staff/${s.id}/schedule`}
+                      className="rounded-full border border-brand/20 bg-brand/5 px-4 py-2 text-xs font-bold text-brand hover:bg-brand/10"
+                    >
+                      الجدول
+                    </Link>
+                  )}
                   <form action={toggleStaffAction}>
                     <input type="hidden" name="id" value={s.id} />
                     <button className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-bold text-zinc-600 hover:bg-zinc-50">
@@ -168,6 +173,14 @@ export default async function StaffPage({
                     <MetricBox label="مواعيد الشهر" value={String(perf.monthCount)} />
                     <MetricBox label="محصّل اليوم" value={formatSar(perf.collectedToday)} />
                     <MetricBox label="محصّل هذا الشهر" value={formatSar(perf.collectedMonthTotal)} />
+                  </div>
+                )}
+
+                {canViewReportsAndFinance(user) && avail && (
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    <AvailabilityBox label="اليوم" booked={avail.bookedToday} available={avail.availableToday} />
+                    <AvailabilityBox label="هذا الأسبوع" booked={avail.bookedWeek} available={avail.availableWeek} />
+                    <AvailabilityBox label="هذا الشهر" booked={avail.bookedMonth} available={avail.availableMonth} />
                   </div>
                 )}
               </li>
@@ -228,6 +241,21 @@ function MetricBox({ label, value }: { label: string; value: string }) {
     <div className="rounded-lg bg-zinc-50 px-3 py-2 text-center">
       <p className="text-sm font-extrabold text-zinc-800">{value}</p>
       <p className="text-[11px] font-semibold text-zinc-500">{label}</p>
+    </div>
+  );
+}
+
+/** محجوز مقابل متاح لفترة معينة (اليوم/الأسبوع/الشهر) */
+function AvailabilityBox({ label, booked, available }: { label: string; booked: number; available: number }) {
+  return (
+    <div className="rounded-lg border border-brand-gold/15 bg-brand-gold/5 px-3 py-2 text-center">
+      <p className="text-[11px] font-semibold text-zinc-500">{label}</p>
+      <p className="mt-0.5 text-sm font-extrabold">
+        <span className="text-emerald-700">{booked}</span>
+        <span className="mx-1 font-normal text-zinc-300">محجوز /</span>
+        <span className="text-brand-gold">{available}</span>
+        <span className="mx-1 font-normal text-zinc-300">متاح</span>
+      </p>
     </div>
   );
 }

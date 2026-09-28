@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { generateBookingCode, addMinutes, overlaps } from "./utils";
 
-interface WorkingHours {
+export interface WorkingHours {
   start: string; // "09:00"
   end: string; // "21:00"
   days: number[]; // 0=الأحد .. 6=السبت
@@ -15,7 +15,70 @@ export function parseWorkingHours(json: string): WorkingHours {
   return { start: "00:00", end: "23:59", days: [0, 1, 2, 3, 4, 5, 6] };
 }
 
-const SLOT_STEP_MIN = 30;
+export const SLOT_STEP_MIN = 30;
+
+/** حدود ساعات عمل موظفة ليوم معيّن، كتاريخين (بداية/نهاية) */
+export function dayWorkWindow(day: Date, hours: Pick<WorkingHours, "start" | "end">) {
+  const [h1, m1] = hours.start.split(":").map(Number);
+  const [h2, m2] = hours.end.split(":").map(Number);
+  const start = new Date(day);
+  start.setHours(h1, m1, 0, 0);
+  const end = new Date(day);
+  end.setHours(h2, m2, 0, 0);
+  return { start, end };
+}
+
+export type DayTimelineRow<T> = { kind: "appt"; appt: T } | { kind: "gap"; start: Date; end: Date };
+
+/**
+ * يبني جدول اليوم الكامل: مواعيد فعلية تتخللها فراغات "متاح"، تغطي كامل ساعات العمل.
+ * لأغراض العرض فقط (لا يستثني الأوقات الماضية) — ‏getAvailableSlots‏/‏countAvailableSlotsForDay‏ هما المرجع للحجز الفعلي.
+ */
+export function buildDayTimeline<T extends { startsAt: Date; endsAt: Date }>(
+  day: Date,
+  hours: Pick<WorkingHours, "start" | "end">,
+  dayAppts: T[]
+): DayTimelineRow<T>[] {
+  const { start: workStart, end: workEnd } = dayWorkWindow(day, hours);
+  const rows: DayTimelineRow<T>[] = [];
+  let cursor = workStart;
+  for (const appt of dayAppts) {
+    if (appt.startsAt > cursor) rows.push({ kind: "gap", start: cursor, end: appt.startsAt });
+    rows.push({ kind: "appt", appt });
+    if (appt.endsAt > cursor) cursor = appt.endsAt;
+  }
+  if (workEnd > cursor) rows.push({ kind: "gap", start: cursor, end: workEnd });
+  return rows;
+}
+
+/** عدد الأوقات الفارغة (بشبكة 30 دقيقة) المتبقية فعلياً في يوم معيّن — يستثني وقت العمل الذي مضى فعلاً */
+export function countAvailableSlotsForDay(
+  day: Date,
+  hours: WorkingHours,
+  dayAppts: { startsAt: Date; endsAt: Date }[],
+  now: Date = new Date()
+): number {
+  if (!hours.days.includes(day.getDay())) return 0;
+  const { start, end } = dayWorkWindow(day, hours);
+  let cursor = start.getTime() > now.getTime() ? start : now;
+  if (cursor.getTime() >= end.getTime()) return 0;
+
+  let free = 0;
+  const sorted = [...dayAppts].sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+  for (const appt of sorted) {
+    if (appt.endsAt <= cursor) continue;
+    if (appt.startsAt > cursor) {
+      const gapEnd = appt.startsAt < end ? appt.startsAt : end;
+      free += Math.floor((gapEnd.getTime() - cursor.getTime()) / (SLOT_STEP_MIN * 60_000));
+    }
+    if (appt.endsAt > cursor) cursor = appt.endsAt < end ? appt.endsAt : end;
+    if (cursor.getTime() >= end.getTime()) break;
+  }
+  if (cursor.getTime() < end.getTime()) {
+    free += Math.floor((end.getTime() - cursor.getTime()) / (SLOT_STEP_MIN * 60_000));
+  }
+  return Math.max(free, 0);
+}
 
 /**
  * المواعيد الفارغة لموظفة معينة في يوم معين لخدمة معينة.
