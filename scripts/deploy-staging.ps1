@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
   [string]$SshHost = $(if ($env:DALA_STAGING_HOST) { $env:DALA_STAGING_HOST } else { "178.238.236.80" }),
   [string]$SshUser = $(if ($env:DALA_STAGING_USER) { $env:DALA_STAGING_USER } else { "mohammedalruwaily89" }),
