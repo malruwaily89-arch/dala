@@ -1,0 +1,1 @@
+{"name":"dala-ai-team","private":true,"type":"module","scripts":{"test":"node --test test/*.test.mjs","audit":"node src/cli.mjs"},"engines":{"node":">=20"}}
