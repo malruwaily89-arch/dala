@@ -1,11 +1,16 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import { randomBytes } from "crypto";
+import { randomBytes, scryptSync } from "crypto";
 
 const db = new PrismaClient();
 
 const CONFIRM = "RESET_DEMO_DATA";
 const TARGET_SLUGS = ["noor-salon", "liyan-salon", "amal-salon"] as const;
+const DEMO_TENANTS = {
+  "noor-salon": { name: "صالون نور التجريبي", city: "الرياض", phone: "0502000001", plan: "BASIC", ownerEmail: "owner@noor-salon.demo" },
+  "liyan-salon": { name: "صالون ليان التجريبي", city: "جدة", phone: "0502000002", plan: "PRO", ownerEmail: "owner@liyan-salon.demo" },
+  "amal-salon": { name: "صالون أمل التجريبي", city: "الدمام", phone: "0502000003", plan: "ADVANCED", ownerEmail: "owner@amal-salon.demo" },
+} as const;
 const SERVICE_CATALOG = [
   { name: "قص شعر", durationMinutes: 45, price: 120, depositAmount: 24 },
   { name: "صبغة شعر", durationMinutes: 120, price: 320, depositAmount: 64 },
@@ -26,6 +31,14 @@ const ALLOCATION = {
   "liyan-salon": { staff: 2, customers: 8, services: 3, statuses: ["done", "done", "done", "done", "confirmed", "confirmed", "confirmed", "pending_deposit", "cancelled", "no_show"] },
   "amal-salon": { staff: 4, customers: 9, services: 4, statuses: ["done", "done", "done", "done", "confirmed", "confirmed", "pending_deposit", "cancelled", "cancelled", "no_show"] },
 } as const;
+
+const PLAN_PRICES: Record<string, number> = { BASIC: 199, PRO: 449, ADVANCED: 999 };
+
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
 
 function bookingCode(slug: string, index: number) {
   return `DEMO-${slug.slice(0, 3).toUpperCase()}-${String(index + 1).padStart(3, "0")}-${randomBytes(3).toString("hex").toUpperCase()}`;
@@ -50,10 +63,37 @@ async function main() {
     throw new Error("تم منع التشغيل على NODE_ENV=production. أضف DALA_SCENARIO_ALLOW_PRODUCTION=YES بعد مراجعة النطاق.");
   }
 
-  const tenants = await db.tenant.findMany({ where: { slug: { in: [...TARGET_SLUGS] } } });
-  if (tenants.length === 0) throw new Error("لم يتم العثور على الصالونات التجريبية المستهدفة.");
+  let tenants = await db.tenant.findMany({ where: { slug: { in: [...TARGET_SLUGS] } } });
   const missing = TARGET_SLUGS.filter((slug) => !tenants.some((t) => t.slug === slug));
-  if (missing.length) console.warn(`تحذير: الصالونات غير الموجودة سيتم تجاوزها: ${missing.join(", ")}`);
+  if (missing.length) {
+    if (process.env.DALA_SCENARIO_BOOTSTRAP !== "YES" || !process.env.DALA_DEMO_OWNER_PASSWORD) {
+      throw new Error("قاعدة البيانات لا تحتوي الصالونات التجريبية. لإنشاء الحسابات في Staging فقط اضبط DALA_SCENARIO_BOOTSTRAP=YES وDALA_DEMO_OWNER_PASSWORD (لا ترسل كلمة المرور هنا).");
+    }
+    for (const slug of missing) {
+      const demo = DEMO_TENANTS[slug];
+      const passwordHash = hashPassword(process.env.DALA_DEMO_OWNER_PASSWORD);
+      const periodStart = new Date();
+      const periodEnd = new Date(periodStart);
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+      const tenant = await db.tenant.create({
+        data: {
+          name: demo.name,
+          slug,
+          phone: demo.phone,
+          city: demo.city,
+          plan: demo.plan.toLowerCase(),
+          brandColor: "#A84769",
+          users: { create: { email: demo.ownerEmail, passwordHash, name: `مالكة ${demo.name}`, role: "OWNER" } },
+          subscriptions: { create: { plan: demo.plan, status: "active", currentPeriodStart: periodStart, currentPeriodEnd: periodEnd } },
+        },
+        include: { subscriptions: true },
+      });
+      const subscription = tenant.subscriptions[0];
+      await db.payment.create({ data: { tenantId: tenant.id, subscriptionId: subscription.id, amount: PLAN_PRICES[demo.plan].toFixed(2), currency: "SAR", status: "paid", provider: "demo", paidAt: periodStart } });
+      tenants.push(tenant);
+      console.log(`تم إنشاء حساب Staging: ${slug} — ${demo.plan}`);
+    }
+  }
 
   for (const tenant of tenants) {
     const allocation = ALLOCATION[tenant.slug as keyof typeof ALLOCATION];
