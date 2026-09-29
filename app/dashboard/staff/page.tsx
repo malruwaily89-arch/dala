@@ -21,6 +21,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   forbidden: "ليس لديك صلاحية لهذا الإجراء — راجعي المالكة.",
   password: "كلمة المرور يجب أن تكون 6 أحرف على الأقل.",
   exists: "هذا البريد الإلكتروني مستخدم مسبقاً.",
+  staff_limit: "الباقة الحالية تسمح بموظفتين نشطتين فقط. يُرجى ترقية الباقة لإضافة موظفات.",
 };
 
 const PERFORMANCE_LABEL: Record<string, { label: string; className: string }> = {

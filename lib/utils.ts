@@ -69,6 +69,11 @@ export function isProPlan(plan: string | null | undefined): boolean {
   return PRO_PLANS.has(plan.toUpperCase());
 }
 
+export function staffLimitForPlan(plan: string | null | undefined): number | null {
+  const normalized = plan?.toUpperCase();
+  return normalized === "BASIC" || normalized === "TRIAL" ? 2 : null;
+}
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

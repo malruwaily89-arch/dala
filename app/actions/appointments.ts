@@ -7,7 +7,7 @@ import { requireUser } from "@/lib/auth";
 import { createAppointmentTx, getAvailableSlots } from "@/lib/scheduling";
 import { canCancelAppointments, canAddAppointments, canManageStaffSchedules, canManageServices } from "@/lib/permissions";
 import { notifyWhatsApp } from "@/lib/whatsapp";
-import { formatDateTime, formatSar, normalizeMoney } from "@/lib/utils";
+import { formatDateTime, formatSar, normalizeMoney, staffLimitForPlan } from "@/lib/utils";
 import { sendRatingRequestWhatsApp } from "@/app/b/[slug]/booking/[code]/actions";
 
 /** تسجيل رسالة — يُرسل فعلياً عبر Meta Cloud API عند توفر المفاتيح، وإلا محاكاة */
@@ -228,6 +228,11 @@ export async function createStaffAction(formData: FormData) {
   const end = String(formData.get("workEnd") || "23:59");
   const days = parseSelectedDays(formData);
   if (!name) redirect("/dashboard/staff?error=missing");
+  const staffLimit = staffLimitForPlan(user.tenant.plan);
+  if (staffLimit !== null) {
+    const activeStaffCount = await db.staff.count({ where: { tenantId: user.tenantId, isActive: true } });
+    if (activeStaffCount >= staffLimit) redirect("/dashboard/staff?error=staff_limit");
+  }
   await db.staff.create({
     data: {
       tenantId: user.tenantId,
