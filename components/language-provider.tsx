@@ -22,14 +22,11 @@ const LanguageContext = createContext<LanguageContextValue | null>(null)
 const STORAGE_KEY = 'dalal-lang'
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Language>('ar')
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY) as Language | null
-    if (stored === 'en' || stored === 'ar') {
-      setLangState(stored)
-    }
-  }, [])
+  const [lang, setLangState] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'ar'
+    const stored = window.localStorage.getItem(STORAGE_KEY)
+    return stored === 'en' || stored === 'ar' ? stored : 'ar'
+  })
 
   useEffect(() => {
     const dir = translations[lang].dir

@@ -63,7 +63,7 @@ async function main() {
     throw new Error("تم منع التشغيل على NODE_ENV=production. أضف DALA_SCENARIO_ALLOW_PRODUCTION=YES بعد مراجعة النطاق.");
   }
 
-  let tenants = await db.tenant.findMany({ where: { slug: { in: [...TARGET_SLUGS] } } });
+  const tenants = await db.tenant.findMany({ where: { slug: { in: [...TARGET_SLUGS] } } });
   const missing = TARGET_SLUGS.filter((slug) => !tenants.some((t) => t.slug === slug));
   if (missing.length) {
     if (process.env.DALA_SCENARIO_BOOTSTRAP !== "YES" || !process.env.DALA_DEMO_OWNER_PASSWORD) {

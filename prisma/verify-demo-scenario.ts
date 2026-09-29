@@ -13,7 +13,7 @@ async function main() {
   });
   if (!tenants.length) throw new Error("لا توجد صالونات السيناريو.");
 
-  let totals = { staff: 0, customers: 0, services: 0, appointments: 0, done: 0, confirmed: 0, pending: 0, cancelled: 0, noShow: 0, paidDeposits: 0, doneRevenue: 0 };
+  const totals = { staff: 0, customers: 0, services: 0, appointments: 0, done: 0, confirmed: 0, pending: 0, cancelled: 0, noShow: 0, paidDeposits: 0, doneRevenue: 0 };
   const problems: string[] = [];
 
   for (const tenant of tenants) {

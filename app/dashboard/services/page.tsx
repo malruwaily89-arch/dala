@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { formatSar } from "@/lib/utils";
-import { createServiceAction, toggleServiceAction, deleteServiceAction } from "@/app/actions/appointments";
+import { createServiceAction, toggleServiceAction } from "@/app/actions/appointments";
 import { EmptyState, Banner } from "../ui";
 import { DeleteServiceForm } from "./DeleteServiceForm";
 
