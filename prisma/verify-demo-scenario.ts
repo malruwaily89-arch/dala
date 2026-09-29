@@ -45,6 +45,7 @@ async function main() {
     }
     console.log(JSON.stringify({
       salon: tenant.slug,
+      plan: tenant.plan,
       staff: tenant.staff.length,
       customers: tenant.customers.length,
       services: tenant.services.length,
@@ -54,6 +55,10 @@ async function main() {
       doneRevenue: Number(doneRevenue.toFixed(2)),
       attendanceRate: appointments.length ? Number((((counts.done ?? 0) + (counts.confirmed ?? 0)) / Math.max(1, appointments.length - (counts.cancelled ?? 0)) * 100).toFixed(2)) : 0,
     }, null, 2));
+
+    if (["BASIC", "TRIAL"].includes(tenant.plan.toUpperCase()) && tenant.staff.length > 2) {
+      problems.push(`${tenant.slug}: الباقة ${tenant.plan} تتجاوز حد موظفتين نشطتين.`);
+    }
 
     totals.staff += tenant.staff.length;
     totals.customers += tenant.customers.length;
