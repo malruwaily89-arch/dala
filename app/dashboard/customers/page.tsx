@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { formatSar } from "@/lib/utils";
+import { formatSar, moneyToNumber } from "@/lib/utils";
 import { EmptyState } from "../ui";
 
 type Tier = "new" | "occasional" | "regular";
@@ -40,7 +40,7 @@ export default async function CustomersPage() {
     const totalVisits = realPastAppts.length;
     const completedAppts = c.appointments.filter((a) => a.status === "done");
     const completedVisits = completedAppts.length;
-    const totalSpent = completedAppts.reduce((sum, a) => sum + a.service.price, 0);
+    const totalSpent = completedAppts.reduce((sum, a) => sum + moneyToNumber(a.service.price), 0);
     // آخر زيارة = آخر موعد حضرته فعلاً، لا آخر سجل بالتاريخ (اللي ممكن يكون حجز قادم أو ملغى)
     const lastVisit = completedAppts[0]?.startsAt ?? null;
     return { customer: c, totalVisits, completedVisits, totalSpent, lastVisit, tier: tierOf(completedVisits) };

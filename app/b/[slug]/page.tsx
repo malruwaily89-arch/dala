@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { publicBookingAction } from "@/app/actions/appointments";
 import { LocaleProvider } from "@/lib/i18n/locale-context";
 import { BookingShell } from "./booking-shell";
+import { moneyToNumber } from "@/lib/utils";
 
 export default async function PublicBookingPage({
   params,
@@ -38,8 +39,8 @@ export default async function PublicBookingPage({
           id: s.id,
           name: s.name,
           durationMinutes: s.durationMinutes,
-          price: s.price,
-          depositAmount: s.depositAmount,
+          price: moneyToNumber(s.price),
+          depositAmount: moneyToNumber(s.depositAmount),
         }))}
         staff={staff.map((st) => ({ id: st.id, name: st.name }))}
         days={days.map((d) => d.toISOString())}

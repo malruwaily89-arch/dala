@@ -18,8 +18,21 @@ export const APPT_STATUS: Record<string, { label: string; color: string }> = {
   cancelled: { label: "ملغي", color: "bg-zinc-100 text-zinc-600" },
 };
 
-export function formatSar(amount: number): string {
-  return `${amount.toLocaleString("ar-SA")} ر.س`;
+export function normalizeMoney(value: unknown, field = "المبلغ"): number {
+  const amount = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(amount) || amount < 0 || amount > 1_000_000) {
+    throw new Error(`${field} غير صالح`);
+  }
+  return Math.round(amount * 100) / 100;
+}
+
+export function moneyToNumber(value: unknown): number {
+  return normalizeMoney(value);
+}
+
+export function formatSar(amount: unknown): string {
+  const normalized = normalizeMoney(amount);
+  return `${normalized.toLocaleString("ar-SA")} ر.س`;
 }
 
 export function formatTime(date: Date): string {

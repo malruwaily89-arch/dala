@@ -58,7 +58,9 @@ async function main() {
       { name: "مانيكير", durationMinutes: 30, price: 60, depositAmount: 15 },
     ];
     for (const s of serviceDefs) {
-      await db.service.create({ data: { tenantId: tenant.id, ...s } });
+      await db.service.create({
+        data: { tenantId: tenant.id, ...s, price: s.price.toFixed(2), depositAmount: s.depositAmount.toFixed(2) },
+      });
     }
     services = await db.service.findMany({ where: { tenantId: tenant.id } });
     console.log(`✔ تم إنشاء ${services.length} خدمات`);
@@ -144,7 +146,7 @@ async function main() {
 
     const endsAt = addMinutes(startsAt, service.durationMinutes);
 
-    const depositAmount = plan.depositPaid ? service.depositAmount : 0;
+    const depositAmount = plan.depositPaid ? service.depositAmount.toString() : "0.00";
     const depositPaidAt = plan.depositPaid
       ? new Date(Math.min(startsAt.getTime() - 60 * 60 * 1000, now.getTime()))
       : null;

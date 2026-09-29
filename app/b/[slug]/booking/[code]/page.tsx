@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { formatSar, formatDateTime, APPT_STATUS } from "@/lib/utils";
+import { formatSar, formatDateTime, APPT_STATUS, moneyToNumber } from "@/lib/utils";
 import { RescheduleSection } from "./reschedule-slots";
 import { RatingForm } from "./rating-form";
 
@@ -88,7 +88,7 @@ export default async function BookingViewPage({
             <Row k="الموظفة" v={appt.staff.name} />
             <Row k="الوقت" v={formatDateTime(appt.startsAt)} />
             <Row k="سعر الخدمة" v={formatSar(appt.service.price)} />
-            {appt.depositAmount > 0 && (
+            {moneyToNumber(appt.depositAmount) > 0 && (
               <Row
                 k="حالة العربون"
                 v={appt.depositPaidAt ? `مدفوع (${formatSar(appt.depositAmount)})` : `بانتظار الدفع (${formatSar(appt.depositAmount)})`}

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireSuperAdmin, hashPassword } from "@/lib/auth";
+import { normalizeMoney } from "@/lib/utils";
 
 const PLAN_PRICES: Record<string, number> = {
   BASIC: 300,
@@ -430,15 +431,17 @@ export async function recordManualPaymentAction(formData: FormData) {
 
   const tenantId = String(formData.get("tenantId") || "");
   const subscriptionId = String(formData.get("subscriptionId") || "") || null;
-  const amount = Number(formData.get("amount") || 0);
+  const rawAmount = Number(formData.get("amount") || 0);
 
-  if (!tenantId || !amount || amount <= 0) redirect("/admin/salons?error=1");
+  if (!tenantId || !rawAmount || rawAmount <= 0) redirect("/admin/salons?error=1");
+  let amount: number;
+  try { amount = normalizeMoney(rawAmount, "المبلغ"); } catch { redirect("/admin/salons?error=1"); }
 
   await db.payment.create({
     data: {
       tenantId,
       subscriptionId,
-      amount,
+      amount: amount.toFixed(2),
       status: "paid",
       provider: "manual",
       paidAt: new Date(),

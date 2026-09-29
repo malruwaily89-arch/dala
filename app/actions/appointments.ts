@@ -5,9 +5,9 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { createAppointmentTx, getAvailableSlots } from "@/lib/scheduling";
-import { canCancelAppointments, canAddAppointments, canManageStaffSchedules } from "@/lib/permissions";
+import { canCancelAppointments, canAddAppointments, canManageStaffSchedules, canManageServices } from "@/lib/permissions";
 import { notifyWhatsApp } from "@/lib/whatsapp";
-import { formatDateTime, formatSar } from "@/lib/utils";
+import { formatDateTime, formatSar, normalizeMoney } from "@/lib/utils";
 import { sendRatingRequestWhatsApp } from "@/app/b/[slug]/booking/[code]/actions";
 
 /** تسجيل رسالة — يُرسل فعلياً عبر Meta Cloud API عند توفر المفاتيح، وإلا محاكاة */
@@ -112,6 +112,9 @@ export async function createAppointmentAdminAction(formData: FormData) {
     redirect("/dashboard/appointments?error=missing");
   }
   const startsAt = new Date(slotIso);
+  if (!Number.isFinite(startsAt.getTime())) {
+    redirect("/dashboard/appointments?error=invalid_time");
+  }
   try {
     await createAppointmentTx({
       tenantId: user.tenantId,
@@ -134,7 +137,10 @@ export async function createCustomerAction(formData: FormData) {
   const user = await requireUser();
   const name = String(formData.get("name") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
-  const returnTo = String(formData.get("returnTo") || "/dashboard/customers");
+  const requestedReturnTo = String(formData.get("returnTo") || "");
+  const returnTo = requestedReturnTo.startsWith("/dashboard/") && !requestedReturnTo.startsWith("//") && !requestedReturnTo.includes("\\")
+    ? requestedReturnTo
+    : "/dashboard/customers";
   if (!name || !phone) redirect(`${returnTo}?error=missing`);
 
   const existing = await db.customer.findUnique({
@@ -151,13 +157,32 @@ export async function createCustomerAction(formData: FormData) {
 /** إدارة الخدمات */
 export async function createServiceAction(formData: FormData) {
   const user = await requireUser();
+  if (!canManageServices(user)) redirect("/dashboard/services?error=forbidden");
   const name = String(formData.get("name") || "").trim();
   const durationMinutes = Number(formData.get("durationMinutes") || 60);
-  const price = Number(formData.get("price") || 0);
-  const depositAmount = Number(formData.get("depositAmount") || 0);
+  const rawPrice = Number(formData.get("price") || 0);
+  const rawDepositAmount = Number(formData.get("depositAmount") || 0);
   if (!name) redirect("/dashboard/services?error=missing");
+  if (!Number.isInteger(durationMinutes) || durationMinutes < 5 || durationMinutes > 1_440) {
+    redirect("/dashboard/services?error=invalid_duration");
+  }
+  let price: number;
+  let depositAmount: number;
+  try {
+    price = normalizeMoney(rawPrice, "السعر");
+    depositAmount = normalizeMoney(rawDepositAmount, "العربون");
+  } catch {
+    redirect("/dashboard/services?error=invalid_money");
+  }
+  if (depositAmount > price) redirect("/dashboard/services?error=deposit_too_high");
   await db.service.create({
-    data: { tenantId: user.tenantId, name, durationMinutes, price, depositAmount },
+    data: {
+      tenantId: user.tenantId,
+      name,
+      durationMinutes,
+      price: price.toFixed(2),
+      depositAmount: depositAmount.toFixed(2),
+    },
   });
   revalidatePath("/dashboard/services");
 }

@@ -10,7 +10,7 @@ import {
   type DayTimelineRow,
 } from "@/lib/scheduling";
 import { getStaffAvailabilityReport } from "@/app/actions/reports";
-import { APPT_STATUS, formatSar, formatTime } from "@/lib/utils";
+import { APPT_STATUS, formatSar, formatTime, moneyToNumber } from "@/lib/utils";
 import {
   canCancelAppointments,
   canViewAppointmentStatus,
@@ -72,10 +72,10 @@ export default async function TodayPage() {
     noShowCount: visibleAppointments.filter((a) => a.status === "no_show").length,
     expectedRevenue: visibleAppointments
       .filter((a) => a.status !== "cancelled" && a.status !== "no_show")
-      .reduce((sum, a) => sum + a.service.price, 0),
+      .reduce((sum, a) => sum + moneyToNumber(a.service.price), 0),
     todayRevenue: visibleAppointments
       .filter((a) => a.status !== "cancelled" && a.depositPaidAt)
-      .reduce((sum, a) => sum + a.depositAmount, 0),
+      .reduce((sum, a) => sum + moneyToNumber(a.depositAmount), 0),
   };
 
   return (

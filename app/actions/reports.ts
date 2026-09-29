@@ -10,6 +10,7 @@ import {
   startOfDay,
   endOfDay,
 } from "@/lib/scheduling";
+import { moneyToNumber } from "@/lib/utils";
 
 /** بيانات تقرير الشهر الحالي المبسّط للوحة صاحبة الصالون */
 export async function getMonthlyReport() {
@@ -34,7 +35,7 @@ export async function getMonthlyReport() {
 
   const collectedDeposits = appointments
     .filter((a) => a.depositPaidAt)
-    .reduce((sum, a) => sum + a.depositAmount, 0);
+    .reduce((sum, a) => sum + moneyToNumber(a.depositAmount), 0);
 
   const newCustomersCount = await db.customer.count({
     where: { tenantId, createdAt: { gte: monthStart, lte: monthEnd } },
@@ -80,7 +81,7 @@ export async function getMonthlyReport() {
     (a) => a.status === "no_show" && a.depositPaidAt
   );
   const noShowDepositCount = noShowDepositAppointments.length;
-  const noShowDepositTotal = noShowDepositAppointments.reduce((sum, a) => sum + a.depositAmount, 0);
+  const noShowDepositTotal = noShowDepositAppointments.reduce((sum, a) => sum + moneyToNumber(a.depositAmount), 0);
 
   // عربون محصّل من حجوزات مُعدَّلة (تم تغيير الموعد)
   const rescheduledDepositAppointments = appointments.filter(
@@ -88,7 +89,7 @@ export async function getMonthlyReport() {
   );
   const rescheduledDepositCount = rescheduledDepositAppointments.length;
   const rescheduledDepositTotal = rescheduledDepositAppointments.reduce(
-    (sum, a) => sum + a.depositAmount,
+    (sum, a) => sum + moneyToNumber(a.depositAmount),
     0
   );
 
@@ -129,10 +130,10 @@ export async function getAdvancedReport() {
   // مقارنة العربون المحصّل مع الشهر السابق
   const currentCollected = currentAppointments
     .filter((a) => a.depositPaidAt)
-    .reduce((sum, a) => sum + a.depositAmount, 0);
+    .reduce((sum, a) => sum + moneyToNumber(a.depositAmount), 0);
   const prevCollected = prevAppointments
     .filter((a) => a.depositPaidAt)
-    .reduce((sum, a) => sum + a.depositAmount, 0);
+    .reduce((sum, a) => sum + moneyToNumber(a.depositAmount), 0);
   const revenueChangePercent =
     prevCollected > 0
       ? ((currentCollected - prevCollected) / prevCollected) * 100
@@ -210,12 +211,12 @@ export async function getStaffPerformanceReport() {
     const todayCount = todayAppts.length;
 
     const paidTodayAppts = todayAppts.filter((a) => a.depositPaidAt);
-    const collectedToday = paidTodayAppts.reduce((sum, a) => sum + a.depositAmount, 0);
+    const collectedToday = paidTodayAppts.reduce((sum, a) => sum + moneyToNumber(a.depositAmount), 0);
 
     const priorDaysAppts = monthAppts.filter(
       (a) => a.depositPaidAt && !(a.startsAt >= todayStart && a.startsAt <= todayEnd)
     );
-    const collectedPriorDays = priorDaysAppts.reduce((sum, a) => sum + a.depositAmount, 0);
+    const collectedPriorDays = priorDaysAppts.reduce((sum, a) => sum + moneyToNumber(a.depositAmount), 0);
     const collectedMonthTotal = collectedToday + collectedPriorDays;
 
     return {

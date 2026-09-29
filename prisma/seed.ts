@@ -182,7 +182,7 @@ async function seedSalon(
     data: {
       tenantId: tenant.id,
       subscriptionId: subscription.id,
-      amount: PLAN_PRICES[salon.plan],
+      amount: PLAN_PRICES[salon.plan].toFixed(2),
       currency: "SAR",
       status: "paid",
       provider: "moyasar",
@@ -202,8 +202,8 @@ async function seedSalon(
         tenantId: tenant.id,
         name: s.name,
         durationMinutes: s.duration,
-        price,
-        depositAmount: deposit,
+        price: price.toFixed(2),
+        depositAmount: deposit.toFixed(2),
       },
     });
     services.push({ id: created.id, name: s.name, price, duration: s.duration, deposit });
@@ -284,7 +284,7 @@ async function seedSalon(
         startsAt,
         endsAt,
         status: p.status,
-        depositAmount,
+        depositAmount: depositAmount.toFixed(2),
         depositPaidAt,
         paymentMethod,
         paymentRef,

@@ -30,6 +30,8 @@ function ErrorMessage() {
 
 function SignupCard() {
   const { t, dir } = useLocale();
+  const searchParams = useSearchParams();
+  const emailFromHero = searchParams.get("email") ?? "";
 
   return (
     <main dir={dir} className="relative flex flex-1 items-center justify-center overflow-hidden bg-background px-6 py-16">
@@ -76,6 +78,7 @@ function SignupCard() {
               name="email"
               type="email"
               dir="ltr"
+              defaultValue={emailFromHero}
               required
               className="w-full rounded-xl border border-brand/15 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
               placeholder="you@salon.sa"
@@ -140,7 +143,9 @@ function SignupCard() {
 export default function SignupPage() {
   return (
     <LocaleProvider>
-      <SignupCard />
+      <Suspense fallback={null}>
+        <SignupCard />
+      </Suspense>
     </LocaleProvider>
   );
 }

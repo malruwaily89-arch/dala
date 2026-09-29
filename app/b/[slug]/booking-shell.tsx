@@ -1,6 +1,6 @@
 "use client";
 
-import { formatSar } from "@/lib/utils";
+import { formatSar, moneyToNumber } from "@/lib/utils";
 import { useLocale } from "@/lib/i18n/locale-context";
 import { LanguageToggle } from "@/components/marketing/language-toggle";
 import { PublicBookingSlots } from "./slots";
@@ -174,7 +174,7 @@ function BookingForm({
                 <span className="block text-sm font-extrabold text-zinc-800">{s.name}</span>
                 <span className="mt-0.5 block text-xs text-zinc-500">
                   {s.durationMinutes} {t.booking.minute} · {formatSar(s.price)}
-                  {s.depositAmount > 0 && (
+                  {moneyToNumber(s.depositAmount) > 0 && (
                     <span style={{ color: "var(--brand)" }}> · {t.booking.deposit} {formatSar(s.depositAmount)}</span>
                   )}
                 </span>

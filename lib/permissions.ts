@@ -26,6 +26,11 @@ export function canViewReportsAndFinance(user: CurrentUser): boolean {
   return user.role !== "STAFF";
 }
 
+/** إدارة الخدمات والأسعار للمالكة والسوبر أدمن فقط. */
+export function canManageServices(user: CurrentUser): boolean {
+  return user.role !== "STAFF";
+}
+
 /**
  * الاطلاع على جدول موظفة معينة (مواعيدها بالاسم والخدمة والعربون).
  * المالكة والسوبر أدمن ومن لديها canManageStaffSchedules يشاهدون جدول أي موظفة.

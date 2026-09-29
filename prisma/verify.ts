@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import { moneyToNumber } from "../lib/utils";
 
 const db = new PrismaClient();
 
@@ -33,15 +34,15 @@ async function main() {
     const pending = appts.filter((a) => a.status === "pending_deposit");
 
     // أ. إيرادات = مجموع أسعار الخدمات للحجوزات المكتملة (done)
-    const doneRevenue = done.reduce((s, a) => s + a.service.price, 0);
+    const doneRevenue = done.reduce((s, a) => s + moneyToNumber(a.service.price), 0);
 
     // ب. معدل الحضور = (done + confirmed) / (total - cancelled) × 100
     const denom = total - cancelled.length;
     const attendanceRate = denom > 0 ? ((done.length + confirmed.length) / denom) * 100 : 0;
 
     // ج. عربون الغائبات = مجموع deposits لحجوزات no_show فقط
-    const noShowDeposits = noShow.reduce((s, a) => s + a.depositAmount, 0);
-    const cancelledDeposits = cancelled.reduce((s, a) => s + a.depositAmount, 0);
+    const noShowDeposits = noShow.reduce((s, a) => s + moneyToNumber(a.depositAmount), 0);
+    const cancelledDeposits = cancelled.reduce((s, a) => s + moneyToNumber(a.depositAmount), 0);
 
     // د. ترتيب الخدمات الأكثر شعبية (استبعاد الملغيات)
     const serviceCounts = new Map<string, number>();
@@ -54,10 +55,10 @@ async function main() {
     // هـ. إيراد كل موظفة = مجموع أسعار الحجوزات المكتملة (done فقط)
     const staffRevenue = new Map<string, number>();
     for (const a of done) {
-      staffRevenue.set(a.staff.name, (staffRevenue.get(a.staff.name) ?? 0) + a.service.price);
+      staffRevenue.set(a.staff.name, (staffRevenue.get(a.staff.name) ?? 0) + moneyToNumber(a.service.price));
     }
     const rankedStaff = [...staffRevenue.entries()].sort((a, b) => b[1] - a[1]);
-    const confirmedRevenue = confirmed.reduce((s, a) => s + a.service.price, 0);
+    const confirmedRevenue = confirmed.reduce((s, a) => s + moneyToNumber(a.service.price), 0);
 
     console.log(`\n===== ${t.name} (${t.slug}) — ${t.plan} =====`);
     console.log(`الحالات: total=${total} done=${done.length} confirmed=${confirmed.length} cancelled=${cancelled.length} no_show=${noShow.length} pending_deposit=${pending.length}`);
@@ -84,9 +85,9 @@ async function main() {
     // نفس منطق getMonthlyReport
     const collectedDeposits = monthAppts
       .filter((a) => a.depositPaidAt)
-      .reduce((s, a) => s + a.depositAmount, 0);
+      .reduce((s, a) => s + moneyToNumber(a.depositAmount), 0);
     const noShowDepositAppts = monthAppts.filter((a) => a.status === "no_show" && a.depositPaidAt);
-    const noShowDepositTotal = noShowDepositAppts.reduce((s, a) => s + a.depositAmount, 0);
+    const noShowDepositTotal = noShowDepositAppts.reduce((s, a) => s + moneyToNumber(a.depositAmount), 0);
     const active = monthAppts.filter((a) => a.status !== "cancelled");
     const svcCounts = new Map<string, number>();
     for (const a of active) svcCounts.set(a.service.name, (svcCounts.get(a.service.name) ?? 0) + 1);

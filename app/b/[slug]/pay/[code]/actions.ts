@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 import { fetchPayment } from "@/lib/moyasar";
+import { moneyToNumber } from "@/lib/utils";
 
 /** محاكاة بوابة الدفع — تُستبدل بـ Moyasar/Tap في الإنتاج */
 export async function simulatePaymentAction(formData: FormData) {
@@ -56,7 +57,7 @@ export async function savePaymentIdAction(code: string, paymentId: string) {
     await db.payment.create({
       data: {
         tenantId: appt.tenantId,
-        amount: appt.depositAmount,
+        amount: moneyToNumber(appt.depositAmount),
         currency: "SAR",
         status: "pending",
         provider: "moyasar",
@@ -102,7 +103,7 @@ export async function reconcileMoyasarPaymentAction(code: string, paymentId: str
     await db.payment.create({
       data: {
         tenantId: appt.tenantId,
-        amount: appt.depositAmount,
+        amount: moneyToNumber(appt.depositAmount),
         currency: "SAR",
         status: paidNow ? "paid" : failedNow ? "failed" : "pending",
         provider: "moyasar",

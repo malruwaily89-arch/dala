@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { formatSar, formatDateTime, APPT_STATUS } from "@/lib/utils";
+import { formatSar, formatDateTime, APPT_STATUS, moneyToNumber } from "@/lib/utils";
 
 export default async function PayPage({
   params,
@@ -64,7 +64,7 @@ export default async function PayPage({
             <Row k="الموظفة" v={appt.staff.name} />
             <Row k="الوقت" v={formatDateTime(appt.startsAt)} />
             <Row k="سعر الخدمة" v={formatSar(appt.service.price)} />
-            {appt.depositAmount > 0 && <Row k="العربون المطلوب" v={formatSar(appt.depositAmount)} strong />}
+            {moneyToNumber(appt.depositAmount) > 0 && <Row k="العربون المطلوب" v={formatSar(appt.depositAmount)} strong />}
           </dl>
 
           {!confirmed && (
