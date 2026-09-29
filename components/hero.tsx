@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Sparkles, ArrowRight } from 'lucide-react'
@@ -57,13 +58,13 @@ export function Hero() {
 
           <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <span>{t.hero.trialNote}</span>
-            <a
-              href="#pricing"
+            <Link
+              href="/b/demo-salon"
               className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
             >
               {t.hero.bookDemo}{' '}
               <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-            </a>
+            </Link>
           </div>
 
           <p className="mt-8 text-sm font-medium text-primary/80">

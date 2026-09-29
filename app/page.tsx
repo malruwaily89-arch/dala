@@ -3,7 +3,6 @@ import { Hero } from '@/components/hero'
 import { Categories } from '@/components/categories'
 import { HowItWorks } from '@/components/how-it-works'
 import { FeaturedSalons } from '@/components/featured-salons'
-import { Testimonials } from '@/components/testimonials'
 import { PartnerCta } from '@/components/partner-cta'
 import { SiteFooter } from '@/components/site-footer'
 
@@ -16,7 +15,6 @@ export default function Page() {
         <Categories />
         <HowItWorks />
         <FeaturedSalons />
-        <Testimonials />
         <PartnerCta />
       </main>
       <SiteFooter />

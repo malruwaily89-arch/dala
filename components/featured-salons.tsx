@@ -1,6 +1,7 @@
 'use client'
 
 import { Sparkles } from 'lucide-react'
+import Link from 'next/link'
 import { useLanguage } from '@/components/language-provider'
 
 export function FeaturedSalons() {
@@ -29,6 +30,12 @@ export function FeaturedSalons() {
         <p className="mt-2 max-w-md text-sm text-muted-foreground">
           {t.salons.emptyDesc}
         </p>
+        <Link
+          href="/b/demo-salon"
+          className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          {t.salons.demoLink}
+        </Link>
       </div>
     </section>
   )

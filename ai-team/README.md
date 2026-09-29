@@ -1,6 +1,6 @@
 # Dala AI Team
 
-Suggest-only CLI with nine roles, no shell/database/GitHub/deployment tools, no runtime dependencies. Node 20-compatible; use Node 24 LTS for the new service. No Next.js runtime changes.
+Suggest-only CLI with ten roles, no shell/database/GitHub/deployment tools, no runtime dependencies. Node 20-compatible; use Node 24 LTS for the new service. No Next.js runtime changes.
 
 ## Run without spending
 
@@ -15,7 +15,7 @@ This prints a plan and makes no API requests. Evidence is explicitly prepared me
 
 ## Optional live review
 
-Supply OPENAI_API_KEY securely through the process environment, DALA_ENABLE_API=true, DALA_EVIDENCE_REVIEWED=true and DALA_MONTHLY_CAP_SAR (positive, max 100). Then append --live. These flags acknowledge that the evidence was manually reviewed for secrets and personal data. DALA_KILL_SWITCH=true disables live execution. DALA_ROLES accepts comma-separated product,ux,technical,database,qa,security,pricing; validation and manager always run last.
+Supply OPENAI_API_KEY securely through the process environment, DALA_ENABLE_API=true, DALA_EVIDENCE_REVIEWED=true and DALA_MONTHLY_CAP_SAR (positive, max 100). Then append --live. These flags acknowledge that the evidence was manually reviewed for secrets and personal data. DALA_KILL_SWITCH=true disables live execution. DALA_ROLES accepts comma-separated product,ux,technical,database,qa,security,pricing,content; validation and manager always run last.
 
 No live calls have been tested or funded by this change. Account/model availability must be verified. Network policy should allow only api.openai.com. Never mount production credentials, a Docker socket or writable application source. Review outputs remain untrusted text.
 
