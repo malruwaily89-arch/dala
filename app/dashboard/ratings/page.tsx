@@ -51,11 +51,11 @@ export default async function RatingsPage() {
   return (
     <div>
       <h1 className="text-2xl font-extrabold">التقييمات</h1>
-      <p className="mt-1 text-sm text-zinc-500">آراء العميلات في الخدمات المكتملة.</p>
+      <p className="mt-1 text-sm text-foreground/55">آراء العميلات في الخدمات المكتملة.</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-semibold text-zinc-500">متوسط التقييم</p>
+        <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-foreground/55">متوسط التقييم</p>
           <div className="mt-1 flex items-baseline gap-2">
             <p className="text-2xl font-extrabold">{averageScore.toFixed(1)}</p>
             <p dir="ltr" className="text-lg text-brand">
@@ -64,8 +64,8 @@ export default async function RatingsPage() {
             </p>
           </div>
         </div>
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-semibold text-zinc-500">عدد التقييمات</p>
+        <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-foreground/55">عدد التقييمات</p>
           <p className="mt-1 text-2xl font-extrabold">{ratings.length}</p>
         </div>
       </div>
@@ -73,9 +73,9 @@ export default async function RatingsPage() {
       {ratings.length === 0 ? (
         <EmptyState text="لا تقييمات مسجّلة بعد." />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
+        <div className="mt-6 overflow-x-auto rounded-xl border border-brand/10 bg-white shadow-sm">
           <table className="w-full text-start text-sm">
-            <thead className="bg-zinc-50 text-start text-xs font-bold text-zinc-500">
+            <thead className="bg-background text-start text-xs font-bold text-foreground/55">
               <tr>
                 <th className="p-4 text-start">العميلة</th>
                 <th className="p-4 text-start">الخدمة</th>
@@ -87,18 +87,18 @@ export default async function RatingsPage() {
             </thead>
             <tbody>
               {ratings.map((r) => (
-                <tr key={r.id} className="border-t border-zinc-100">
+                <tr key={r.id} className="border-t border-brand/10">
                   <td className="p-4 font-bold">{r.customer.name}</td>
-                  <td className="p-4 text-zinc-600">{r.appointment.service.name}</td>
-                  <td className="p-4 text-zinc-600">{r.appointment.staff.name}</td>
+                  <td className="p-4 text-foreground/65">{r.appointment.service.name}</td>
+                  <td className="p-4 text-foreground/65">{r.appointment.staff.name}</td>
                   <td className="p-4">
                     <span dir="ltr" className="text-brand">
                       {"★".repeat(r.score)}
                       <span className="text-pink-200">{"★".repeat(5 - r.score)}</span>
                     </span>
                   </td>
-                  <td className="p-4 text-zinc-600">{r.comment ?? "—"}</td>
-                  <td className="p-4 text-zinc-500">{formatDateTime(r.createdAt)}</td>
+                  <td className="p-4 text-foreground/65">{r.comment ?? "—"}</td>
+                  <td className="p-4 text-foreground/55">{formatDateTime(r.createdAt)}</td>
                 </tr>
               ))}
             </tbody>
@@ -124,7 +124,7 @@ export default async function RatingsPage() {
                   <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
                     <p className="font-bold text-emerald-800">أعلى تقييماً — الموظفات</p>
                     <p className="mt-2 text-xl font-extrabold text-emerald-800">{topStaff.name}</p>
-                    <p className="mt-1 text-sm text-zinc-500">
+                    <p className="mt-1 text-sm text-foreground/55">
                       {topStaff.avg.toFixed(1)} ★ من {topStaff.count} تقييم
                     </p>
                   </div>
@@ -133,7 +133,7 @@ export default async function RatingsPage() {
                   <div className="rounded-xl border border-rose-200 bg-rose-50 p-5">
                     <p className="font-bold text-rose-800">يحتاج تحسين — الموظفات</p>
                     <p className="mt-2 text-xl font-extrabold text-rose-800">{lowStaff.name}</p>
-                    <p className="mt-1 text-sm text-zinc-500">
+                    <p className="mt-1 text-sm text-foreground/55">
                       {lowStaff.avg.toFixed(1)} ★ من {lowStaff.count} تقييم
                     </p>
                   </div>
@@ -142,7 +142,7 @@ export default async function RatingsPage() {
                   <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
                     <p className="font-bold text-emerald-800">أعلى تقييماً — الخدمات</p>
                     <p className="mt-2 text-xl font-extrabold text-emerald-800">{topService.name}</p>
-                    <p className="mt-1 text-sm text-zinc-500">
+                    <p className="mt-1 text-sm text-foreground/55">
                       {topService.avg.toFixed(1)} ★ من {topService.count} تقييم
                     </p>
                   </div>
@@ -151,7 +151,7 @@ export default async function RatingsPage() {
                   <div className="rounded-xl border border-rose-200 bg-rose-50 p-5">
                     <p className="font-bold text-rose-800">يحتاج تحسين — الخدمات</p>
                     <p className="mt-2 text-xl font-extrabold text-rose-800">{lowService.name}</p>
-                    <p className="mt-1 text-sm text-zinc-500">
+                    <p className="mt-1 text-sm text-foreground/55">
                       {lowService.avg.toFixed(1)} ★ من {lowService.count} تقييم
                     </p>
                   </div>
@@ -160,10 +160,10 @@ export default async function RatingsPage() {
 
               <div className="mt-6 grid gap-6 lg:grid-cols-2">
                 <div>
-                  <h3 className="text-sm font-bold text-zinc-700">تقييم كل موظفة</h3>
-                  <div className="mt-3 overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
+                  <h3 className="text-sm font-bold text-foreground/75">تقييم كل موظفة</h3>
+                  <div className="mt-3 overflow-x-auto rounded-xl border border-brand/10 bg-white shadow-sm">
                     <table className="w-full text-start text-sm">
-                      <thead className="bg-zinc-50 text-xs font-bold text-zinc-500">
+                      <thead className="bg-background text-xs font-bold text-foreground/55">
                         <tr>
                           <th className="p-3 text-start">الموظفة</th>
                           <th className="p-3 text-start">المتوسط</th>
@@ -172,10 +172,10 @@ export default async function RatingsPage() {
                       </thead>
                       <tbody>
                         {staffAverages.map((s) => (
-                          <tr key={s.name} className="border-t border-zinc-100">
+                          <tr key={s.name} className="border-t border-brand/10">
                             <td className="p-3 font-bold">{s.name}</td>
                             <td className="p-3 text-brand">{s.avg.toFixed(1)} ★</td>
-                            <td className="p-3 text-zinc-500">{s.count}</td>
+                            <td className="p-3 text-foreground/55">{s.count}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -184,10 +184,10 @@ export default async function RatingsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-bold text-zinc-700">تقييم كل خدمة</h3>
-                  <div className="mt-3 overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
+                  <h3 className="text-sm font-bold text-foreground/75">تقييم كل خدمة</h3>
+                  <div className="mt-3 overflow-x-auto rounded-xl border border-brand/10 bg-white shadow-sm">
                     <table className="w-full text-start text-sm">
-                      <thead className="bg-zinc-50 text-xs font-bold text-zinc-500">
+                      <thead className="bg-background text-xs font-bold text-foreground/55">
                         <tr>
                           <th className="p-3 text-start">الخدمة</th>
                           <th className="p-3 text-start">المتوسط</th>
@@ -196,10 +196,10 @@ export default async function RatingsPage() {
                       </thead>
                       <tbody>
                         {serviceAverages.map((s) => (
-                          <tr key={s.name} className="border-t border-zinc-100">
+                          <tr key={s.name} className="border-t border-brand/10">
                             <td className="p-3 font-bold">{s.name}</td>
                             <td className="p-3 text-brand">{s.avg.toFixed(1)} ★</td>
-                            <td className="p-3 text-zinc-500">{s.count}</td>
+                            <td className="p-3 text-foreground/55">{s.count}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -218,7 +218,7 @@ export default async function RatingsPage() {
               برو
             </span>
           </p>
-          <p className="mt-1 text-sm text-zinc-600">
+          <p className="mt-1 text-sm text-foreground/65">
             تقييم كل موظفة وكل خدمة على حدة، وتحديد الأعلى والأحوج للتحسين تلقائياً.
           </p>
           <Link

@@ -21,7 +21,7 @@ export default async function ReportsPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold">تقرير الشهر</h1>
-          <p className="mt-1 text-sm text-zinc-500">ملخص أداء صالونك خلال {monthLabel}.</p>
+          <p className="mt-1 text-sm text-foreground/55">ملخص أداء صالونك خلال {monthLabel}.</p>
         </div>
         <ReportExportButtons
           report={report}
@@ -44,9 +44,9 @@ export default async function ReportsPage() {
       {report.topServices.length === 0 ? (
         <EmptyState text="لا حجوزات مسجّلة هذا الشهر بعد." />
       ) : (
-        <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-brand/10 bg-white shadow-sm">
           <table className="w-full text-start text-sm">
-            <thead className="bg-zinc-50 text-start text-xs font-bold text-zinc-500">
+            <thead className="bg-background text-start text-xs font-bold text-foreground/55">
               <tr>
                 <th className="p-4 text-start">الخدمة</th>
                 <th className="p-4 text-start">عدد الحجوزات</th>
@@ -54,9 +54,9 @@ export default async function ReportsPage() {
             </thead>
             <tbody>
               {report.topServices.map((s) => (
-                <tr key={s.name} className="border-t border-zinc-100">
+                <tr key={s.name} className="border-t border-brand/10">
                   <td className="p-4 font-bold">{s.name}</td>
-                  <td className="p-4 text-zinc-600">{s.count}</td>
+                  <td className="p-4 text-foreground/65">{s.count}</td>
                 </tr>
               ))}
             </tbody>
@@ -70,14 +70,14 @@ export default async function ReportsPage() {
       ) : (
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {report.topStaff.map((s) => (
-            <div key={s.name} className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <div key={s.name} className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
               <div className="flex items-baseline justify-between">
                 <p className="font-bold">{s.name}</p>
-                <p className="text-sm text-zinc-500">{s.count} موعد</p>
+                <p className="text-sm text-foreground/55">{s.count} موعد</p>
               </div>
               <ul className="mt-3 space-y-1.5 text-sm">
                 {s.services.map((svc) => (
-                  <li key={svc.name} className="flex items-center justify-between text-zinc-600">
+                  <li key={svc.name} className="flex items-center justify-between text-foreground/65">
                     <span>{svc.name}</span>
                     <span className="font-semibold text-zinc-800">{svc.count}</span>
                   </li>
@@ -91,27 +91,27 @@ export default async function ReportsPage() {
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
           <p className="font-bold text-emerald-800">عربون محصّل من غير الحاضرات</p>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-foreground/55">
             عربون لا يُعاد للعميلة التي لم تحضر — ربح صافٍ للصالون.
           </p>
           <div className="mt-3 flex items-baseline gap-2">
             <p className="text-2xl font-extrabold text-emerald-800">
               {formatSar(report.noShowDepositTotal)}
             </p>
-            <p className="text-sm text-zinc-500">من {report.noShowDepositCount} حالة</p>
+            <p className="text-sm text-foreground/55">من {report.noShowDepositCount} حالة</p>
           </div>
         </div>
 
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
           <p className="font-bold text-amber-800">عربون محصّل من حجوزات مُعدَّلة</p>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-foreground/55">
             عربون مدفوع سابقاً لحجوزات تم تعديل موعدها.
           </p>
           <div className="mt-3 flex items-baseline gap-2">
             <p className="text-2xl font-extrabold text-amber-800">
               {formatSar(report.rescheduledDepositTotal)}
             </p>
-            <p className="text-sm text-zinc-500">من {report.rescheduledDepositCount} حجز</p>
+            <p className="text-sm text-foreground/55">من {report.rescheduledDepositCount} حجز</p>
           </div>
         </div>
       </div>
@@ -168,7 +168,7 @@ export default async function ReportsPage() {
               برو
             </span>
           </p>
-          <p className="mt-1 text-sm text-zinc-600">
+          <p className="mt-1 text-sm text-foreground/65">
             مقارنة الأداء الشهري، أكثر الأيام والساعات ازدحاماً، ومعدلات التحصيل والإلغاء وعدم الحضور.
           </p>
           <Link
@@ -198,7 +198,7 @@ function AdvancedCard({
     tone === "positive" ? "text-emerald-700" : tone === "negative" ? "text-rose-700" : "text-zinc-800";
   return (
     <div className="rounded-xl border border-purple-100 bg-white p-5 shadow-sm">
-      <p className="text-sm font-semibold text-zinc-500">{label}</p>
+      <p className="text-sm font-semibold text-foreground/55">{label}</p>
       <p className={`mt-1 text-2xl font-extrabold ${valueColor}`}>{value}</p>
       <p className="mt-1 text-xs text-zinc-400">{note}</p>
     </div>
@@ -207,8 +207,8 @@ function AdvancedCard({
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-semibold text-zinc-500">{label}</p>
+    <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
+      <p className="text-sm font-semibold text-foreground/55">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">{value}</p>
     </div>
   );

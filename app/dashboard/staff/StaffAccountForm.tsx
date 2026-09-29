@@ -33,7 +33,7 @@ function PermissionCheckboxes({
 /** ملاحظة توضيحية بدل مربعات الصلاحيات للمسميات غير الإدارية */
 function RestrictedNote() {
   return (
-    <p className="rounded-lg bg-zinc-50 p-3 text-xs text-zinc-500">
+    <p className="rounded-lg bg-background p-3 text-xs text-foreground/55">
       هذا الحساب يسمح فقط بالاطلاع على جدولها الخاص. لمنح صلاحيات إضافية (إضافة/إلغاء مواعيد،
       إدارة جداول الموظفات)، غيّري مسمّاها الوظيفي إلى «موظفة استقبال» أو «مشرفة» أو «إدارية».
     </p>
@@ -71,7 +71,7 @@ export function CreateStaffLoginForm({ staffId, restricted }: { staffId: string;
         <RestrictedNote />
       ) : (
         <>
-          <p className="text-xs font-bold text-zinc-500">الصلاحيات الممنوحة</p>
+          <p className="text-xs font-bold text-foreground/55">الصلاحيات الممنوحة</p>
           <PermissionCheckboxes />
         </>
       )}
@@ -95,8 +95,8 @@ export function EditStaffPermissionsForm({
 }) {
   return (
     <div className="space-y-3">
-      <p className="text-xs text-zinc-500">
-        حساب الدخول: <span dir="ltr" className="font-semibold text-zinc-700">{email}</span>
+      <p className="text-xs text-foreground/55">
+        حساب الدخول: <span dir="ltr" className="font-semibold text-foreground/75">{email}</span>
       </p>
       {restricted ? (
         <RestrictedNote />

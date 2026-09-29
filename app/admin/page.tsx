@@ -18,7 +18,7 @@ export default async function AdminPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-extrabold">نظرة عامة على المنصة</h1>
-        <p className="mt-1 text-sm text-zinc-500">مؤشرات الصالونات والاشتراكات والمدفوعات.</p>
+        <p className="mt-1 text-sm text-foreground/55">مؤشرات الصالونات والاشتراكات والمدفوعات.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -29,22 +29,22 @@ export default async function AdminPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <section className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">نمو MRR والصالونات — آخر 6 أشهر</h2>
           <GrowthChart data={growth} />
         </section>
 
-        <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <section className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">توزيع الباقات</h2>
           <PlanDistribution counts={planDist} />
         </section>
       </div>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">الصالونات</h2>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-zinc-200 text-zinc-500">
+            <thead className="border-b border-brand/10 text-foreground/55">
               <tr>
                 <th className="py-2 text-start font-semibold">الصالون</th>
                 <th className="py-2 text-start font-semibold">الرابط</th>
@@ -62,7 +62,7 @@ export default async function AdminPage() {
                   <td className="py-3">{statusBadge(t.status)}</td>
                   <td className="py-3">
                     {t.lastPayment ? (
-                      <span className="text-zinc-600">
+                      <span className="text-foreground/65">
                         {formatSar(t.lastPayment.amount)} · {paymentStatusBadge(t.lastPayment.status)}
                       </span>
                     ) : (
@@ -81,11 +81,11 @@ export default async function AdminPage() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">المدفوعات الأخيرة</h2>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-zinc-200 text-zinc-500">
+            <thead className="border-b border-brand/10 text-foreground/55">
               <tr>
                 <th className="py-2 text-start font-semibold">الصالون</th>
                 <th className="py-2 text-start font-semibold">المبلغ</th>
@@ -101,7 +101,7 @@ export default async function AdminPage() {
                   <td className="py-3">{formatSar(p.amount)}</td>
                   <td className="py-3">{paymentStatusBadge(p.status)}</td>
                   <td className="py-3 capitalize">{p.provider}</td>
-                  <td className="py-3 text-zinc-500">
+                  <td className="py-3 text-foreground/55">
                     {p.paidAt ? new Date(p.paidAt).toLocaleDateString("ar-SA") : "—"}
                   </td>
                 </tr>
@@ -121,8 +121,8 @@ export default async function AdminPage() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-semibold text-zinc-500">{label}</p>
+    <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
+      <p className="text-sm font-semibold text-foreground/55">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">{value}</p>
     </div>
   );
@@ -134,7 +134,7 @@ function statusBadge(status: string) {
     trialing: "bg-sky-100 text-sky-800",
     past_due: "bg-amber-100 text-amber-800",
     suspended: "bg-orange-100 text-orange-800",
-    canceled: "bg-zinc-100 text-zinc-600",
+    canceled: "bg-zinc-100 text-foreground/65",
   };
   const label: Record<string, string> = {
     active: "نشط",
@@ -210,7 +210,7 @@ function PlanDistribution({ counts }: { counts: Record<string, number> }) {
         <div key={plan}>
           <div className="mb-1 flex justify-between text-sm">
             <span className="font-semibold">{plan}</span>
-            <span className="text-zinc-500">{count} صالون</span>
+            <span className="text-foreground/55">{count} صالون</span>
           </div>
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-100">
             <div
@@ -229,7 +229,7 @@ function paymentStatusBadge(status: string) {
     paid: "bg-emerald-100 text-emerald-800",
     pending: "bg-amber-100 text-amber-800",
     failed: "bg-rose-100 text-rose-800",
-    refunded: "bg-zinc-100 text-zinc-600",
+    refunded: "bg-zinc-100 text-foreground/65",
   };
   const label: Record<string, string> = {
     paid: "مدفوع",

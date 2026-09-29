@@ -61,22 +61,22 @@ export function AdminSlotPicker() {
           return (
             <details
               key={i}
-              className="group overflow-hidden rounded-xl border border-zinc-200 bg-white"
+              className="group overflow-hidden rounded-xl border border-brand/10 bg-white"
               onToggle={(e) => {
                 if ((e.currentTarget as HTMLDetailsElement).open && slots === undefined) loadDay(i);
               }}
             >
               <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 select-none">
-                <span className="text-sm font-bold text-zinc-700">
+                <span className="text-sm font-bold text-foreground/75">
                   {DAY_NAMES[day.getDay()]} {day.getDate()}
                 </span>
                 <ChevronDown className="h-4 w-4 text-zinc-400 transition-transform group-open:rotate-180" />
               </summary>
-              <div className="border-t border-zinc-100 p-3">
+              <div className="border-t border-brand/10 p-3">
                 {loadingDay === i ? (
                   <p className="text-xs text-zinc-400">جارٍ التحميل…</p>
                 ) : !slots || slots.length === 0 ? (
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-foreground/55">
                     {slots === undefined ? "اختاري الموظفة والخدمة أولاً." : "لا أوقات متاحة هذا اليوم."}
                   </p>
                 ) : (
@@ -89,7 +89,7 @@ export function AdminSlotPicker() {
                         className={`rounded-lg border-2 py-2 text-xs font-bold transition ${
                           selectedIso === iso
                             ? "border-transparent bg-brand text-white"
-                            : "border-zinc-200 text-zinc-700 hover:border-brand/40"
+                            : "border-brand/10 text-foreground/75 hover:border-brand/40"
                         }`}
                       >
                         {new Date(iso).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}

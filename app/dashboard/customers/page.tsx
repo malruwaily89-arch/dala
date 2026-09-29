@@ -6,7 +6,7 @@ import { EmptyState } from "../ui";
 type Tier = "new" | "occasional" | "regular";
 
 const TIER_LABEL: Record<Tier, { label: string; className: string }> = {
-  new: { label: "جديدة", className: "bg-zinc-100 text-zinc-500" },
+  new: { label: "جديدة", className: "bg-zinc-100 text-foreground/55" },
   occasional: { label: "عادية", className: "bg-sky-100 text-sky-700" },
   regular: { label: "منتظمة", className: "bg-emerald-100 text-emerald-700" },
 };
@@ -49,16 +49,16 @@ export default async function CustomersPage() {
   return (
     <div>
       <h1 className="text-2xl font-extrabold">العميلات</h1>
-      <p className="mt-1 text-sm text-zinc-500">
+      <p className="mt-1 text-sm text-foreground/55">
         التصنيف مبني على عدد الزيارات المكتملة فعلياً — عداد «لم تحضر» يساعدك على طلب عربون أعلى من المتكررات.
       </p>
 
       {rows.length === 0 ? (
         <EmptyState text="لا عميلات بعد — ستُضاف تلقائياً مع أول حجز." />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
+        <div className="mt-6 overflow-x-auto rounded-xl border border-brand/10 bg-white shadow-sm">
           <table className="w-full text-start text-sm">
-            <thead className="bg-zinc-50 text-start text-xs font-bold text-zinc-500">
+            <thead className="bg-background text-start text-xs font-bold text-foreground/55">
               <tr>
                 <th className="p-4 text-start">الاسم</th>
                 <th className="p-4 text-start">الجوال</th>
@@ -74,9 +74,9 @@ export default async function CustomersPage() {
               {rows.map(({ customer: c, totalVisits, completedVisits, totalSpent, lastVisit, tier }) => {
                 const tierInfo = TIER_LABEL[tier];
                 return (
-                  <tr key={c.id} className="border-t border-zinc-100">
+                  <tr key={c.id} className="border-t border-brand/10">
                     <td className="p-4 font-bold">{c.name}</td>
-                    <td dir="ltr" className="p-4 text-zinc-600">
+                    <td dir="ltr" className="p-4 text-foreground/65">
                       {c.phone}
                     </td>
                     <td className="p-4">
@@ -84,10 +84,10 @@ export default async function CustomersPage() {
                         {tierInfo.label}
                       </span>
                     </td>
-                    <td className="p-4 text-zinc-600">{totalVisits}</td>
-                    <td className="p-4 text-zinc-600">{completedVisits}</td>
+                    <td className="p-4 text-foreground/65">{totalVisits}</td>
+                    <td className="p-4 text-foreground/65">{completedVisits}</td>
                     <td className="p-4 font-semibold text-zinc-800">{formatSar(totalSpent)}</td>
-                    <td className="p-4 text-zinc-600">{lastVisit ? lastVisit.toLocaleDateString("ar-SA") : "—"}</td>
+                    <td className="p-4 text-foreground/65">{lastVisit ? lastVisit.toLocaleDateString("ar-SA") : "—"}</td>
                     <td className="p-4">
                       {c.noShowCount > 0 ? (
                         <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">

@@ -10,7 +10,9 @@
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
-    "verify": "tsx prisma/verify.ts"
+    "verify": "tsx prisma/verify.ts",
+    "scenario:reset": "tsx prisma/reset-demo-scenario.ts",
+    "scenario:verify": "tsx prisma/verify-demo-scenario.ts"
   },
   "overrides": {
     "uuid": "^11.1.1"

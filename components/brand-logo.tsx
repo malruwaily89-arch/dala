@@ -6,7 +6,7 @@ export function BrandLogo({ className, compact = false }: { className?: string; 
   return (
     <span className={cn('inline-flex items-center gap-2 text-brand', className)}>
       <Image
-        src="/dalal-logo.png"
+        src="/dala-logo-option-a.png"
         alt=""
         aria-hidden="true"
         width={48}

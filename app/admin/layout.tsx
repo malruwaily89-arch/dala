@@ -17,17 +17,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user || user.role !== "SUPER_ADMIN") redirect("/login");
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="border-b border-brand/10 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
             <Link href="/admin" aria-label="دلال" className="flex items-center gap-2">
-              <Image src="/dalal-logo.png" alt="دلال" width={100} height={64} className="h-auto w-16" priority />
+              <Image src="/dala-logo-option-a.png" alt="دلال" width={100} height={64} className="h-auto w-16" priority />
               <span className="text-lg font-extrabold text-brand">لوحة المشرف</span>
             </Link>
           </div>
           <div className="flex items-center gap-4">
-            <p className="hidden text-sm text-zinc-500 sm:block">{user.email}</p>
+            <p className="hidden text-sm text-foreground/55 sm:block">{user.email}</p>
             <form action={logoutAction}>
               <button className="rounded-lg px-3 py-1.5 text-sm font-semibold text-rose-600 hover:bg-rose-50">
                 خروج
@@ -40,7 +40,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-lg px-3 py-1.5 text-sm font-semibold text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900"
+              className="rounded-lg px-3 py-1.5 text-sm font-semibold text-foreground/65 transition hover:bg-secondary hover:text-brand"
             >
               {item.label}
             </Link>

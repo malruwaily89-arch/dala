@@ -86,7 +86,7 @@ function dayParam(date: Date): string {
 function ScheduleRow({ row }: { row: Row }) {
   if (row.kind === "gap") {
     return (
-      <tr className="border-t border-zinc-100/80">
+      <tr className="border-t border-brand/10/80">
         <td className="p-3 font-semibold text-zinc-400">
           {formatTime(row.start)} – {formatTime(row.end)}
         </td>
@@ -102,15 +102,15 @@ function ScheduleRow({ row }: { row: Row }) {
       </tr>
     );
   }
-  const statusInfo = APPT_STATUS[row.appt.status] ?? { label: row.appt.status, color: "bg-zinc-100 text-zinc-600" };
+  const statusInfo = APPT_STATUS[row.appt.status] ?? { label: row.appt.status, color: "bg-zinc-100 text-foreground/65" };
   return (
-    <tr className="border-t border-zinc-100/80">
+    <tr className="border-t border-brand/10/80">
       <td className="p-3 font-bold text-zinc-800">
         {formatTime(row.appt.startsAt)} – {formatTime(row.appt.endsAt)}
       </td>
-      <td className="p-3 text-zinc-700">{row.appt.customer.name}</td>
-      <td className="p-3 text-zinc-600">{row.appt.service.name}</td>
-      <td className="p-3 text-zinc-600">{formatSar(row.appt.depositAmount)}</td>
+      <td className="p-3 text-foreground/75">{row.appt.customer.name}</td>
+      <td className="p-3 text-foreground/65">{row.appt.service.name}</td>
+      <td className="p-3 text-foreground/65">{formatSar(row.appt.depositAmount)}</td>
       <td className="p-3">
         <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${statusInfo.color}`}>{statusInfo.label}</span>
       </td>
@@ -201,9 +201,9 @@ export default async function StaffSchedulePage({
           <div>
             <h1 className="font-serif text-2xl font-extrabold text-zinc-900">
               جدول {staff.name}
-              {staff.jobTitle && <span className="text-lg font-semibold text-zinc-500"> — {staff.jobTitle}</span>}
+              {staff.jobTitle && <span className="text-lg font-semibold text-foreground/55"> — {staff.jobTitle}</span>}
             </h1>
-            <p className="mt-1.5 flex items-center gap-1.5 text-sm text-zinc-500">
+            <p className="mt-1.5 flex items-center gap-1.5 text-sm text-foreground/55">
               <Clock className="h-3.5 w-3.5 text-brand-gold" />
               ساعات العمل {hours.start} – {hours.end}
             </p>
@@ -213,8 +213,8 @@ export default async function StaffSchedulePage({
       </div>
 
       <div id="staff-schedule-table" className="mt-6 space-y-4 bg-white">
-        <div className="overflow-hidden rounded-2xl border border-zinc-200 shadow-sm">
-          <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/60 px-4 py-3">
+        <div className="overflow-hidden rounded-2xl border border-brand/10 shadow-sm">
+          <div className="flex items-center justify-between border-b border-brand/10 bg-background/60 px-4 py-3">
             <Link
               href={`${baseHref}?month=${monthParam(prevMonth.getFullYear(), prevMonth.getMonth())}`}
               className="rounded-full px-3 py-1.5 text-sm font-bold text-brand hover:bg-brand/5"
@@ -232,9 +232,9 @@ export default async function StaffSchedulePage({
             </Link>
           </div>
 
-          <div className="grid grid-cols-7 border-b border-zinc-100 bg-zinc-50/40 text-center text-[11px] font-bold text-zinc-500">
+          <div className="grid grid-cols-7 border-b border-brand/10 bg-background/40 text-center text-[11px] font-bold text-foreground/55">
             {DAY_NAMES.map((name, dow) => (
-              <div key={dow} className="border-e border-zinc-100 p-2 last:border-e-0">
+              <div key={dow} className="border-e border-brand/10 p-2 last:border-e-0">
                 <div>{name}</div>
                 <div className="mt-0.5 font-normal text-zinc-400">
                   {hours.days.includes(dow) ? `${hours.start}–${hours.end}` : "إجازة"}
@@ -245,7 +245,7 @@ export default async function StaffSchedulePage({
 
           <div className="grid grid-cols-7">
             {Array.from({ length: leadingBlanks }).map((_, i) => (
-              <div key={`lead-${i}`} className="border-b border-e border-zinc-100 bg-zinc-50/30 p-2 last:border-e-0" />
+              <div key={`lead-${i}`} className="border-b border-e border-brand/10 bg-background/30 p-2 last:border-e-0" />
             ))}
             {cells.map((cell) => {
               const isSelected = Boolean(activeDay && dayParam(activeDay) === dayParam(cell.date));
@@ -253,18 +253,18 @@ export default async function StaffSchedulePage({
                 <Link
                   key={dayParam(cell.date)}
                   href={`${baseHref}?month=${monthParam(year, month)}&day=${dayParam(cell.date)}`}
-                  className={`border-b border-e border-zinc-100 p-2 text-start transition last:border-e-0 hover:bg-brand/5 ${
-                    isSelected ? "bg-brand/10 ring-1 ring-inset ring-brand/40" : cell.isWorking ? "bg-white" : "bg-zinc-50/50"
+                  className={`border-b border-e border-brand/10 p-2 text-start transition last:border-e-0 hover:bg-brand/5 ${
+                    isSelected ? "bg-brand/10 ring-1 ring-inset ring-brand/40" : cell.isWorking ? "bg-white" : "bg-background/50"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className={`text-xs font-bold ${cell.isWorking ? "text-zinc-700" : "text-zinc-300"}`}>
+                    <span className={`text-xs font-bold ${cell.isWorking ? "text-foreground/75" : "text-zinc-300"}`}>
                       {cell.date.getDate()}
                     </span>
                     <span className={`h-1.5 w-1.5 rounded-full ${TIER_DOT[cell.tier]}`} />
                   </div>
                   {cell.isWorking && (
-                    <div className="mt-1 space-y-0.5 text-[10px] leading-tight text-zinc-500">
+                    <div className="mt-1 space-y-0.5 text-[10px] leading-tight text-foreground/55">
                       <div>{cell.booked} محجوز</div>
                       <div>{cell.available} متاح</div>
                     </div>
@@ -273,7 +273,7 @@ export default async function StaffSchedulePage({
               );
             })}
             {Array.from({ length: trailingBlanks }).map((_, i) => (
-              <div key={`trail-${i}`} className="border-e border-zinc-100 bg-zinc-50/30 p-2 last:border-e-0" />
+              <div key={`trail-${i}`} className="border-e border-brand/10 bg-background/30 p-2 last:border-e-0" />
             ))}
           </div>
         </div>
@@ -292,10 +292,10 @@ export default async function StaffSchedulePage({
               </div>
             </div>
             {selectedRows.length === 0 ? (
-              <div className="p-8 text-center text-sm text-zinc-500">هذه الموظفة لا تعمل هذا اليوم.</div>
+              <div className="p-8 text-center text-sm text-foreground/55">هذه الموظفة لا تعمل هذا اليوم.</div>
             ) : (
               <table className="w-full text-start text-sm">
-                <thead className="bg-zinc-50/80 text-[11px] font-bold uppercase tracking-wide text-zinc-400">
+                <thead className="bg-background/80 text-[11px] font-bold uppercase tracking-wide text-zinc-400">
                   <tr>
                     <th className="p-3 text-start">الوقت</th>
                     <th className="p-3 text-start">العميلة</th>
@@ -313,7 +313,7 @@ export default async function StaffSchedulePage({
             )}
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center text-sm text-zinc-500">
+          <div className="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center text-sm text-foreground/55">
             اختاري يومًا من الشبكة أعلاه لعرض تفاصيله.
           </div>
         )}

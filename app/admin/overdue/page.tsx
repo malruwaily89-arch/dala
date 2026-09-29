@@ -7,13 +7,13 @@ export default async function OverduePage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-extrabold">المتأخرات في الدفع</h1>
-        <p className="mt-1 text-sm text-zinc-500">صالونات اشتراكها متأخر (past_due) ومتى ينتهي.</p>
+        <p className="mt-1 text-sm text-foreground/55">صالونات اشتراكها متأخر (past_due) ومتى ينتهي.</p>
       </div>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
         <div className="mt-1 overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-zinc-200 text-zinc-500">
+            <thead className="border-b border-brand/10 text-foreground/55">
               <tr>
                 <th className="py-2 text-start font-semibold">الصالون</th>
                 <th className="py-2 text-start font-semibold">الهاتف</th>

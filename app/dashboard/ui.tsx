@@ -1,6 +1,6 @@
 export function EmptyState({ text }: { text: string }) {
   return (
-    <div className="mt-4 rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center text-sm text-zinc-500">
+    <div className="mt-4 rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center text-sm text-foreground/55">
       {text}
     </div>
   );

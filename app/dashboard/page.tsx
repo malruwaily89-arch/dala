@@ -81,7 +81,7 @@ export default async function TodayPage() {
   return (
     <div>
       <h1 className="text-2xl font-extrabold">يومك اليوم</h1>
-      <p className="mt-1 text-sm text-zinc-500">نظرة سريعة على مواعيد اليوم ووضع العربونات.</p>
+      <p className="mt-1 text-sm text-foreground/55">نظرة سريعة على مواعيد اليوم ووضع العربونات.</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="مواعيد اليوم" value={String(stats.todayCount)} />
@@ -98,12 +98,12 @@ export default async function TodayPage() {
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <MiniStat label="مؤكدة" value={stats.confirmedCount} className="border-emerald-200 bg-emerald-50 text-emerald-800" />
         <MiniStat label="مكتملة" value={stats.doneCount} className="border-sky-200 bg-sky-50 text-sky-800" />
-        <MiniStat label="ملغاة" value={stats.cancelledCount} className="border-zinc-200 bg-zinc-50 text-zinc-600" />
+        <MiniStat label="ملغاة" value={stats.cancelledCount} className="border-brand/10 bg-background text-foreground/65" />
         <MiniStat label="لم تحضر" value={stats.noShowCount} className="border-rose-200 bg-rose-50 text-rose-700" />
       </div>
 
       <h2 className="mt-10 text-lg font-bold">مواعيد متاحة</h2>
-      <p className="mt-1 text-sm text-zinc-500">
+      <p className="mt-1 text-sm text-foreground/55">
         فقط الموظفات اللي عندهن وقت متاح الآن — الأوقات الفارغة قابلة للضغط لحجز موعد فوري
         {!canBook && " (يلزم صلاحية إضافة المواعيد)"}.
       </p>
@@ -121,10 +121,10 @@ export default async function TodayPage() {
             const rows = buildDayTimeline(today, hours, dayAppts);
 
             return (
-              <div key={s.id} className="w-72 shrink-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-                <div className="border-b border-zinc-100 bg-zinc-50/60 px-4 py-3">
+              <div key={s.id} className="w-72 shrink-0 overflow-hidden rounded-2xl border border-brand/10 bg-white shadow-sm">
+                <div className="border-b border-brand/10 bg-background/60 px-4 py-3">
                   <p className="font-bold text-zinc-800">{s.name}</p>
-                  <p className="text-xs text-zinc-500">{hours.start} – {hours.end}</p>
+                  <p className="text-xs text-foreground/55">{hours.start} – {hours.end}</p>
                 </div>
                 <div className="max-h-[520px] space-y-2 overflow-y-auto p-3">
                   {rows.map((row, i) =>
@@ -158,7 +158,7 @@ export default async function TodayPage() {
               return (
                 <li
                   key={appt.id}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
+                  className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-brand/10 bg-white p-4 shadow-sm"
                 >
                   <div className="w-20 shrink-0 text-center">
                     <p className="text-lg font-extrabold">{formatTime(appt.startsAt)}</p>
@@ -171,7 +171,7 @@ export default async function TodayPage() {
                         {appt.customer.phone}
                       </span>
                     </p>
-                    <p className="text-sm text-zinc-600">
+                    <p className="text-sm text-foreground/65">
                       {appt.service.name} — مع {appt.staff.name} · {appt.bookingCode}
                     </p>
                   </div>
@@ -200,7 +200,7 @@ export default async function TodayPage() {
                     {(appt.status === "pending_deposit" || appt.status === "confirmed") && canCancelAppointments(user) && (
                       <form action={cancelAppointmentAction}>
                         <input type="hidden" name="id" value={appt.id} />
-                        <ActionBtn className="border border-zinc-300 text-zinc-500">إلغاء</ActionBtn>
+                        <ActionBtn className="border border-zinc-300 text-foreground/55">إلغاء</ActionBtn>
                       </form>
                     )}
                   </div>
@@ -213,10 +213,10 @@ export default async function TodayPage() {
 
       <div className="mt-10 rounded-xl border border-pink-200 bg-pink-50 p-5">
         <p className="font-bold text-brand">رابط الحجز العام لصالونك</p>
-        <p dir="ltr" className="mt-1 font-mono text-sm text-zinc-700">
+        <p dir="ltr" className="mt-1 font-mono text-sm text-foreground/75">
           /b/{user.tenant.slug}
         </p>
-        <p className="mt-2 text-sm text-zinc-600">
+        <p className="mt-2 text-sm text-foreground/65">
           ضعيه في بايو إنستغرام وواتساب — كل حجز جديد يظهر هنا تلقائياً.
         </p>
       </div>
@@ -225,9 +225,9 @@ export default async function TodayPage() {
 }
 
 function ApptBlock({ appt, showStatus }: { appt: Appt; showStatus: boolean }) {
-  const status = APPT_STATUS[appt.status] ?? { label: appt.status, color: "bg-zinc-100 text-zinc-600" };
+  const status = APPT_STATUS[appt.status] ?? { label: appt.status, color: "bg-zinc-100 text-foreground/65" };
   return (
-    <div className={`rounded-lg border border-zinc-100 p-2.5 text-xs ${status.color}`}>
+    <div className={`rounded-lg border border-brand/10 p-2.5 text-xs ${status.color}`}>
       <div className="flex items-center justify-between font-bold">
         <span>
           {formatTime(appt.startsAt)} – {formatTime(appt.endsAt)}
@@ -260,7 +260,7 @@ function GapBlock({
 
   const label = `${formatTime(bookableStart)} – ${formatTime(row.end)} · متاح`;
   if (!canBook) {
-    return <div className="rounded-lg border border-dashed border-zinc-200 p-2.5 text-center text-xs text-zinc-400">{label}</div>;
+    return <div className="rounded-lg border border-dashed border-brand/10 p-2.5 text-center text-xs text-zinc-400">{label}</div>;
   }
   return (
     <details className="group rounded-lg border border-dashed border-brand-gold/30 bg-brand-gold/5">
@@ -314,10 +314,10 @@ function StatCard({
   return (
     <div
       className={`rounded-xl border p-5 shadow-sm ${
-        highlight ? "border-amber-300 bg-amber-50" : className || "border-zinc-200 bg-white"
+        highlight ? "border-amber-300 bg-amber-50" : className || "border-brand/10 bg-white"
       }`}
     >
-      <p className="text-sm font-semibold text-zinc-500">{label}</p>
+      <p className="text-sm font-semibold text-foreground/55">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">{value}</p>
     </div>
   );

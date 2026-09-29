@@ -25,28 +25,28 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const nav = canViewReportsAndFinance(user) ? NAV : NAV.filter((item) => item.href !== "/dashboard/reports");
 
   return (
-    <div className="flex min-h-screen flex-1">
-      <aside className="flex w-56 shrink-0 flex-col border-l border-pink-100 bg-white p-4 max-md:hidden">
+    <div className="flex min-h-screen flex-1 bg-background">
+      <aside className="flex w-56 shrink-0 flex-col border-l border-brand/10 bg-white p-4 max-md:hidden">
         <Link href="/dashboard" aria-label="دلال" className="px-2">
-          <Image src="/dalal-logo.png" alt="دلال" width={140} height={90} className="h-auto w-24" priority />
+          <Image src="/dala-logo-option-a.png" alt="دلال" width={140} height={90} className="h-auto w-24" priority />
         </Link>
         <nav className="mt-8 flex flex-col gap-1">
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-xl px-3 py-2.5 text-sm font-semibold text-zinc-700 transition-all duration-300 hover:bg-pink-50 hover:text-brand"
+              className="rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground/75 transition-all duration-300 hover:bg-secondary hover:text-brand"
             >
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="mt-auto border-t border-zinc-100 pt-4">
+        <div className="mt-auto border-t border-brand/10 pt-4">
           <p className="px-2 text-sm font-bold">{user.tenant.name}</p>
           <p dir="ltr" className="px-2 text-xs font-semibold text-brand-gold">
             D{user.tenant.sequenceNumber}
           </p>
-          <p dir="ltr" className="px-2 text-xs text-zinc-400">
+          <p dir="ltr" className="px-2 text-xs text-foreground/45">
             {user.email}
           </p>
           <form action={logoutAction}>
@@ -58,9 +58,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </aside>
 
       {/* شريط سفلي للجوال */}
-      <nav className="fixed inset-x-0 bottom-0 z-10 flex justify-around border-t border-zinc-200 bg-white py-2 md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-10 flex justify-around border-t border-brand/10 bg-white py-2 md:hidden">
         {nav.map((item) => (
-          <Link key={item.href} href={item.href} className="px-2 text-xs font-semibold text-zinc-600">
+          <Link key={item.href} href={item.href} className="px-2 text-xs font-semibold text-foreground/65 hover:text-brand">
             {item.label}
           </Link>
         ))}

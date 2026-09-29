@@ -16,7 +16,7 @@ export default async function BrandingPage({
   return (
     <div>
       <h1 className="text-2xl font-extrabold">مظهر صالونك</h1>
-      <p className="mt-1 text-sm text-zinc-500">
+      <p className="mt-1 text-sm text-foreground/55">
         هذه الهوية التي تظهر لعميلاتك في صفحة الحجم — شعارك، لونك المميز، ورقمك.
       </p>
 
@@ -25,7 +25,7 @@ export default async function BrandingPage({
       <div className="mt-8 flex flex-col gap-8 lg:flex-row">
         {/* معاينة حية */}
         <div className="lg:w-80 lg:shrink-0">
-          <p className="mb-2 text-sm font-bold text-zinc-700">معاينة ما تراه العميلة:</p>
+          <p className="mb-2 text-sm font-bold text-foreground/75">معاينة ما تراه العميلة:</p>
           <div
             dir="rtl"
             className="overflow-hidden rounded-[32px] border border-pink-100 bg-gradient-to-b from-rose-50 via-pink-50 to-white p-8 text-center shadow-md"
@@ -45,7 +45,7 @@ export default async function BrandingPage({
               )}
             </div>
             <h2 className="mt-4 text-xl font-extrabold text-brand">{t.name}</h2>
-            <p className="mt-1 text-xs text-zinc-500">احجزي موعدك في دقيقة 🌸</p>
+            <p className="mt-1 text-xs text-foreground/55">احجزي موعدك في دقيقة 🌸</p>
             <button
               className="mt-5 w-full rounded-full py-2.5 text-sm font-bold text-white"
               style={{ backgroundColor: "var(--brand)" }}
@@ -64,7 +64,7 @@ export default async function BrandingPage({
             <h3 className="font-extrabold text-zinc-800">العلامة التجارية</h3>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <label className="block sm:col-span-2">
-                <span className="mb-1.5 block text-sm font-bold text-zinc-700">
+                <span className="mb-1.5 block text-sm font-bold text-foreground/75">
                   رابط الشعار (Logo)
                 </span>
                 <input
@@ -80,7 +80,7 @@ export default async function BrandingPage({
                 </span>
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-sm font-bold text-zinc-700">اللون المميز</span>
+                <span className="mb-1.5 block text-sm font-bold text-foreground/75">اللون المميز</span>
                 <span className="flex items-center gap-3">
                   <input
                     name="brandColor"
@@ -94,7 +94,7 @@ export default async function BrandingPage({
                 </span>
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-sm font-bold text-zinc-700">رقم واتساب الصالون</span>
+                <span className="mb-1.5 block text-sm font-bold text-foreground/75">رقم واتساب الصالون</span>
                 <input
                   name="whatsappNumber"
                   type="tel"
@@ -112,7 +112,7 @@ export default async function BrandingPage({
             <p className="mt-1 text-xs text-zinc-400">يظهر لعميلاتك في صفحة الدفع.</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-1.5 block text-sm font-bold text-zinc-700">اسم المصرف</span>
+                <span className="mb-1.5 block text-sm font-bold text-foreground/75">اسم المصرف</span>
                 <input
                   name="bankName"
                   defaultValue={t.bankName ?? ""}
@@ -121,7 +121,7 @@ export default async function BrandingPage({
                 />
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-sm font-bold text-zinc-700">رقم الآيبان (IBAN)</span>
+                <span className="mb-1.5 block text-sm font-bold text-foreground/75">رقم الآيبان (IBAN)</span>
                 <input
                   name="bankIban"
                   dir="ltr"

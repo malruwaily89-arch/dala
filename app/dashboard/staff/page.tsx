@@ -26,7 +26,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 const PERFORMANCE_LABEL: Record<string, { label: string; className: string }> = {
   busy: { label: "مشغولة جداً", className: "bg-rose-100 text-rose-700" },
   active: { label: "نشطة", className: "bg-emerald-100 text-emerald-700" },
-  quiet: { label: "هادئة", className: "bg-zinc-100 text-zinc-500" },
+  quiet: { label: "هادئة", className: "bg-zinc-100 text-foreground/55" },
 };
 
 const DAY_NAMES = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
@@ -59,7 +59,7 @@ export default async function StaffPage({
         ))}
       </datalist>
       <h1 className="text-2xl font-extrabold">الموظفات</h1>
-      <p className="mt-1 text-sm text-zinc-500">
+      <p className="mt-1 text-sm text-foreground/55">
         ساعات وأيام عمل كل موظفة تحدد المواعيد المتاحة في صفحة الحجز. المسميات «موظفة استقبال»،
         «مشرفة»، و«إدارية» هي وحدها القابلة لمنحها صلاحيات إضافية — غيرها يُطّلع فقط على جدولها.
       </p>
@@ -68,7 +68,7 @@ export default async function StaffPage({
       {ok && <Banner success>تم تنفيذ الإجراء بنجاح.</Banner>}
 
       {canManageStaffSchedules(user) && (
-        <details className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <details className="mt-6 rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
           <summary className="cursor-pointer font-bold text-brand">+ موظفة جديدة</summary>
           <form action={createStaffAction} className="mt-4 space-y-4">
             <div className="flex flex-wrap items-end gap-3">
@@ -98,7 +98,7 @@ export default async function StaffPage({
             return (
               <li
                 key={s.id}
-                className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
+                className="rounded-xl border border-brand/10 bg-white p-4 shadow-sm"
               >
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                   <div className="min-w-56 flex-1">
@@ -106,7 +106,7 @@ export default async function StaffPage({
                       {s.name}
                       {s.jobTitle && <span className="ms-2 text-xs font-semibold text-brand/60">— {s.jobTitle}</span>}
                     </p>
-                    <p className="text-sm text-zinc-600">
+                    <p className="text-sm text-foreground/65">
                       {hours.start} — {hours.end} ·{" "}
                       {hours.days.map((d) => DAY_NAMES[d]).join("، ")}
                       <span className="ms-1.5 text-xs text-zinc-400">
@@ -122,7 +122,7 @@ export default async function StaffPage({
                   )}
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-bold ${
-                      s.isActive ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"
+                      s.isActive ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-foreground/55"
                     }`}
                   >
                     {s.isActive ? "على رأس العمل" : "موقوفة"}
@@ -137,14 +137,14 @@ export default async function StaffPage({
                   )}
                   <form action={toggleStaffAction}>
                     <input type="hidden" name="id" value={s.id} />
-                    <button className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-bold text-zinc-600 hover:bg-zinc-50">
+                    <button className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-bold text-foreground/65 hover:bg-background">
                       {s.isActive ? "إيقاف" : "تفعيل"}
                     </button>
                   </form>
                 </div>
 
                 {canManageStaffSchedules(user) && (
-                  <details className="mt-3 border-t border-zinc-100 pt-3">
+                  <details className="mt-3 border-t border-brand/10 pt-3">
                     <summary className="cursor-pointer text-xs font-bold text-brand">تعديل المسمى الوظيفي وساعات وأيام العمل</summary>
                     <form action={updateStaffScheduleAction} className="mt-3 space-y-3">
                       <input type="hidden" name="id" value={s.id} />
@@ -162,7 +162,7 @@ export default async function StaffPage({
                 )}
 
                 {!isStaffAccount(user) && (
-                  <details className="mt-3 border-t border-zinc-100 pt-3">
+                  <details className="mt-3 border-t border-brand/10 pt-3">
                     <summary className="cursor-pointer text-xs font-bold text-brand">
                       حساب الدخول والصلاحيات {s.loginUser ? "(مفعّل)" : "(غير مُنشأ)"}
                     </summary>
@@ -187,7 +187,7 @@ export default async function StaffPage({
                 )}
 
                 {canViewReportsAndFinance(user) && perf && (
-                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-zinc-100 pt-3 sm:grid-cols-4">
+                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-brand/10 pt-3 sm:grid-cols-4">
                     <MetricBox label="مواعيد اليوم" value={String(perf.todayCount)} />
                     <MetricBox label="مواعيد الشهر" value={String(perf.monthCount)} />
                     <MetricBox label="محصّل اليوم" value={formatSar(perf.collectedToday)} />
@@ -211,9 +211,9 @@ export default async function StaffPage({
       {staff.length > 0 && canViewReportsAndFinance(user) && (
         <>
           <h2 className="mt-10 text-lg font-bold">ملخص المبالغ المحصّلة لكل موظفة</h2>
-          <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
+          <div className="mt-4 overflow-x-auto rounded-xl border border-brand/10 bg-white shadow-sm">
             <table className="w-full text-start text-sm">
-              <thead className="bg-zinc-50 text-xs font-bold text-zinc-500">
+              <thead className="bg-background text-xs font-bold text-foreground/55">
                 <tr>
                   <th className="p-4 text-start">الموظفة</th>
                   <th className="p-4 text-start">مواعيد اليوم</th>
@@ -229,11 +229,11 @@ export default async function StaffPage({
                   const avail = availById.get(s.id);
                   const perfInfo = avail ? PERFORMANCE_LABEL[avail.busyLevel] : null;
                   return (
-                    <tr key={s.id} className="border-t border-zinc-100">
+                    <tr key={s.id} className="border-t border-brand/10">
                       <td className="p-4 font-bold">{s.name}</td>
-                      <td className="p-4 text-zinc-600">{perf?.todayCount ?? 0}</td>
-                      <td className="p-4 text-zinc-600">{formatSar(perf?.collectedToday ?? 0)}</td>
-                      <td className="p-4 text-zinc-600">{perf?.monthCount ?? 0}</td>
+                      <td className="p-4 text-foreground/65">{perf?.todayCount ?? 0}</td>
+                      <td className="p-4 text-foreground/65">{formatSar(perf?.collectedToday ?? 0)}</td>
+                      <td className="p-4 text-foreground/65">{perf?.monthCount ?? 0}</td>
                       <td className="p-4 font-semibold text-zinc-800">
                         {formatSar(perf?.collectedMonthTotal ?? 0)}
                       </td>
@@ -265,9 +265,9 @@ function formatHours(hours: number): string {
 
 function MetricBox({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-zinc-50 px-3 py-2 text-center">
+    <div className="rounded-lg bg-background px-3 py-2 text-center">
       <p className="text-sm font-extrabold text-zinc-800">{value}</p>
-      <p className="text-[11px] font-semibold text-zinc-500">{label}</p>
+      <p className="text-[11px] font-semibold text-foreground/55">{label}</p>
     </div>
   );
 }
@@ -276,7 +276,7 @@ function MetricBox({ label, value }: { label: string; value: string }) {
 function AvailabilityBox({ label, booked, available }: { label: string; booked: number; available: number }) {
   return (
     <div className="rounded-lg border border-brand-gold/15 bg-brand-gold/5 px-3 py-2 text-center">
-      <p className="text-[11px] font-semibold text-zinc-500">{label}</p>
+      <p className="text-[11px] font-semibold text-foreground/55">{label}</p>
       <p className="mt-0.5 text-sm font-extrabold">
         <span className="text-emerald-700">{booked}</span>
         <span className="mx-1 font-normal text-zinc-300">محجوز /</span>

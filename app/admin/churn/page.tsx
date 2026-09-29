@@ -7,7 +7,7 @@ export default async function ChurnPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-extrabold">الاضطراب (Churn)</h1>
-        <p className="mt-1 text-sm text-zinc-500">الصالونات التي ألغت اشتراكها ومعدل الاضطراب الشهري.</p>
+        <p className="mt-1 text-sm text-foreground/55">الصالونات التي ألغت اشتراكها ومعدل الاضطراب الشهري.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -16,11 +16,11 @@ export default async function ChurnPage() {
         <StatCard label="معدل الاضطراب الشهري" value={`${churnRate.toFixed(1)}%`} />
       </div>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">الصالونات الملغية</h2>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-zinc-200 text-zinc-500">
+            <thead className="border-b border-brand/10 text-foreground/55">
               <tr>
                 <th className="py-2 text-start font-semibold">الصالون</th>
                 <th className="py-2 text-start font-semibold">الباقة</th>
@@ -32,7 +32,7 @@ export default async function ChurnPage() {
                 <tr key={c.id}>
                   <td className="py-3 font-bold">{c.tenantName}</td>
                   <td className="py-3">{c.plan}</td>
-                  <td className="py-3 text-zinc-500">
+                  <td className="py-3 text-foreground/55">
                     {c.canceledAt ? new Date(c.canceledAt).toLocaleDateString("ar-SA") : "—"}
                   </td>
                 </tr>
@@ -52,8 +52,8 @@ export default async function ChurnPage() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-semibold text-zinc-500">{label}</p>
+    <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
+      <p className="text-sm font-semibold text-foreground/55">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">{value}</p>
     </div>
   );

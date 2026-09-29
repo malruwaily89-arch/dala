@@ -21,7 +21,7 @@ export default async function SalonsPage({
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-extrabold">إدارة الصالونات</h1>
-        <p className="mt-1 text-sm text-zinc-500">إضافة صالون جديد أو تعديل باقته أو حالة اشتراكه.</p>
+        <p className="mt-1 text-sm text-foreground/55">إضافة صالون جديد أو تعديل باقته أو حالة اشتراكه.</p>
       </div>
 
       {ok && (
@@ -40,65 +40,65 @@ export default async function SalonsPage({
         </div>
       )}
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">إضافة صالون جديد</h2>
         <form action={createSalonAction} className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-bold text-zinc-700">اسم الصالون</span>
+            <span className="mb-1.5 block text-sm font-bold text-foreground/75">اسم الصالون</span>
             <input
               name="name"
               required
-              className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-lg border border-brand/10 px-3 py-2 text-sm focus:border-brand focus:outline-none"
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-bold text-zinc-700">الرابط (slug)</span>
+            <span className="mb-1.5 block text-sm font-bold text-foreground/75">الرابط (slug)</span>
             <input
               name="slug"
               required
               dir="ltr"
               placeholder="my-salon"
               pattern="[a-z0-9-]{3,40}"
-              className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-lg border border-brand/10 px-3 py-2 text-sm focus:border-brand focus:outline-none"
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-bold text-zinc-700">الهاتف</span>
+            <span className="mb-1.5 block text-sm font-bold text-foreground/75">الهاتف</span>
             <input
               name="phone"
               required
               dir="ltr"
               placeholder="05xxxxxxxx"
-              className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-lg border border-brand/10 px-3 py-2 text-sm focus:border-brand focus:outline-none"
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-bold text-zinc-700">بريد المالكة</span>
+            <span className="mb-1.5 block text-sm font-bold text-foreground/75">بريد المالكة</span>
             <input
               name="email"
               type="email"
               required
               dir="ltr"
-              className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-lg border border-brand/10 px-3 py-2 text-sm focus:border-brand focus:outline-none"
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-bold text-zinc-700">كلمة المرور</span>
+            <span className="mb-1.5 block text-sm font-bold text-foreground/75">كلمة المرور</span>
             <input
               name="password"
               type="password"
               required
               minLength={6}
               dir="ltr"
-              className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-lg border border-brand/10 px-3 py-2 text-sm focus:border-brand focus:outline-none"
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-bold text-zinc-700">الباقة</span>
+            <span className="mb-1.5 block text-sm font-bold text-foreground/75">الباقة</span>
             <select
               name="plan"
               defaultValue="BASIC"
-              className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-lg border border-brand/10 px-3 py-2 text-sm focus:border-brand focus:outline-none"
             >
               {PLANS.map((p) => (
                 <option key={p} value={p}>{p}</option>
@@ -113,32 +113,32 @@ export default async function SalonsPage({
         </form>
       </section>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">الصالونات ({salons.length})</h2>
         <div className="mt-4 space-y-3">
           {salons.map((s) => (
-            <details key={s.id} className="rounded-lg border border-zinc-200 p-4">
+            <details key={s.id} className="rounded-lg border border-brand/10 p-4">
               <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2">
                 <span dir="ltr" className="rounded-full bg-brand-gold/15 px-2 py-0.5 text-xs font-bold text-brand-gold">
                   D{s.sequenceNumber}
                 </span>
                 <span className="font-bold">{s.name}</span>
                 <span dir="ltr" className="text-xs text-zinc-400">/b/{s.slug}</span>
-                <span className="text-xs text-zinc-500">{s.ownerEmail}</span>
+                <span className="text-xs text-foreground/55">{s.ownerEmail}</span>
                 <span className="text-xs font-semibold">{s.plan}</span>
                 {statusBadge(s.status)}
               </summary>
 
-              <div className="mt-4 grid gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-3">
+              <div className="mt-4 grid gap-4 border-t border-brand/10 pt-4 sm:grid-cols-3">
                 {/* تعديل الباقة */}
                 <form action={updateSalonPlanAction} className="space-y-2">
                   <input type="hidden" name="subscriptionId" value={s.subscriptionId ?? ""} />
-                  <p className="text-xs font-bold text-zinc-500">تعديل الباقة</p>
+                  <p className="text-xs font-bold text-foreground/55">تعديل الباقة</p>
                   <div className="flex gap-2">
                     <select
                       name="plan"
                       defaultValue={PLANS.includes(s.plan) ? s.plan : "BASIC"}
-                      className="flex-1 rounded-lg border border-zinc-200 px-2 py-1.5 text-sm"
+                      className="flex-1 rounded-lg border border-brand/10 px-2 py-1.5 text-sm"
                     >
                       {PLANS.map((p) => (
                         <option key={p} value={p}>{p}</option>
@@ -155,7 +155,7 @@ export default async function SalonsPage({
 
                 {/* حالة الاشتراك */}
                 <div className="space-y-2">
-                  <p className="text-xs font-bold text-zinc-500">حالة الاشتراك</p>
+                  <p className="text-xs font-bold text-foreground/55">حالة الاشتراك</p>
                   <div className="flex flex-wrap gap-2">
                     {s.status !== "active" && (
                       <StatusForm subscriptionId={s.subscriptionId} status="active" label="تنشيط" color="bg-emerald-600" />
@@ -173,7 +173,7 @@ export default async function SalonsPage({
                 <form action={recordManualPaymentAction} className="space-y-2">
                   <input type="hidden" name="tenantId" value={s.id} />
                   <input type="hidden" name="subscriptionId" value={s.subscriptionId ?? ""} />
-                  <p className="text-xs font-bold text-zinc-500">تسجيل دفعة يدوية</p>
+                  <p className="text-xs font-bold text-foreground/55">تسجيل دفعة يدوية</p>
                   <div className="flex gap-2">
                     <input
                       name="amount"
@@ -183,7 +183,7 @@ export default async function SalonsPage({
                       placeholder="المبلغ (ر.س)"
                       required
                       dir="ltr"
-                      className="flex-1 rounded-lg border border-zinc-200 px-2 py-1.5 text-sm"
+                      className="flex-1 rounded-lg border border-brand/10 px-2 py-1.5 text-sm"
                     />
                     <button className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white">
                       تسجيل
@@ -243,7 +243,7 @@ function statusBadge(status: string) {
     trialing: "bg-sky-100 text-sky-800",
     past_due: "bg-amber-100 text-amber-800",
     suspended: "bg-orange-100 text-orange-800",
-    canceled: "bg-zinc-100 text-zinc-600",
+    canceled: "bg-zinc-100 text-foreground/65",
   };
   const label: Record<string, string> = {
     active: "نشط",

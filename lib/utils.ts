@@ -62,7 +62,7 @@ export function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): bo
 }
 
 // باقات "برو" (الأساسية برو، النمو برو، الاحترافية برو) — تفتح التقارير والتقييمات المتقدمة
-const PRO_PLANS = new Set(["BASIC_PRO", "PRO_PRO", "ADVANCED_PRO"]);
+const PRO_PLANS = new Set(["ADVANCED", "BASIC_PRO", "PRO_PRO", "ADVANCED_PRO"]);
 
 export function isProPlan(plan: string | null | undefined): boolean {
   if (!plan) return false;

@@ -26,14 +26,14 @@ export default async function ServicesPage({
   return (
     <div>
       <h1 className="text-2xl font-extrabold">الخدمات</h1>
-      <p className="mt-1 text-sm text-zinc-500">
+      <p className="mt-1 text-sm text-foreground/55">
         حددي مدة كل خدمة بدقة — حماية جدولك تعتمد عليها، والعربون يمنع التأجيل.
       </p>
 
       {error && <Banner>{ERROR_MESSAGES[error] ?? error}</Banner>}
       {deleted && <Banner success>تم حذف الخدمة بنجاح.</Banner>}
 
-      <details className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <details className="mt-6 rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
         <summary className="cursor-pointer font-bold text-brand">+ خدمة جديدة</summary>
         <form action={createServiceAction} className="mt-4 flex flex-wrap items-end gap-3">
           <Field name="name" label="اسم الخدمة" type="text" />
@@ -53,25 +53,25 @@ export default async function ServicesPage({
           {services.map((s) => (
             <li
               key={s.id}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-brand/10 bg-white p-4 shadow-sm"
             >
               <div className="min-w-44 flex-1">
                 <p className="font-bold">{s.name}</p>
-                <p className="text-sm text-zinc-600">
+                <p className="text-sm text-foreground/65">
                   {s.durationMinutes} دقيقة · السعر {formatSar(s.price)} · العربون{" "}
                   {formatSar(s.depositAmount)}
                 </p>
               </div>
               <span
                 className={`rounded-full px-3 py-1 text-xs font-bold ${
-                  s.isActive ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"
+                  s.isActive ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-foreground/55"
                 }`}
               >
                 {s.isActive ? "مفعلة" : "موقوفة"}
               </span>
               <form action={toggleServiceAction}>
                 <input type="hidden" name="id" value={s.id} />
-                <button className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-bold text-zinc-600 hover:bg-zinc-50">
+                <button className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-bold text-foreground/65 hover:bg-background">
                   {s.isActive ? "إيقاف" : "تفعيل"}
                 </button>
               </form>

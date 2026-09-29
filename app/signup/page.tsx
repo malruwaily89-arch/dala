@@ -43,7 +43,7 @@ function SignupCard() {
       <div className="relative w-full max-w-sm rounded-[32px] border border-brand-gold/20 bg-white p-8 shadow-2xl shadow-brand/10">
         <div className="flex items-center justify-between">
           <Link href="/" aria-label="دلال">
-            <Image src="/dalal-logo.png" alt="دلال" width={140} height={90} className="h-auto w-28" priority />
+            <Image src="/dala-logo-option-a.png" alt="دلال" width={140} height={90} className="h-auto w-28" priority />
           </Link>
           <LanguageToggle className="text-xs" />
         </div>

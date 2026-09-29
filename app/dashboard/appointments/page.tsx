@@ -59,14 +59,14 @@ export default async function AppointmentsPage({
   return (
     <div>
       <h1 className="text-2xl font-extrabold">المواعيد</h1>
-      <p className="mt-1 text-sm text-zinc-500">كل الحجوزات — القادمة والسابقة.</p>
+      <p className="mt-1 text-sm text-foreground/55">كل الحجوزات — القادمة والسابقة.</p>
 
       {error && <Banner>{ERROR_MESSAGES[error] ?? error}</Banner>}
       {ok && <Banner success>تم إنشاء الموعد بنجاح.</Banner>}
 
       {/* إنشاء موعد */}
       {canAddAppointments(user) && (
-        <details className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <details className="mt-6 rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
           <summary className="cursor-pointer font-bold text-brand">+ موعد جديد</summary>
           <form action={createAppointmentAdminAction} data-admin-booking className="mt-4 grid gap-3 sm:grid-cols-2">
             <Select name="customerId" label="العميلة" options={customers.map((c) => ({ v: c.id, l: `${c.name} (${c.phone})` }))} />
@@ -101,17 +101,17 @@ export default async function AppointmentsPage({
                 </span>
               </summary>
 
-              <ul className="space-y-2 border-t border-zinc-100 p-3">
+              <ul className="space-y-2 border-t border-brand/10 p-3">
                 {appts.map((appt) => {
                   const status = APPT_STATUS[appt.status] ?? { label: appt.status, color: "bg-zinc-100" };
                   return (
                     <li
                       key={appt.id}
-                      className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-zinc-100 bg-zinc-50/60 p-3"
+                      className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-brand/10 bg-background/60 p-3"
                     >
                       <div className="min-w-52 flex-1">
                         <p className="font-bold text-zinc-800">{formatTime(appt.startsAt)}</p>
-                        <p className="text-sm text-zinc-600">
+                        <p className="text-sm text-foreground/65">
                           {appt.customer.name} · {appt.service.name} · {appt.staff.name} · {appt.bookingCode}
                         </p>
                       </div>
@@ -135,7 +135,7 @@ export default async function AppointmentsPage({
                       {(appt.status === "pending_deposit" || appt.status === "confirmed") && canCancelAppointments(user) && (
                         <form action={cancelAppointmentAction}>
                           <input type="hidden" name="id" value={appt.id} />
-                          <MiniBtn className="border border-zinc-300 text-zinc-500">إلغاء</MiniBtn>
+                          <MiniBtn className="border border-zinc-300 text-foreground/55">إلغاء</MiniBtn>
                         </form>
                       )}
                     </li>
@@ -148,7 +148,7 @@ export default async function AppointmentsPage({
       )}
 
       {/* إضافة عميلة سريعة */}
-      <details className="mt-8 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <details className="mt-8 rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
         <summary className="cursor-pointer font-bold text-brand">+ عميلة جديدة</summary>
         <form action={createCustomerAction} className="mt-4 flex flex-wrap items-end gap-3">
           <input type="hidden" name="returnTo" value="/dashboard/appointments" />
