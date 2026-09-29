@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { Sparkles, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/components/language-provider'
@@ -9,6 +10,7 @@ import { useLanguage } from '@/components/language-provider'
 export function Hero() {
   const { t } = useLanguage()
   const router = useRouter()
+  const [email, setEmail] = useState('')
 
   return (
     <section id="top" className="relative overflow-hidden">
@@ -28,25 +30,30 @@ export function Hero() {
           </p>
 
           {/* Trial capture */}
-          <div className="mt-8 w-full max-w-xl rounded-2xl border border-border bg-card p-2 shadow-sm">
+          <form
+            className="mt-8 w-full max-w-xl rounded-2xl border border-border bg-card p-2 shadow-sm"
+            onSubmit={(event) => {
+              event.preventDefault()
+              router.push(`/signup?email=${encodeURIComponent(email.trim())}`)
+            }}
+          >
             <div className="flex flex-col gap-2 sm:flex-row">
               <div className="flex flex-1 items-center gap-2 rounded-xl px-3 py-2.5">
                 <input
                   type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                   placeholder={t.hero.emailPlaceholder}
                   className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                   aria-label={t.hero.emailPlaceholder}
+                  required
                 />
               </div>
-              <Button
-                size="lg"
-                onClick={() => router.push('/signup')}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
-              >
+              <Button type="submit" size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto">
                 {t.hero.startTrial}
               </Button>
             </div>
-          </div>
+          </form>
 
           <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <span>{t.hero.trialNote}</span>
