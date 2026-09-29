@@ -5,7 +5,7 @@ param(
   [string]$ComposeDir = $(if ($env:DALA_STAGING_COMPOSE_DIR) { $env:DALA_STAGING_COMPOSE_DIR } else { "/home/mohammedalruwaily89/dala-ai-staging-20260929" }),
   [string]$ComposeFile = $(if ($env:DALA_STAGING_COMPOSE_FILE) { $env:DALA_STAGING_COMPOSE_FILE } else { "docker-compose.yml" }),
   [string]$ComposeProject = $(if ($env:DALA_STAGING_COMPOSE_PROJECT) { $env:DALA_STAGING_COMPOSE_PROJECT } else { "dala-ai-staging" }),
-  [string]$ComposeService = $(if ($env:DALA_STAGING_COMPOSE_SERVICE) { $env:DALA_STAGING_COMPOSE_SERVICE } else { "app" }),
+  [string]$ComposeService = $(if ($env:DALA_STAGING_COMPOSE_SERVICE) { $env:DALA_STAGING_COMPOSE_SERVICE } else { "" }),
   [string]$SshKeyPath = $(if ($env:DALA_STAGING_SSH_KEY_PATH) { $env:DALA_STAGING_SSH_KEY_PATH } else { "" })
 )
 
@@ -73,10 +73,25 @@ set -eu
 command -v docker >/dev/null || { echo 'DEPLOY_ERROR: docker غير موجود على السيرفر' >&2; exit 1; }
 command -v rsync >/dev/null || { echo 'DEPLOY_ERROR: rsync غير موجود على السيرفر' >&2; exit 1; }
 command -v tar >/dev/null || { echo 'DEPLOY_ERROR: tar غير موجود على السيرفر' >&2; exit 1; }
+if [ -z $composeServiceQ ]; then
+  compose_service=$(docker inspect -f '{{index .Config.Labels "com.docker.compose.service"}}' dala-ai-staging-app-1 2>/dev/null || true)
+else
+  compose_service=$composeServiceQ
+fi
+if [ -z "${compose_service:-}" ]; then
+  compose_service=app
+fi
+if ! docker compose -p $composeProjectQ -f $composeFileQ config --services | grep -Fx "$compose_service" >/dev/null; then
+  echo 'DEPLOY_ERROR: خدمة Compose المطلوبة غير موجودة قبل النسخ' >&2
+  echo 'الخدمات الموجودة:' >&2
+  docker compose -p $composeProjectQ -f $composeFileQ config --services >&2 || true
+  echo 'الخدمة المطلوبة:' "$compose_service" >&2
+  exit 1
+fi
 rm -rf -- $remoteTempQ
 mkdir -p -- $remoteTempQ
 tar -xzf $remoteArchiveQ -C $remoteTempQ
-rsync -a --exclude='.env' --exclude='node_modules/' --exclude='.next/' --exclude='data/' $remoteTempDirQ $composeDirSlashQ
+rsync -a --exclude='.env' --exclude='node_modules/' --exclude='.next/' --exclude='data/' --exclude='docker-compose.yml' --exclude='docker-compose.yaml' --exclude='compose.yml' --exclude='compose.yaml' $remoteTempDirQ $composeDirSlashQ
 if [ ! -f $composeFileFullQ ]; then
   echo 'DEPLOY_ERROR: ملف Compose غير موجود بعد نسخ الملفات' >&2
   echo 'المجلد المتوقع:' $composeDirQ >&2
@@ -87,10 +102,10 @@ cd $composeDirQ
 echo 'التحقق من إعداد Compose...' >&2
 docker compose -p $composeProjectQ -f $composeFileQ config --quiet
 echo 'بناء خدمة Staging...' >&2
-docker compose -p $composeProjectQ -f $composeFileQ build --pull $composeServiceQ
+docker compose -p $composeProjectQ -f $composeFileQ build --pull "$compose_service"
 echo 'إعادة تشغيل خدمة Staging...' >&2
-docker compose -p $composeProjectQ -f $composeFileQ up -d --no-deps --force-recreate $composeServiceQ
-docker compose -p $composeProjectQ -f $composeFileQ ps $composeServiceQ
+docker compose -p $composeProjectQ -f $composeFileQ up -d --no-deps --force-recreate "$compose_service"
+docker compose -p $composeProjectQ -f $composeFileQ ps "$compose_service"
 rm -f -- $remoteArchiveQ
 rm -rf -- $remoteTempQ
 "@
