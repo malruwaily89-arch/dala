@@ -10,6 +10,7 @@ export function PricingTabs({ regular, pro }: { regular: Package[]; pro: Package
   const [tab, setTab] = useState<"regular" | "pro">("regular");
   const [months, setMonths] = useState<number>(1);
   const { t } = useLocale();
+  const hasProPlans = pro.length > 0;
   const packages = tab === "regular" ? regular : pro;
 
   return (
@@ -24,15 +25,17 @@ export function PricingTabs({ regular, pro }: { regular: Package[]; pro: Package
         >
           {t.pricingPage.tabRegular}
         </button>
-        <button
-          type="button"
-          onClick={() => setTab("pro")}
-          className={`flex-1 rounded-full py-2.5 text-sm font-bold transition ${
-            tab === "pro" ? "bg-brand-gold text-brand shadow" : "text-brand/50"
-          }`}
-        >
-          {t.pricingPage.tabPro}
-        </button>
+        {hasProPlans && (
+          <button
+            type="button"
+            onClick={() => setTab("pro")}
+            className={`flex-1 rounded-full py-2.5 text-sm font-bold transition ${
+              tab === "pro" ? "bg-brand-gold text-brand shadow" : "text-brand/50"
+            }`}
+          >
+            {t.pricingPage.tabPro}
+          </button>
+        )}
       </div>
 
       <BillingPeriodPicker months={months} onChange={setMonths} />

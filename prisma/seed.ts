@@ -96,9 +96,9 @@ type StatusPlan = {
 };
 
 const PLAN_PRICES: Record<string, number> = {
-  BASIC: 300,
-  PRO: 600,
-  ADVANCED: 1200,
+  BASIC: 199,
+  PRO: 449,
+  ADVANCED: 999,
   BASIC_PRO: 299,
   PRO_PRO: 599,
   ADVANCED_PRO: 1299,

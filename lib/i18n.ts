@@ -113,6 +113,7 @@ export const translations = {
       title: 'Plans that grow with your salon',
       subtitle:
         'Choose the plan that fits your business. Individual clients always book for free.',
+      earlyAccessBadge: 'Launch pricing for the first 20 paid subscriptions',
       mostPopular: 'Most popular',
       perMonth: '/ month',
       plans: [
@@ -294,6 +295,7 @@ export const translations = {
       title: 'باقات تنمو مع صالونكِ',
       subtitle:
         'اختاري الباقة التي تناسب أعمالكِ. العميلات الأفراد يحجزن مجاناً دائماً.',
+      earlyAccessBadge: 'أسعار الإطلاق لأول 20 اشتراكاً مدفوعاً فقط',
       mostPopular: 'الأكثر شيوعاً',
       perMonth: '/ شهرياً',
       plans: [

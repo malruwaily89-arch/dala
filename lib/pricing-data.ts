@@ -89,6 +89,7 @@ export const REGULAR_PACKAGES: Package[] = [
   },
 ];
 
+// Legacy upgrade records retained for existing tenants; these are not shown in the public launch offer.
 export const PRO_PACKAGES: Package[] = [
   {
     name: "الأساسية برو",

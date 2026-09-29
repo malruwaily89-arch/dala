@@ -25,6 +25,9 @@ export function PartnerCta() {
         <p className="mt-4 text-muted-foreground text-pretty">
           {t.pricing.subtitle}
         </p>
+        <p className="mx-auto mt-4 inline-flex rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-primary">
+          {t.pricing.earlyAccessBadge}
+        </p>
       </div>
 
       <div className="mt-14 grid gap-6 lg:grid-cols-3">

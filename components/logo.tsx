@@ -8,7 +8,5 @@ export function Logo({
   className?: string
   showText?: boolean
 }) {
-  return (
-    <BrandLogo className={cn(!showText && '[&>span:last-child]:hidden', className)} />
-  )
+  return <BrandLogo className={cn(className)} compact={!showText} />
 }

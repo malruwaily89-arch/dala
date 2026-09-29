@@ -101,6 +101,9 @@ export default function ProposalPage() {
               <span className="text-zinc-400"> / شهرياً</span>
             </p>
             <p className="mt-1 text-xs text-zinc-400">أو 9,990 ريال سنوياً (شهران مجاناً) — بدون رسوم تثبيت</p>
+            <p className="mt-3 inline-flex rounded-full bg-white px-4 py-2 text-xs font-bold text-brand">
+              سعر الإطلاق لأول 20 اشتراكاً مدفوعاً
+            </p>
             <p className="mt-3 text-sm font-bold text-zinc-700">
               = أقل من 1% من القيمة المحتسبة، وثمن ضياع غياب واحد يومياً
             </p>

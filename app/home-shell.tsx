@@ -3,12 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatSar } from "@/lib/utils";
-import { REGULAR_PACKAGES, PRO_PACKAGES } from "@/lib/pricing-data";
+import { REGULAR_PACKAGES } from "@/lib/pricing-data";
 import { useLocale } from "@/lib/i18n/locale-context";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { SiteFooter } from "@/components/marketing/site-footer";
 
-const ALL_PACKAGES = [...REGULAR_PACKAGES, ...PRO_PACKAGES];
+const ALL_PACKAGES = REGULAR_PACKAGES;
 
 export function HomeShell() {
   const { t, dir, locale } = useLocale();
@@ -114,12 +114,15 @@ export function HomeShell() {
             </div>
           </section>
 
-          {/* Pricing preview — all 6 packages */}
+          {/* Pricing preview — launch offer for the first 20 subscribers */}
           <section className="py-12 md:py-16">
             <div className="text-center">
               <span className="text-xs font-bold uppercase tracking-widest text-brand-gold">{t.pricingPreview.eyebrow}</span>
               <h2 className="mt-2 font-serif text-2xl font-bold text-brand md:text-3xl">{t.pricingPreview.title}</h2>
               <p className="mt-3 text-brand/60">{t.pricingPreview.subtitle}</p>
+              <p className="mx-auto mt-4 inline-flex rounded-full bg-brand/10 px-4 py-2 text-sm font-bold text-brand">
+                {t.pricingPage.earlyAccessBadge}
+              </p>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {ALL_PACKAGES.map((p) => (

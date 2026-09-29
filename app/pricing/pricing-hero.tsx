@@ -20,6 +20,9 @@ export function PricingHero() {
         {t.pricingPage.titleLine2}
       </h1>
       <p className="mx-auto mt-6 max-w-xl text-lg text-brand/70">{t.pricingPage.subtitle}</p>
+      <p className="mx-auto mt-5 inline-flex rounded-full bg-brand/10 px-5 py-2 text-sm font-bold text-brand">
+        {t.pricingPage.earlyAccessBadge}
+      </p>
     </section>
   );
 }
