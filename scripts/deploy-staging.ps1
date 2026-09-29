@@ -74,18 +74,18 @@ command -v docker >/dev/null || { echo 'DEPLOY_ERROR: docker غير موجود �
 command -v rsync >/dev/null || { echo 'DEPLOY_ERROR: rsync غير موجود على السيرفر' >&2; exit 1; }
 command -v tar >/dev/null || { echo 'DEPLOY_ERROR: tar غير موجود على السيرفر' >&2; exit 1; }
 if [ -z $composeServiceQ ]; then
-  compose_service=$(docker inspect -f '{{index .Config.Labels "com.docker.compose.service"}}' dala-ai-staging-app-1 2>/dev/null || true)
+  compose_service=`$(docker inspect -f '{{index .Config.Labels "com.docker.compose.service"}}' dala-ai-staging-app-1 2>/dev/null || true)
 else
   compose_service=$composeServiceQ
 fi
-if [ -z "${compose_service:-}" ]; then
+if [ -z "`${compose_service:-}" ]; then
   compose_service=app
 fi
-if ! docker compose -p $composeProjectQ -f $composeFileQ config --services | grep -Fx "$compose_service" >/dev/null; then
+if ! docker compose -p $composeProjectQ -f $composeFileQ config --services | grep -Fx "`$compose_service" >/dev/null; then
   echo 'DEPLOY_ERROR: خدمة Compose المطلوبة غير موجودة قبل النسخ' >&2
   echo 'الخدمات الموجودة:' >&2
   docker compose -p $composeProjectQ -f $composeFileQ config --services >&2 || true
-  echo 'الخدمة المطلوبة:' "$compose_service" >&2
+  echo 'الخدمة المطلوبة:' "`$compose_service" >&2
   exit 1
 fi
 rm -rf -- $remoteTempQ
@@ -102,10 +102,10 @@ cd $composeDirQ
 echo 'التحقق من إعداد Compose...' >&2
 docker compose -p $composeProjectQ -f $composeFileQ config --quiet
 echo 'بناء خدمة Staging...' >&2
-docker compose -p $composeProjectQ -f $composeFileQ build --pull "$compose_service"
+docker compose -p $composeProjectQ -f $composeFileQ build --pull "`$compose_service"
 echo 'إعادة تشغيل خدمة Staging...' >&2
-docker compose -p $composeProjectQ -f $composeFileQ up -d --no-deps --force-recreate "$compose_service"
-docker compose -p $composeProjectQ -f $composeFileQ ps "$compose_service"
+docker compose -p $composeProjectQ -f $composeFileQ up -d --no-deps --force-recreate "`$compose_service"
+docker compose -p $composeProjectQ -f $composeFileQ ps "`$compose_service"
 rm -f -- $remoteArchiveQ
 rm -rf -- $remoteTempQ
 "@
