@@ -6,6 +6,7 @@ export const roles = Object.freeze({
   qa: 'Propose reproducible tests for booking races, payments and tenant boundaries.',
   security: 'Review authorization, secrets, webhooks and dependency risks.',
   pricing: 'Review unit economics and plan limits; distinguish assumptions from invoices.',
+  content: 'Review written and visual site content (copy, explanations, onboarding text, image/alt text) for clarity, structure, tone consistency and accuracy; propose improved wording and organization without altering pricing or legal claims.',
   validation: 'Independently challenge findings using original evidence; never claim unexecuted tests passed.',
   manager: 'Prioritize validated findings and missing evidence. Human approval is mandatory for deployment.'
 });
