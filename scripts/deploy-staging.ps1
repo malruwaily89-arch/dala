@@ -70,16 +70,25 @@ try {
 
   $remoteScript = @"
 set -eu
-command -v docker >/dev/null
-command -v rsync >/dev/null
-test -f $composeFileFullQ
+command -v docker >/dev/null || { echo 'DEPLOY_ERROR: docker غير موجود على السيرفر' >&2; exit 1; }
+command -v rsync >/dev/null || { echo 'DEPLOY_ERROR: rsync غير موجود على السيرفر' >&2; exit 1; }
+command -v tar >/dev/null || { echo 'DEPLOY_ERROR: tar غير موجود على السيرفر' >&2; exit 1; }
 rm -rf -- $remoteTempQ
 mkdir -p -- $remoteTempQ
 tar -xzf $remoteArchiveQ -C $remoteTempQ
 rsync -a --exclude='.env' --exclude='node_modules/' --exclude='.next/' --exclude='data/' $remoteTempDirQ $composeDirSlashQ
+if [ ! -f $composeFileFullQ ]; then
+  echo 'DEPLOY_ERROR: ملف Compose غير موجود بعد نسخ الملفات' >&2
+  echo 'المجلد المتوقع:' $composeDirQ >&2
+  ls -la $composeDirQ >&2 || true
+  exit 1
+fi
 cd $composeDirQ
+echo 'التحقق من إعداد Compose...' >&2
 docker compose -p $composeProjectQ -f $composeFileQ config --quiet
+echo 'بناء خدمة Staging...' >&2
 docker compose -p $composeProjectQ -f $composeFileQ build --pull $composeServiceQ
+echo 'إعادة تشغيل خدمة Staging...' >&2
 docker compose -p $composeProjectQ -f $composeFileQ up -d --no-deps --force-recreate $composeServiceQ
 docker compose -p $composeProjectQ -f $composeFileQ ps $composeServiceQ
 rm -f -- $remoteArchiveQ
