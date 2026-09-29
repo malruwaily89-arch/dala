@@ -42,6 +42,9 @@ async function main() {
   if (process.env.DALA_SCENARIO_CONFIRM !== CONFIRM) {
     throw new Error(`هذا الإجراء محمي. للتنفيذ المقصود اضبط DALA_SCENARIO_CONFIRM=${CONFIRM}`);
   }
+  if (process.env.DALA_SCENARIO_SCOPE !== "demo-slugs") {
+    throw new Error("يجب ضبط DALA_SCENARIO_SCOPE=demo-slugs لحصر الحذف في الصالونات المحددة.");
+  }
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL غير مضبوط");
   if (process.env.NODE_ENV === "production" && process.env.DALA_SCENARIO_ALLOW_PRODUCTION !== "YES") {
     throw new Error("تم منع التشغيل على NODE_ENV=production. أضف DALA_SCENARIO_ALLOW_PRODUCTION=YES بعد مراجعة النطاق.");
