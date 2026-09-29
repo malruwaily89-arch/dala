@@ -23,8 +23,8 @@ const STAFF_NAMES = ["نورة", "ريم", "سارة", "منى", "هند", "عب
 const CUSTOMER_NAMES = ["هيفاء", "لمياء", "دلال", "منيرة", "نوف", "غادة", "ريما", "مها", "سلطانة", "البندري", "وجدان", "أسماء", "حصة", "شوق", "لطيفة", "موضي", "عائشة", "زينب", "فاطمة", "حنان", "مريم", "جوهرة", "سارة", "نجلاء", "تهاني"];
 const ALLOCATION = {
   "noor-salon": { staff: 4, customers: 8, services: 4, statuses: ["done", "done", "done", "done", "confirmed", "confirmed", "confirmed", "pending_deposit", "cancelled", "no_show"] },
-  "liyan-salon": { staff: 3, customers: 8, services: 3, statuses: ["done", "done", "done", "done", "confirmed", "confirmed", "confirmed", "pending_deposit", "cancelled", "no_show"] },
-  "amal-salon": { staff: 3, customers: 9, services: 3, statuses: ["done", "done", "done", "done", "confirmed", "confirmed", "pending_deposit", "cancelled", "cancelled", "no_show"] },
+  "liyan-salon": { staff: 2, customers: 8, services: 3, statuses: ["done", "done", "done", "done", "confirmed", "confirmed", "confirmed", "pending_deposit", "cancelled", "no_show"] },
+  "amal-salon": { staff: 4, customers: 9, services: 4, statuses: ["done", "done", "done", "done", "confirmed", "confirmed", "pending_deposit", "cancelled", "cancelled", "no_show"] },
 } as const;
 
 function bookingCode(slug: string, index: number) {
@@ -156,3 +156,4 @@ main().catch((error) => {
 }).finally(async () => {
   await db.$disconnect();
 });
+
