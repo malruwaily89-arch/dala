@@ -1,0 +1,83 @@
+name: Deploy Dala to Staging
+
+on:
+  push:
+    branches: [codex/dala-ai-team]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dala-staging-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy staging only
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: staging
+    steps:
+      - name: Prepare SSH trust
+        shell: bash
+        env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          STAGING_KNOWN_HOSTS: ${{ secrets.STAGING_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$STAGING_SSH_KEY"
+          test -n "$STAGING_KNOWN_HOSTS"
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$STAGING_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$STAGING_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+
+      - name: Fast-forward source and rebuild staging app
+        shell: bash
+        env:
+          STAGING_SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          STAGING_SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          STAGING_REPO_DIR: ${{ vars.STAGING_REPO_DIR }}
+          STAGING_COMPOSE_DIR: ${{ vars.STAGING_COMPOSE_DIR }}
+          STAGING_COMPOSE_FILE: ${{ vars.STAGING_COMPOSE_FILE }}
+          STAGING_COMPOSE_PROJECT: ${{ vars.STAGING_COMPOSE_PROJECT }}
+          STAGING_COMPOSE_SERVICE: ${{ vars.STAGING_COMPOSE_SERVICE }}
+        run: |
+          set -euo pipefail
+          test -n "$STAGING_SSH_HOST"
+          test -n "$STAGING_SSH_USER"
+          test -n "$STAGING_REPO_DIR"
+          test -n "$STAGING_COMPOSE_DIR"
+          test -n "$STAGING_COMPOSE_FILE"
+          test -n "$STAGING_COMPOSE_PROJECT"
+          test -n "$STAGING_COMPOSE_SERVICE"
+          printf -v remote_dir '%q' "$STAGING_REPO_DIR"
+          printf -v compose_dir '%q' "$STAGING_COMPOSE_DIR"
+          printf -v compose_file '%q' "$STAGING_COMPOSE_FILE"
+          printf -v compose_project '%q' "$STAGING_COMPOSE_PROJECT"
+          printf -v compose_service '%q' "$STAGING_COMPOSE_SERVICE"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes "$STAGING_SSH_USER@$STAGING_SSH_HOST" \
+            "STAGING_REPO_DIR=$remote_dir STAGING_COMPOSE_DIR=$compose_dir STAGING_COMPOSE_FILE=$compose_file STAGING_COMPOSE_PROJECT=$compose_project STAGING_COMPOSE_SERVICE=$compose_service bash -s" <<'REMOTE'
+          set -euo pipefail
+          cd "$STAGING_REPO_DIR"
+          test -z "$(git status --porcelain)"
+          git fetch https://github.com/malruwaily89-arch/dala.git codex/dala-ai-team
+          git switch codex/dala-ai-team 2>/dev/null || git switch -c codex/dala-ai-team --track FETCH_HEAD
+          git merge --ff-only FETCH_HEAD
+          test -d "$STAGING_COMPOSE_DIR"
+          test -f "$STAGING_COMPOSE_DIR/$STAGING_COMPOSE_FILE"
+          command -v rsync >/dev/null
+          rsync -a --exclude='.env' --exclude='node_modules/' --exclude='.next/' --exclude='data/' "$STAGING_REPO_DIR/" "$STAGING_COMPOSE_DIR/"
+          cd "$STAGING_COMPOSE_DIR"
+          docker compose -p "$STAGING_COMPOSE_PROJECT" -f "$STAGING_COMPOSE_FILE" config --quiet
+          docker compose -p "$STAGING_COMPOSE_PROJECT" -f "$STAGING_COMPOSE_FILE" build --pull "$STAGING_COMPOSE_SERVICE"
+          docker compose -p "$STAGING_COMPOSE_PROJECT" -f "$STAGING_COMPOSE_FILE" up -d --no-deps --force-recreate "$STAGING_COMPOSE_SERVICE"
+          docker compose -p "$STAGING_COMPOSE_PROJECT" -f "$STAGING_COMPOSE_FILE" ps "$STAGING_COMPOSE_SERVICE"
+          REMOTE
+
+      - name: Optional staging health check
+        if: ${{ vars.STAGING_HEALTHCHECK_URL != '' }}
+        env:
+          STAGING_HEALTHCHECK_URL: ${{ vars.STAGING_HEALTHCHECK_URL }}
+        run: curl --fail --silent --show-error --retry 10 --retry-delay 3 "$STAGING_HEALTHCHECK_URL"
