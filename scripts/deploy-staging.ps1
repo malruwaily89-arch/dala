@@ -40,6 +40,8 @@ $commit = (git rev-parse --short HEAD).Trim()
 $archive = Join-Path $env:TEMP "dala-staging-$commit.tar.gz"
 $remoteArchive = "/tmp/dala-staging-$commit.tar.gz"
 $remoteTemp = "/tmp/dala-staging-$commit"
+$remoteOverride = "/tmp/dala-staging-override-$commit.yml"
+$imageTag = "dala-staging-app-$commit"
 $target = "$SshUser@$SshHost"
 
 $sshOptions = @()
@@ -60,6 +62,8 @@ try {
 
   $remoteTempQ = Quote-Bash $remoteTemp
   $remoteArchiveQ = Quote-Bash $remoteArchive
+  $remoteOverrideQ = Quote-Bash $remoteOverride
+  $imageTagQ = Quote-Bash $imageTag
   $composeDirQ = Quote-Bash $ComposeDir
   $composeFileQ = Quote-Bash $ComposeFile
   $composeFileFullQ = Quote-Bash "$ComposeDir/$ComposeFile"
@@ -98,14 +102,16 @@ if [ ! -f $composeFileFullQ ]; then
   exit 1
 fi
 echo 'التحقق من إعداد Compose...' >&2
-docker compose -p $composeProjectQ -f $composeFileQ config --quiet
+printf 'services:\n  %s:\n    build:\n      context: .\n    image: %s\n' $composeServiceQ $imageTagQ > $remoteOverrideQ
+docker compose -p $composeProjectQ -f $composeFileQ -f $remoteOverrideQ config --quiet
 echo 'بناء خدمة Staging...' >&2
-docker compose -p $composeProjectQ -f $composeFileQ build --pull "`$compose_service"
+docker compose -p $composeProjectQ -f $composeFileQ -f $remoteOverrideQ build --pull "`$compose_service"
 echo 'إعادة تشغيل خدمة Staging...' >&2
-docker compose -p $composeProjectQ -f $composeFileQ up -d --no-deps --force-recreate "`$compose_service"
-docker compose -p $composeProjectQ -f $composeFileQ ps "`$compose_service"
+docker compose -p $composeProjectQ -f $composeFileQ -f $remoteOverrideQ up -d --no-deps --force-recreate --no-build "`$compose_service"
+docker compose -p $composeProjectQ -f $composeFileQ -f $remoteOverrideQ ps "`$compose_service"
 rm -f -- $remoteArchiveQ
 rm -rf -- $remoteTempQ
+rm -f -- $remoteOverrideQ
 "@
 
   Write-Host "بناء وإعادة تشغيل خدمة Staging فقط..." -ForegroundColor Cyan
