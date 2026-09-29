@@ -1,17 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useLocale } from "@/lib/i18n/locale-context";
 import { LanguageToggle } from "./language-toggle";
+import { BrandLogo } from "@/components/brand-logo";
 
 export function SiteHeader() {
   const { t } = useLocale();
 
   return (
-    <header className="relative z-10 flex items-center justify-between py-6">
-      <Link href="/" aria-label="دلال">
-        <Image src="/dalal-logo.png" alt="دلال" width={150} height={100} className="h-auto w-32 md:w-36" priority />
+    <header className="relative z-10 flex items-center justify-between border-b border-brand/10 py-5">
+      <Link href="/" aria-label="دلال — الصفحة الرئيسية">
+        <BrandLogo />
       </Link>
       <nav className="flex items-center gap-2 md:gap-3">
         <Link

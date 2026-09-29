@@ -1,7 +1,7 @@
 'use client'
 
+import Link from 'next/link'
 import { Logo } from '@/components/logo'
-import { AtSign, Globe, Share2 } from 'lucide-react'
 import { useLanguage } from '@/components/language-provider'
 
 export function SiteFooter() {
@@ -10,58 +10,45 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-card">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-5">
+        <div className="grid gap-10 lg:grid-cols-4">
           <div className="lg:col-span-2">
             <Logo />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               {t.footer.description}
             </p>
-            <div className="mt-5 flex gap-3">
-              {[AtSign, Globe, Share2].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
-                  aria-label="Social media"
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
           </div>
 
-          {t.footer.columns.map((col) => (
-            <div key={col.heading}>
-              <h3 className="font-serif text-sm font-semibold uppercase tracking-wider text-foreground">
-                {col.heading}
-              </h3>
-              <ul className="mt-4 space-y-3">
-                {col.links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
-                      className="text-sm text-muted-foreground transition-colors hover:text-primary"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div>
+            <h3 className="font-serif text-sm font-semibold uppercase tracking-wider text-foreground">
+              {t.footer.columns[0]?.heading}
+            </h3>
+            <ul className="mt-4 space-y-3">
+              <li><Link href="/features" className="text-sm text-muted-foreground transition-colors hover:text-primary">{t.footer.columns[0]?.links[0]}</Link></li>
+              <li><Link href="/pricing" className="text-sm text-muted-foreground transition-colors hover:text-primary">{t.footer.columns[0]?.links[1]}</Link></li>
+              <li><Link href="/signup" className="text-sm text-muted-foreground transition-colors hover:text-primary">{t.footer.columns[0]?.links[2]}</Link></li>
+              <li><Link href="/login" className="text-sm text-muted-foreground transition-colors hover:text-primary">{t.footer.columns[0]?.links[3]}</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-serif text-sm font-semibold uppercase tracking-wider text-foreground">
+              {t.footer.columns[2]?.heading}
+            </h3>
+            <ul className="mt-4 space-y-3">
+              <li><Link href="/features" className="text-sm text-muted-foreground transition-colors hover:text-primary">{t.footer.columns[2]?.links[0]}</Link></li>
+              <li><Link href="/login" className="text-sm text-muted-foreground transition-colors hover:text-primary">{t.footer.columns[2]?.links[1]}</Link></li>
+              <li><Link href="/pricing" className="text-sm text-muted-foreground transition-colors hover:text-primary">{t.footer.columns[2]?.links[2]}</Link></li>
+              <li><Link href="/" className="text-sm text-muted-foreground transition-colors hover:text-primary">{t.footer.columns[2]?.links[3]}</Link></li>
+            </ul>
+          </div>
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 sm:flex-row">
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} Dalal · دلال. {t.footer.rights}
           </p>
-          <div className="flex gap-6">
-            <a href="#" className="text-sm text-muted-foreground hover:text-primary">
-              {t.footer.privacy}
-            </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-primary">
-              {t.footer.terms}
-            </a>
+          <div className="flex gap-6 text-sm text-muted-foreground">
+            <span>{t.footer.privacy}</span>
+            <span>{t.footer.terms}</span>
           </div>
         </div>
       </div>

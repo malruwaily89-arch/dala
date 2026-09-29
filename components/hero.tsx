@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Star, ArrowRight } from 'lucide-react'
+import { Sparkles, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/components/language-provider'
 
@@ -59,22 +59,9 @@ export function Hero() {
             </a>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3">
-            <div className="flex items-center gap-2">
-              <div className="flex">
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <Star key={i} className="h-4 w-4 fill-accent text-accent" />
-                ))}
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {t.hero.rating}
-              </span>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">850+</span>{' '}
-              {t.hero.salonsGrowing}
-            </div>
-          </div>
+          <p className="mt-8 text-sm font-medium text-primary/80">
+            {t.hero.trustLine}
+          </p>
         </div>
 
         <div className="relative">

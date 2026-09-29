@@ -17,15 +17,14 @@ export const translations = {
     },
     hero: {
       badge: 'The booking platform for beauty businesses',
-      title: 'Run and grow your salon, beautifully',
+      title: 'Run your salon from one elegant place',
       subtitle:
         'Dalal is the all-in-one booking and management platform for beauty salons and women’s personal-care studios across Saudi Arabia and the Gulf. Take online bookings, manage staff and payments, and delight every client, from one elegant dashboard.',
       emailPlaceholder: 'Enter your work email',
       startTrial: 'Start free trial',
       trialNote: '14-day free trial · No card required',
       bookDemo: 'Book a demo',
-      rating: '4.9 rated by salon owners',
-      salonsGrowing: 'salons growing with Dalal',
+      trustLine: 'Built for beauty businesses across Saudi Arabia and the Gulf',
       liveTitle: 'Live in minutes',
       liveDesc:
         'Set up your booking page, add services, and start accepting appointments the same day.',
@@ -199,15 +198,14 @@ export const translations = {
     },
     hero: {
       badge: 'منصة الحجز لأعمال التجميل',
-      title: 'أديري صالونكِ ونمّيه بأناقة',
+      title: 'أديري مواعيد صالونكِ في مكان واحد',
       subtitle:
         'دلال منصة متكاملة لإدارة الحجوزات لصالونات التجميل واستوديوهات العناية النسائية في المملكة العربية السعودية ودول الخليج. استقبلي الحجوزات إلكترونياً، وأديري فريقكِ ومدفوعاتكِ، وأسعدي كل عميلة من لوحة تحكم أنيقة واحدة.',
       emailPlaceholder: 'أدخلي بريدكِ الإلكتروني',
       startTrial: 'ابدئي التجربة المجانية',
       trialNote: 'تجربة مجانية ١٤ يوماً · دون بطاقة',
       bookDemo: 'احجزي عرضاً تجريبياً',
-      rating: 'تقييم ٤٫٩ من أصحاب الصالونات',
-      salonsGrowing: 'صالون ينمو مع دلال',
+      trustLine: 'مصمّمة لأعمال التجميل في السعودية والخليج',
       liveTitle: 'انطلقي خلال دقائق',
       liveDesc:
         'جهّزي صفحة الحجز، أضيفي خدماتكِ، وابدئي باستقبال المواعيد في اليوم نفسه.',

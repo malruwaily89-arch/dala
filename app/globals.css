@@ -52,11 +52,11 @@
 
 :root {
   color-scheme: light;
-  --background: #f0e6f6;
-  --foreground: #2e1065;
-  --brand: #7c3aed;
-  --brand-gold: #c9a05a;
-  --brand-light: #8b5cf6;
+  --background: #eee7f6;
+  --foreground: #281c38;
+  --brand: #6335a5;
+  --brand-gold: #b98a3d;
+  --brand-light: #7b55bb;
   --font-heading: var(--font-playfair), var(--font-tajawal), serif;
   --font-body: var(--font-inter), var(--font-tajawal), sans-serif;
   --card: oklch(0.995 0.006 305);
@@ -68,7 +68,7 @@
   --secondary: oklch(0.94 0.028 305);
   --secondary-foreground: oklch(0.4 0.12 302);
   --muted: oklch(0.95 0.02 305);
-  --muted-foreground: oklch(0.5 0.04 305);
+  --muted-foreground: oklch(0.39 0.04 305);
   --accent: oklch(0.8 0.11 85);
   --accent-foreground: oklch(0.3 0.05 305);
   --destructive: oklch(0.577 0.245 27.325);

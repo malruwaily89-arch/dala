@@ -8,7 +8,6 @@ import { useLocale } from "@/lib/i18n/locale-context";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { SiteFooter } from "@/components/marketing/site-footer";
 
-const STORY_IMAGES = ["/salon-1.png", "/salon-2.png", "/salon-3.png"];
 const ALL_PACKAGES = [...REGULAR_PACKAGES, ...PRO_PACKAGES];
 
 export function HomeShell() {
@@ -54,11 +53,6 @@ export function HomeShell() {
                 </div>
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-brand/60 md:justify-start">
                   <span>{t.hero.trialNote}</span>
-                  <span className="hidden h-1 w-1 rounded-full bg-brand/30 sm:inline-block" />
-                  <span>⭐ {t.hero.rating}</span>
-                  <span className="hidden h-1 w-1 rounded-full bg-brand/30 sm:inline-block" />
-                  <span className="font-bold text-brand-gold">{t.hero.salonsCount}</span>
-                  <span>{t.hero.salonsCountLabel}</span>
                 </div>
               </div>
 
@@ -115,57 +109,6 @@ export function HomeShell() {
                   <span className="font-serif text-3xl font-bold text-brand-gold/60">{s.n}</span>
                   <h3 className="mt-3 text-lg font-extrabold text-brand">{s.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-brand/60">{s.body}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Success stories */}
-          <section className="py-12 md:py-16">
-            <div className="text-center">
-              <span className="text-xs font-bold uppercase tracking-widest text-brand-gold">{t.stories.eyebrow}</span>
-              <h2 className="mt-2 font-serif text-2xl font-bold text-brand md:text-3xl">{t.stories.title}</h2>
-            </div>
-            <div className="mt-10 grid gap-6 md:grid-cols-3">
-              {t.stories.items.map((s, i) => (
-                <div
-                  key={s.name}
-                  className="overflow-hidden rounded-[28px] border border-brand-gold/15 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
-                >
-                  <div className="relative h-36 w-full">
-                    <Image src={STORY_IMAGES[i % STORY_IMAGES.length]} alt={s.name} fill className="object-cover" />
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center justify-between text-xs text-brand/50">
-                      <span>{s.city}</span>
-                      <span className="font-bold text-brand-gold">★ {s.rating}</span>
-                    </div>
-                    <h3 className="mt-2 text-base font-extrabold text-brand">{s.name}</h3>
-                    <p className="mt-1 text-sm text-brand/50">{s.tag}</p>
-                    <div className="mt-3 flex items-center justify-between text-xs text-brand/40">
-                      <span>{s.reviews}</span>
-                      <span>{s.bookings}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Testimonials */}
-          <section className="py-12 md:py-16">
-            <div className="text-center">
-              <span className="text-xs font-bold uppercase tracking-widest text-brand-gold">{t.testimonials.eyebrow}</span>
-              <h2 className="mt-2 font-serif text-2xl font-bold text-brand md:text-3xl">{t.testimonials.title}</h2>
-            </div>
-            <div className="mt-10 grid gap-6 md:grid-cols-3">
-              {t.testimonials.items.map((tst) => (
-                <div key={tst.name} className="flex flex-col rounded-[28px] border border-brand-gold/15 bg-white p-7 shadow-sm">
-                  <p className="flex-1 text-sm leading-7 text-brand/70">&ldquo;{tst.quote}&rdquo;</p>
-                  <div className="mt-5 border-t border-brand-gold/15 pt-4">
-                    <p className="text-sm font-extrabold text-brand">{tst.name}</p>
-                    <p className="text-xs text-brand/50">{tst.role}</p>
-                  </div>
                 </div>
               ))}
             </div>

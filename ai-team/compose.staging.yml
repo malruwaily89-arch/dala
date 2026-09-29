@@ -1,0 +1,79 @@
+name: dala-ai-staging
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dala_staging
+      POSTGRES_DB: dala_staging
+      POSTGRES_PASSWORD: ${STAGING_DB_PASSWORD:?required}
+    volumes:
+      - staging-data:/var/lib/postgresql/data
+    networks: [isolated]
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    restart: "no"
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U dala_staging -d dala_staging"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    logging:
+      driver: json-file
+      options: {max-size: 5m, max-file: "2"}
+  migrate:
+    image: ${DALA_STAGING_IMAGE:?immutable image required}
+    profiles: [tools]
+    entrypoint: [node, /workspace/node_modules/prisma/build/index.js]
+    command: [migrate, deploy, --schema, /schema/schema.prisma]
+    working_dir: /tmp
+    environment:
+      DATABASE_URL: postgresql://dala_staging:${STAGING_DB_PASSWORD:?required}@db:5432/dala_staging
+      CHECKPOINT_DISABLE: "1"
+    volumes:
+      - ${DALA_SOURCE_DIR:?required}/node_modules:/workspace/node_modules:ro
+      - ${DALA_SOURCE_DIR:?required}/prisma:/schema:ro
+    networks: [isolated]
+    mem_limit: 256m
+    cpus: 0.5
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      db: {condition: service_healthy}
+  app:
+    image: ${DALA_STAGING_IMAGE:?immutable image required}
+    environment:
+      DATABASE_URL: postgresql://dala_staging:${STAGING_DB_PASSWORD:?required}@db:5432/dala_staging
+      TZ: Asia/Riyadh
+      PORT: "3211"
+      APP_BASE_URL: http://localhost:33211
+      NEXT_TELEMETRY_DISABLED: "1"
+      MOYASAR_SECRET_KEY: ""
+      MOYASAR_PUBLISHABLE_KEY: ""
+      MOYASAR_WEBHOOK_SECRET: ""
+      WHATSAPP_ACCESS_TOKEN: ""
+      WHATSAPP_PHONE_NUMBER_ID: ""
+      WHATSAPP_APP_SECRET: ""
+      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ""
+      RESEND_API_KEY: ""
+    networks: [isolated]
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    read_only: true
+    tmpfs: [/tmp, /app/.next/cache]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: "no"
+    depends_on:
+      db: {condition: service_healthy}
+    logging:
+      driver: json-file
+      options: {max-size: 5m, max-file: "2"}
+networks:
+  isolated:
+    internal: true
+volumes:
+  staging-data:
