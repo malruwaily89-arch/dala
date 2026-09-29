@@ -73,6 +73,12 @@ set -eu
 command -v docker >/dev/null || { echo 'DEPLOY_ERROR: docker غير موجود على السيرفر' >&2; exit 1; }
 command -v rsync >/dev/null || { echo 'DEPLOY_ERROR: rsync غير موجود على السيرفر' >&2; exit 1; }
 command -v tar >/dev/null || { echo 'DEPLOY_ERROR: tar غير موجود على السيرفر' >&2; exit 1; }
+if [ ! -f $composeFileFullQ ]; then
+  echo 'DEPLOY_ERROR: ملف Compose غير موجود قبل النسخ' >&2
+  echo 'المسار المتوقع:' $composeFileFullQ >&2
+  exit 1
+fi
+cd $composeDirQ
 compose_service=$composeServiceQ
 if ! docker compose -p $composeProjectQ -f $composeFileQ config --services | grep -Fx "`$compose_service" >/dev/null; then
   echo 'DEPLOY_ERROR: خدمة Compose المطلوبة غير موجودة قبل النسخ' >&2
@@ -91,7 +97,6 @@ if [ ! -f $composeFileFullQ ]; then
   ls -la $composeDirQ >&2 || true
   exit 1
 fi
-cd $composeDirQ
 echo 'التحقق من إعداد Compose...' >&2
 docker compose -p $composeProjectQ -f $composeFileQ config --quiet
 echo 'بناء خدمة Staging...' >&2
