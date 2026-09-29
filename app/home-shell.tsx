@@ -59,8 +59,8 @@ export function HomeShell() {
               <div className="relative mx-auto w-full max-w-md md:mx-0 md:max-w-none">
                 <div className="overflow-hidden rounded-[36px] border-4 border-white shadow-2xl shadow-brand/15">
                   <Image
-                    src="/hero-salon.png"
-                    alt="Elegant luxury beauty salon interior"
+                    src="/hero-background.png"
+                    alt="واجهة حجز ومواعيد دلال"
                     width={1312}
                     height={1199}
                     className="h-full w-full object-cover"

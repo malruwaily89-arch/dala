@@ -74,8 +74,8 @@ export function Hero() {
         <div className="relative">
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl border border-border shadow-xl">
             <Image
-              src="/hero-salon.png"
-              alt="Elegant luxury beauty salon interior"
+              src="/hero-background.png"
+              alt="واجهة حجز ومواعيد دلال"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"
