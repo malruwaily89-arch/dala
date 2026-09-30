@@ -15,9 +15,9 @@ export const dictionaries = {
     hero: {
       badge: "صالونات التجميل • مراكز العناية بالبشرة • عيادات الليزر",
       titleLine1: "حجوزات مركزك منظمة،",
-      titleLine2: "والعربون محصّل قبل ما تختفي العميلة.",
+      titleLine2: "والعربون محصّل قبل الموعد، لتقليل حالات عدم الحضور.",
       subtitle:
-        "صفحة حجز خاصة بعلامتك على واتساب وسناب شات، عربون إلكتروني يمنع الغائبات، وقائمة انتظار تملأ كل موعد ملغى — كل هذا بلغة تفهمها عميلاتك.",
+        "رابط حجز خاص بعلامتك تشاركينه مع عميلاتك عبر واتساب وسناب شات، عربون إلكتروني يقلل حالات عدم الحضور، وقائمة انتظار تساعد على ملء المواعيد الملغاة — كل هذا بلغة تفهمها عميلاتك.",
       ctaPrimary: "ابدئي الآن — تجربة مجانية",
       ctaSecondary: "جرّبي صفحة حجز تجريبية",
       trialNote: "تجربة مجانية 14 يوماً · بدون بطاقة",
@@ -27,19 +27,19 @@ export const dictionaries = {
     },
     features: {
       eyebrow: "المنصّة",
-      title: "كل ما يحتاجه صالونك، في مكان واحد",
+      title: "كل ما يحتاجه مركزك، في مكان واحد",
       subtitle: "دلال تجمع الحجوزات، الموظفات، الدفع، والعميلات معاً — لتقضي وقتاً أقل في الإدارة ووقتاً أكثر في التجميل.",
       items: [
-        { icon: "💳", title: "عربون يحمي وقتك", body: "الحجز لا يُثبت إلا بعد دفع العربون. لا مزيد من المواعيد الضائعة على عميلة لم تحضر." },
+        { icon: "💳", title: "عربون يحمي وقتك", body: "الحجز لا يُثبت إلا بعد دفع العربون، ما يساعد على تقليل المواعيد المهدرة بسبب الغياب." },
         { icon: "💬", title: "واتساب يتكلم عنك", body: "تأكيد، تذكير قبل الموعد، ومتابعة بعد الزيارة — تلقائياً من رقمك المعروف لدى عميلاتك." },
         { icon: "🗓️", title: "لا تعارض في المواعيد", body: "كل موظفة بجدولها المستقل — النظام يمنع الحجز المزدوج على نفس الوقت تلقائياً." },
         { icon: "🎨", title: "هوية خاصة بعلامتك", body: "شعارك، ألوانك، واسمك على صفحة حجز مستقلة — تشعر عميلاتك أنها تجربة علامتك فقط." },
-        { icon: "⏳", title: "قائمة انتظار ذكية", body: "كل إلغاء يتحرر فوراً لعميلة أخرى في الانتظار، فلا يضيع موعد واحد من جدولك." },
+        { icon: "⏳", title: "قائمة انتظار ذكية", body: "يتيح كل إلغاء عرض الموعد فوراً لعميلة أخرى في قائمة الانتظار، ما يقلل ضياع المواعيد من جدولك." },
         { icon: "📊", title: "تقارير تكشف نموّك", body: "إيراد، حضور، وأكثر الخدمات طلباً — أرقام واضحة تساعدك تقررين بثقة." },
       ],
     },
     steps: {
-      eyebrow: "بسيط بالتصميم",
+      eyebrow: "بساطة في التصميم",
       title: "ابدئي في 3 خطوات",
       items: [
         { n: "01", title: "أنشئي صفحتك", body: "جهّزي صفحة الحجز الخاصة بعلامتك في دقائق، بدون خبرة تقنية." },
@@ -168,9 +168,9 @@ export const dictionaries = {
     hero: {
       badge: "Beauty Salons • Skincare Centers • Laser Clinics",
       titleLine1: "Your salon's bookings, organized —",
-      titleLine2: "and the deposit collected before clients disappear.",
+      titleLine2: "and the deposit collected before the appointment, to reduce no-shows.",
       subtitle:
-        "A branded booking page on WhatsApp and Snapchat, an online deposit that stops no-shows, and a waitlist that fills every cancelled slot — all in the language your clients understand.",
+        "A branded booking link you share with clients on WhatsApp and Snapchat, an online deposit that helps reduce no-shows, and a waitlist that helps fill cancelled slots — all in the language your clients understand.",
       ctaPrimary: "Start now — free trial",
       ctaSecondary: "See a demo booking page",
       trialNote: "14-day free trial · No card required",
@@ -180,14 +180,14 @@ export const dictionaries = {
     },
     features: {
       eyebrow: "The Platform",
-      title: "Everything your salon needs, in one place",
+      title: "Everything your business needs, in one place",
       subtitle: "Dalal brings bookings, staff, payments, and clients together — so you spend less time managing and more time creating beauty.",
       items: [
-        { icon: "💳", title: "A deposit that protects your time", body: "Bookings aren't confirmed until the deposit is paid. No more lost slots to a client who never shows." },
+        { icon: "💳", title: "A deposit that protects your time", body: "Bookings aren't confirmed until the deposit is paid, which helps reduce slots lost to no-shows." },
         { icon: "💬", title: "WhatsApp speaks for you", body: "Confirmations, reminders, and follow-ups — sent automatically from the number your clients already know." },
         { icon: "🗓️", title: "No scheduling conflicts", body: "Every specialist has her own calendar — the system blocks double-booking automatically." },
         { icon: "🎨", title: "An identity that's yours", body: "Your logo, colors, and name on a standalone booking page — clients feel it's purely your brand's experience." },
-        { icon: "⏳", title: "A smart waitlist", body: "Every cancellation opens instantly for a waiting client, so not a single slot on your calendar goes to waste." },
+        { icon: "⏳", title: "A smart waitlist", body: "Every cancellation is offered instantly to a waiting client, helping reduce wasted slots on your calendar." },
         { icon: "📊", title: "Reports that reveal your growth", body: "Revenue, attendance, and top services — clear numbers that help you decide with confidence." },
       ],
     },
