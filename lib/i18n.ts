@@ -19,7 +19,7 @@ export const translations = {
       badge: 'Booking management for beauty businesses',
       title: 'Make booking easier for your clients',
       subtitle:
-        'Create a booking page for your beauty business, add your services and availability, and follow appointments from one dashboard. Designed for salons and independent beauty professionals.',
+        'Create a booking page for your beauty business, send booking confirmations and reminders to clients automatically over WhatsApp once configured — no manual messaging — and follow every appointment from one dashboard.',
       emailPlaceholder: 'Enter your work email',
       startTrial: 'Start free trial',
       trialNote: '14-day free trial · No card required',
@@ -42,7 +42,7 @@ export const translations = {
           href: '/features/booking',
         },
         {
-          title: 'Staff & calendars',
+          title: 'Team & calendars',
           desc: 'Add team members and organize their services, schedules, and available times.',
           href: '/features/team',
         },
@@ -52,17 +52,17 @@ export const translations = {
           href: '/features/payments',
         },
         {
-          title: 'Client CRM',
+          title: 'Client management',
           desc: 'Review client contact details and booking history from their profiles.',
           href: '/features/clients',
         },
         {
-          title: 'Marketing & reminders',
-          desc: 'Manage booking confirmations and WhatsApp reminders when messaging is configured.',
+          title: 'Automatic WhatsApp messaging',
+          desc: 'Once WhatsApp is configured, booking confirmations and reminders are sent to clients automatically — no manual messaging needed.',
           href: '/features/marketing',
         },
         {
-          title: 'Insights & reports',
+          title: 'Analytics & reports',
           desc: 'Review revenue, attendance, and service activity in your reports.',
           href: '/features/reports',
         },
@@ -140,7 +140,7 @@ export const translations = {
             'Unlimited staff members',
             'Everything in Starter',
             'Automated reminder 24 hours before appointment',
-            'Smart waitlist (every cancellation opens instantly)',
+            'Smart waitlist (cancellations offered automatically)',
             'Weekly reports (revenue, attendance, loyalty)',
             'Different deposit per service',
           ],
@@ -202,7 +202,7 @@ export const translations = {
       badge: 'إدارة حجوزات لأعمال التجميل',
       title: 'اجعلي الحجز أسهل لعميلاتكِ',
       subtitle:
-        'أنشئي صفحة حجز لنشاطكِ، أضيفي خدماتكِ وأوقاتكِ المتاحة، وتابعي المواعيد من لوحة واحدة. دلال مصممة للصالونات والخبيرات المستقلات في مجال التجميل.',
+        'أنشئي صفحة حجز لنشاطكِ، وأرسلي تأكيدات الحجز والتذكيرات لعميلاتك تلقائياً عبر واتساب بعد إعداده — بدون رسائل يدوية — وتابعي كل موعد من لوحة واحدة.',
       emailPlaceholder: 'أدخلي بريدكِ الإلكتروني',
       startTrial: 'ابدئي التجربة المجانية',
       trialNote: 'تجربة مجانية ١٤ يوماً · دون بطاقة',
@@ -240,8 +240,8 @@ export const translations = {
           href: '/features/clients',
         },
         {
-          title: 'التسويق والتذكيرات',
-          desc: 'تابعي تأكيدات الحجز وتذكيرات واتساب عند إعداد خدمة الرسائل.',
+          title: 'رسائل واتساب تلقائية',
+          desc: 'بعد إعداد واتساب، تُرسل تأكيدات الحجز والتذكيرات لعميلاتك تلقائياً — بدون أي رسالة يدوية منك.',
           href: '/features/marketing',
         },
         {
@@ -323,7 +323,7 @@ export const translations = {
             'موظفات بلا حد',
             'كل ميزات الأساسية',
             'تذكير آلي قبل الموعد بـ 24 ساعة',
-            'قائمة انتظار ذكية (كل إلغاء يتحرر فوراً)',
+            'قائمة انتظار ذكية (تعرض تلقائياً عند كل إلغاء)',
             'تقارير أسبوعية (إيراد، حضور، وفاء)',
             'عربون مختلف لكل خدمة',
           ],

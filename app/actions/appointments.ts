@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { createAppointmentTx, getAvailableSlots } from "@/lib/scheduling";
+import { createAppointmentTx, createAppointmentTxAnyStaff, getAvailableSlots } from "@/lib/scheduling";
 import { canCancelAppointments, canAddAppointments, canManageStaffSchedules, canManageServices } from "@/lib/permissions";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 import { formatDateTime, formatSar, normalizeMoney, staffLimitForPlan } from "@/lib/utils";
@@ -299,14 +299,23 @@ export async function publicBookingAction(formData: FormData) {
 
   let appt;
   try {
-    appt = await createAppointmentTx({
-      tenantId: tenant.id,
-      customerId: customer.id,
-      staffId,
-      serviceId,
-      startsAt: new Date(slotIso),
-      createdVia: "link",
-    });
+    appt =
+      staffId === "any"
+        ? await createAppointmentTxAnyStaff({
+            tenantId: tenant.id,
+            customerId: customer.id,
+            serviceId,
+            startsAt: new Date(slotIso),
+            createdVia: "link",
+          })
+        : await createAppointmentTx({
+            tenantId: tenant.id,
+            customerId: customer.id,
+            staffId,
+            serviceId,
+            startsAt: new Date(slotIso),
+            createdVia: "link",
+          });
   } catch (e) {
     redirect(`/b/${slug}?error=${encodeURIComponent(e instanceof Error ? e.message : "خطأ")}`);
   }

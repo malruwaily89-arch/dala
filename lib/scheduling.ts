@@ -141,6 +141,99 @@ export async function getAvailableSlots(params: {
 }
 
 /**
+ * المواعيد الفارغة عبر كل الموظفات النشطات (اتحاد الأوقات) — لخيار "بدون تفضيل".
+ * الوقت يُعتبر متاحاً لو موظفة واحدة على الأقل فاضية فيه.
+ */
+export async function getAvailableSlotsAnyStaff(params: {
+  tenantId: string;
+  serviceId: string;
+  date: Date;
+}): Promise<Date[]> {
+  const { tenantId, serviceId, date } = params;
+  const staffList = await db.staff.findMany({ where: { tenantId, isActive: true }, select: { id: true } });
+  if (staffList.length === 0) return [];
+
+  const perStaffSlots = await Promise.all(
+    staffList.map((s) => getAvailableSlots({ tenantId, staffId: s.id, serviceId, date }))
+  );
+  const merged = new Map<number, Date>();
+  for (const slots of perStaffSlots) {
+    for (const slot of slots) merged.set(slot.getTime(), slot);
+  }
+  return [...merged.values()].sort((a, b) => a.getTime() - b.getTime());
+}
+
+/**
+ * إنشاء حجز بدون تحديد موظفة معينة — يختار أول موظفة نشطة فاضية فعلياً في هذا الوقت
+ * (فحص التعارض والإدراج يتمّان في نفس معاملة Serializable لتفادي تعارض السباق).
+ */
+export async function createAppointmentTxAnyStaff(params: {
+  tenantId: string;
+  customerId: string;
+  serviceId: string;
+  startsAt: Date;
+  createdVia: "whatsapp" | "link" | "dashboard";
+}) {
+  const { tenantId, customerId, serviceId, startsAt, createdVia } = params;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await db.$transaction(async (tx) => {
+        const [service, customer, staffList] = await Promise.all([
+          tx.service.findFirst({ where: { id: serviceId, tenantId, isActive: true } }),
+          tx.customer.findFirst({ where: { id: customerId, tenantId } }),
+          tx.staff.findMany({ where: { tenantId, isActive: true } }),
+        ]);
+        if (!service) throw new Error("الخدمة غير موجودة");
+        if (!customer) throw new Error("العميلة غير موجودة");
+        if (!Number.isFinite(startsAt.getTime())) throw new Error("وقت الموعد غير صالح");
+        const endsAt = addMinutes(startsAt, service.durationMinutes);
+
+        for (const staff of staffList) {
+          const hours = parseWorkingHours(staff.workingHours);
+          if (!hours.days.includes(startsAt.getDay())) continue;
+          const { start: workStart, end: workEnd } = dayWorkWindow(startsAt, hours);
+          if (startsAt <= new Date() || startsAt < workStart || endsAt > workEnd) continue;
+
+          const conflict = await tx.appointment.findFirst({
+            where: {
+              tenantId,
+              staffId: staff.id,
+              status: { in: ["pending_deposit", "confirmed"] },
+              startsAt: { lt: endsAt },
+              endsAt: { gt: startsAt },
+            },
+          });
+          if (conflict) continue;
+
+          const depositAmount = normalizeMoney(service.depositAmount, "العربون");
+          return tx.appointment.create({
+            data: {
+              tenantId,
+              bookingCode: await generateUniqueBookingCode(tx),
+              customerId: customer.id,
+              staffId: staff.id,
+              serviceId: service.id,
+              startsAt,
+              endsAt,
+              depositAmount: depositAmount.toFixed(2),
+              status: depositAmount > 0 ? "pending_deposit" : "confirmed",
+              depositPaidAt: depositAmount > 0 ? null : new Date(),
+              createdVia,
+            },
+          });
+        }
+        throw new Error("عذراً، هذا الموعد حُجز للتو. اختاري وقتاً آخر.");
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    } catch (error) {
+      if ((error as { code?: string })?.code !== "P2034" || attempt === 2) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 20 * (attempt + 1)));
+    }
+  }
+  throw new Error("تعذر إنشاء الموعد بعد عدة محاولات");
+}
+
+/**
  * إنشاء حجز مع ضمان عدم التعارض (فحص نهائي قبل الإدراج).
  * يعيد الحجز أو يرمي خطأ التعارض.
  */

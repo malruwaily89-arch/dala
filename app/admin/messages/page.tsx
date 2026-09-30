@@ -6,7 +6,7 @@ export default async function MessagesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-extrabold">رسائل واتساب</h1>
+        <h1 className="font-serif text-2xl font-extrabold text-brand">رسائل واتساب</h1>
         <p className="mt-1 text-sm text-foreground/55">ملخص الرسائل المرسلة عبر المنصة.</p>
       </div>
 

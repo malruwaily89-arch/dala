@@ -58,7 +58,7 @@ export default async function AppointmentsPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold">المواعيد</h1>
+      <h1 className="font-serif text-2xl font-extrabold text-brand">المواعيد</h1>
       <p className="mt-1 text-sm text-foreground/55">كل الحجوزات — القادمة والسابقة.</p>
 
       {error && <Banner>{ERROR_MESSAGES[error] ?? error}</Banner>}

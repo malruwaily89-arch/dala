@@ -50,7 +50,7 @@ export const FEATURES: FeatureEntry[] = [
       badge: "الحجز الإلكتروني",
       title: "صفحة حجز تحجز عميلاتك على مدار الساعة",
       subtitle:
-        "رابط واحد باسم علامتك… تختار العميلة الخدمة والوقت، تدفع العربون، ويتأكد الحجز — بدون مكالمة واحدة.",
+        "رابط واحد باسم علامتك… تختار العميلة الخدمة والوقت، تدفع العربون، ويصلها تأكيد الحجز تلقائياً عبر واتساب — بدون مكالمة واحدة، وبدون أي رسالة تكتبينها بنفسك.",
       howTitle: "كيف يعمل الحجز الإلكتروني",
       howIntro:
         "رحلة الحجز من فتح الرابط حتى التأكيد لا تأخذ من عميلتك أكثر من دقيقة، وكل خطوة مصممة لتعمل من نفسها.",
@@ -94,9 +94,9 @@ export const FEATURES: FeatureEntry[] = [
         "صفحة حجز عامة باسم صالونك وألوانه",
         "تعمل على الجوال بالكامل — حيث تتصفح عميلاتك",
         "منع الحجز المزدوج على نفس الوقت تلقائياً",
-        "عربون يثبّت الموعد ويمنع الغائبات",
-        "تأكيد فوري عبر واتساب من رقمك المعروف",
-        "قائمة انتظار تملأ كل موعد ملغى فوراً",
+        "عربون يثبّت الموعد ويقلل الغياب",
+        "تأكيد تلقائي عبر واتساب من رقم صالونك المسجّل",
+        "قائمة انتظار تعرض المواعيد الملغاة تلقائياً على المنتظرات",
       ],
       ctaTitle: "جهّزي صفحة حجزك خلال دقائق",
       ctaBody: "ابدئي تجربتك المجانية لمدة 14 يوماً — بدون بطاقة، وشاركي رابطك مع عميلاتك اليوم.",
@@ -107,7 +107,7 @@ export const FEATURES: FeatureEntry[] = [
       badge: "Online booking",
       title: "A booking page that fills your calendar 24/7",
       subtitle:
-        "One branded link… your client picks a service and a time, pays the deposit, and the booking is confirmed — without a single phone call.",
+        "One branded link… your client picks a service and a time, pays the deposit, and gets an automatic WhatsApp confirmation — without a single phone call, and without you typing a single message.",
       howTitle: "How online booking works",
       howIntro:
         "From opening the link to confirmation, booking takes your client under a minute — and every step runs itself.",
@@ -152,8 +152,8 @@ export const FEATURES: FeatureEntry[] = [
         "Fully mobile-first — where your clients actually browse",
         "Automatic double-booking prevention",
         "A deposit that locks slots and stops no-shows",
-        "Instant WhatsApp confirmation from the number clients know",
-        "A smart waitlist that fills every cancelled slot",
+        "Automatic WhatsApp confirmation from your salon's registered number",
+        "A smart waitlist that automatically offers every cancelled slot",
       ],
       ctaTitle: "Set up your booking page in minutes",
       ctaBody: "Start your 14-day free trial — no card required — and share your link today.",
@@ -520,9 +520,9 @@ export const FEATURES: FeatureEntry[] = [
     icon: Sparkles,
     ar: {
       badge: "التسويق والتذكيرات",
-      title: "واتساب يتكلم عنك… قبل الموعد وبعده",
+      title: "تذكيرات وعروض واتساب تلقائية… قبل الموعد وبعده",
       subtitle:
-        "تذكيرات تلقائية تقلّل الغياب، ومتابعات وعروض تُرجع العميلات — كلها من رقمك المعروف لديهن.",
+        "تذكيرات تلقائية تقلّل الغياب، ومتابعات وعروض تُرجع العميلات — كلها تُرسل تلقائياً من رقم صالونك المسجّل في واتساب.",
       howTitle: "كيف يعمل نظام التذكيرات والعروض",
       howIntro:
         "الرسائل تُرسل تلقائياً في أوقات ذكية: قبل الموعد ليمنع النسيان، وبعده لتبني الولاء.",
@@ -563,23 +563,23 @@ export const FEATURES: FeatureEntry[] = [
       ],
       benefitsTitle: "ماذا يقدم لك التسويق والتذكيرات",
       benefits: [
-        "رسائل من رقمك المعروف لدى عميلاتك",
+        "رسائل تلقائية من رقم صالونك المسجّل في واتساب",
         "تذكير آلي قبل الموعد بـ 24 ساعة",
         "تقليل ملموس للمواعيد الفائتة",
         "متابعة تلقائية بعد كل خدمة",
         "عروض مخصصة لعميلات مختارات",
         "قوالب جاهزة بدون أي إعداد تقني",
       ],
-      ctaTitle: "دعي واتساب يتكلم عنك",
+      ctaTitle: "فعّلي رسائل واتساب التلقائية",
       ctaBody: "ابدئي تجربتك المجانية لمدة 14 يوماً — بدون بطاقة.",
       ctaButton: "ابدئي تجربتك المجانية",
       seePricing: "شاهدي الباقات والأسعار",
     },
     en: {
       badge: "Marketing & reminders",
-      title: "WhatsApp speaks for you… before and after every visit",
+      title: "Automatic WhatsApp reminders and offers… before and after every visit",
       subtitle:
-        "Automatic reminders that cut no-shows, and follow-ups and offers that bring clients back — all from the number they know.",
+        "Automatic reminders that cut no-shows, and follow-ups and offers that bring clients back — all sent automatically from your salon's registered WhatsApp number.",
       howTitle: "How reminders and offers work",
       howIntro:
         "Messages go out automatically at smart moments: before the appointment to prevent forgetting, and after it to build loyalty.",
@@ -620,14 +620,14 @@ export const FEATURES: FeatureEntry[] = [
       ],
       benefitsTitle: "What marketing & reminders gives you",
       benefits: [
-        "Messages from the number your clients already know",
+        "Automatic messages from your salon's registered WhatsApp number",
         "Automatic reminder 24 hours before appointments",
         "A measurable drop in missed appointments",
         "Automatic follow-up after every service",
         "Personalized offers for selected clients",
         "Ready-made templates with zero technical setup",
       ],
-      ctaTitle: "Let WhatsApp speak for you",
+      ctaTitle: "Turn on automatic WhatsApp messaging",
       ctaBody: "Start your 14-day free trial — no card required.",
       ctaButton: "Start your free trial",
       seePricing: "See plans & pricing",

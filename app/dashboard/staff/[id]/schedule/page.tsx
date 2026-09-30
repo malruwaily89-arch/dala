@@ -199,7 +199,7 @@ export default async function StaffSchedulePage({
       <div className="mt-4 overflow-hidden rounded-2xl border border-brand-gold/25 bg-gradient-to-l from-brand/[0.04] to-brand-gold/[0.08] p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="font-serif text-2xl font-extrabold text-zinc-900">
+            <h1 className="font-serif text-2xl font-extrabold text-brand">
               جدول {staff.name}
               {staff.jobTitle && <span className="text-lg font-semibold text-foreground/55"> — {staff.jobTitle}</span>}
             </h1>

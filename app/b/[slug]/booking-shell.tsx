@@ -188,7 +188,7 @@ function BookingForm({
       <Section>
         <SectionTitle n="٢" title={t.booking.step2} />
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          {staff.map((st, i) => (
+          {staff.map((st) => (
             <label
               key={st.id}
               className="flex cursor-pointer items-center gap-3.5 rounded-[24px] border-2 border-brand-gold/20 bg-white p-4 transition hover:border-brand-gold/40 has-checked:border-[var(--brand)]"
@@ -197,7 +197,6 @@ function BookingForm({
                 type="radio"
                 name="staffId"
                 value={st.id}
-                defaultChecked={i === 0}
                 required
                 style={{ accentColor: "var(--brand)" }}
                 className="sr-only"
@@ -211,6 +210,24 @@ function BookingForm({
               <span className="text-sm font-extrabold text-zinc-800">{st.name}</span>
             </label>
           ))}
+          <label className="flex cursor-pointer items-center gap-3.5 rounded-[24px] border-2 border-dashed border-brand-gold/30 bg-white p-4 transition hover:border-brand-gold/50 has-checked:border-[var(--brand)] has-checked:border-solid">
+            <input
+              type="radio"
+              name="staffId"
+              value="any"
+              defaultChecked
+              required
+              style={{ accentColor: "var(--brand)" }}
+              className="sr-only"
+            />
+            <span
+              className="flex h-11 w-11 items-center justify-center rounded-full text-lg font-extrabold text-white"
+              style={{ backgroundColor: "var(--brand)" }}
+            >
+              ✨
+            </span>
+            <span className="text-sm font-extrabold text-zinc-800">{t.booking.anyStaff}</span>
+          </label>
         </div>
       </Section>
 

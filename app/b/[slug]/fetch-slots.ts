@@ -1,6 +1,6 @@
 "use server";
 
-import { getAvailableSlots } from "@/lib/scheduling";
+import { getAvailableSlots, getAvailableSlotsAnyStaff } from "@/lib/scheduling";
 
 export async function fetchSlotsAction(params: {
   tenantId: string;
@@ -10,6 +10,9 @@ export async function fetchSlotsAction(params: {
 }): Promise<string[]> {
   const { tenantId, staffId, serviceId, dateIso } = params;
   const date = new Date(dateIso);
-  const slots = await getAvailableSlots({ tenantId, staffId, serviceId, date });
+  const slots =
+    staffId === "any"
+      ? await getAvailableSlotsAnyStaff({ tenantId, serviceId, date })
+      : await getAvailableSlots({ tenantId, staffId, serviceId, date });
   return slots.map((s) => s.toISOString());
 }

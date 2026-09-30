@@ -50,7 +50,7 @@ export default async function RatingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold">التقييمات</h1>
+      <h1 className="font-serif text-2xl font-extrabold text-brand">التقييمات</h1>
       <p className="mt-1 text-sm text-foreground/55">آراء العميلات في الخدمات المكتملة.</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">

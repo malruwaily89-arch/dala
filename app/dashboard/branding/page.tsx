@@ -15,7 +15,7 @@ export default async function BrandingPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold">مظهر صالونك</h1>
+      <h1 className="font-serif text-2xl font-extrabold text-brand">مظهر صالونك</h1>
       <p className="mt-1 text-sm text-foreground/55">
         هذه الهوية التي تظهر لعميلاتك في صفحة الحجم — شعارك، لونك المميز، ورقمك.
       </p>

@@ -20,7 +20,7 @@ export default async function SalonsPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-extrabold">إدارة الصالونات</h1>
+        <h1 className="font-serif text-2xl font-extrabold text-brand">إدارة الصالونات</h1>
         <p className="mt-1 text-sm text-foreground/55">إضافة صالون جديد أو تعديل باقته أو حالة اشتراكه.</p>
       </div>
 

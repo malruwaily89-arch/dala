@@ -59,7 +59,7 @@ export default async function StaffPage({
           <option key={t} value={t} />
         ))}
       </datalist>
-      <h1 className="text-2xl font-extrabold">الموظفات</h1>
+      <h1 className="font-serif text-2xl font-extrabold text-brand">الموظفات</h1>
       <p className="mt-1 text-sm text-foreground/55">
         ساعات وأيام عمل كل موظفة تحدد المواعيد المتاحة في صفحة الحجز. المسميات «موظفة استقبال»،
         «مشرفة»، و«إدارية» هي وحدها القابلة لمنحها صلاحيات إضافية — غيرها يُطّلع فقط على جدولها.

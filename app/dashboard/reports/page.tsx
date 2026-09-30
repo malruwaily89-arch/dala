@@ -20,7 +20,7 @@ export default async function ReportsPage() {
     <div id="report-content">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold">تقرير الشهر</h1>
+          <h1 className="font-serif text-2xl font-extrabold text-brand">تقرير الشهر</h1>
           <p className="mt-1 text-sm text-foreground/55">ملخص أداء صالونك خلال {monthLabel}.</p>
         </div>
         <ReportExportButtons

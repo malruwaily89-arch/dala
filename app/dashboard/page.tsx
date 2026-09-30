@@ -80,7 +80,7 @@ export default async function TodayPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold">يومك اليوم</h1>
+      <h1 className="font-serif text-2xl font-extrabold text-brand">يومك اليوم</h1>
       <p className="mt-1 text-sm text-foreground/55">نظرة سريعة على مواعيد اليوم ووضع العربونات.</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -121,8 +121,8 @@ export default async function TodayPage() {
             const rows = buildDayTimeline(today, hours, dayAppts);
 
             return (
-              <div key={s.id} className="w-72 shrink-0 overflow-hidden rounded-2xl border border-brand/10 bg-white shadow-sm">
-                <div className="border-b border-brand/10 bg-background/60 px-4 py-3">
+              <div key={s.id} className="w-72 shrink-0 overflow-hidden rounded-[26px] border border-brand/10 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
+                <div className="border-b border-brand-gold/15 bg-gradient-to-l from-brand/[0.05] to-brand-gold/[0.07] px-4 py-3.5">
                   <p className="font-bold text-zinc-800">{s.name}</p>
                   <p className="text-xs text-foreground/55">{hours.start} – {hours.end}</p>
                 </div>
@@ -158,7 +158,7 @@ export default async function TodayPage() {
               return (
                 <li
                   key={appt.id}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-brand/10 bg-white p-4 shadow-sm"
+                  className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-brand/10 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className="w-20 shrink-0 text-center">
                     <p className="text-lg font-extrabold">{formatTime(appt.startsAt)}</p>
@@ -211,9 +211,9 @@ export default async function TodayPage() {
         </>
       )}
 
-      <div className="mt-10 rounded-xl border border-pink-200 bg-pink-50 p-5">
-        <p className="font-bold text-brand">رابط الحجز العام لصالونك</p>
-        <p dir="ltr" className="mt-1 font-mono text-sm text-foreground/75">
+      <div className="mt-10 rounded-[24px] border border-brand-gold/25 bg-gradient-to-br from-brand/[0.05] to-brand-gold/[0.09] p-6 shadow-sm">
+        <p className="font-serif font-bold text-brand">رابط الحجز العام لصالونك</p>
+        <p dir="ltr" className="mt-1.5 inline-block rounded-lg bg-white/70 px-3 py-1.5 font-mono text-sm text-foreground/75 shadow-sm">
           /b/{user.tenant.slug}
         </p>
         <p className="mt-2 text-sm text-foreground/65">
@@ -313,20 +313,20 @@ function StatCard({
 }) {
   return (
     <div
-      className={`rounded-xl border p-5 shadow-sm ${
+      className={`rounded-[22px] border p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
         highlight ? "border-amber-300 bg-amber-50" : className || "border-brand/10 bg-white"
       }`}
     >
       <p className="text-sm font-semibold text-foreground/55">{label}</p>
-      <p className="mt-1 text-2xl font-extrabold">{value}</p>
+      <p className="mt-1 font-serif text-2xl font-extrabold text-zinc-900">{value}</p>
     </div>
   );
 }
 
 function MiniStat({ label, value, className = "" }: { label: string; value: number; className?: string }) {
   return (
-    <div className={`rounded-lg border px-4 py-3 text-center ${className}`}>
-      <p className="text-xl font-extrabold">{value}</p>
+    <div className={`rounded-2xl border px-4 py-3 text-center shadow-sm transition-transform duration-300 hover:-translate-y-0.5 ${className}`}>
+      <p className="font-serif text-xl font-extrabold">{value}</p>
       <p className="text-xs font-semibold opacity-80">{label}</p>
     </div>
   );
@@ -334,7 +334,7 @@ function MiniStat({ label, value, className = "" }: { label: string; value: numb
 
 function ActionBtn({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <button className={`rounded-full px-4 py-2 text-xs font-bold transition hover:opacity-85 ${className}`}>
+    <button className={`rounded-full px-4 py-2 text-xs font-bold shadow-sm transition-all duration-300 hover:-translate-y-px hover:opacity-90 hover:shadow ${className}`}>
       {children}
     </button>
   );
