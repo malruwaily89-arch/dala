@@ -219,7 +219,7 @@ function LegendItem({ colorClass, label }: { colorClass: string; label: string }
 
 /* --------------------------------- mocks --------------------------------- */
 
-function DiscoverMock({ isAr }: { isAr: boolean }) {
+export function DiscoverMock({ isAr }: { isAr: boolean }) {
   return (
     <MockFrame kind="phone" title={isAr ? "صالون ميزون روز" : "Maison Rose Salon"}>
       <div className="flex flex-col items-center gap-3 bg-muted/30 px-4 py-10">
@@ -325,7 +325,7 @@ function TimeDepositMock({ isAr }: { isAr: boolean }) {
   );
 }
 
-function ConfirmMock({ isAr }: { isAr: boolean }) {
+export function ConfirmMock({ isAr }: { isAr: boolean }) {
   return (
     <MockFrame kind="phone" title="WhatsApp">
       <div className="space-y-2 bg-[#e7e4de] p-4">
@@ -347,7 +347,7 @@ function ConfirmMock({ isAr }: { isAr: boolean }) {
   );
 }
 
-function ReminderMock({ isAr }: { isAr: boolean }) {
+export function ReminderMock({ isAr }: { isAr: boolean }) {
   return (
     <MockFrame kind="phone" title="WhatsApp">
       <div className="space-y-2 bg-[#e7e4de] p-4">
@@ -369,7 +369,7 @@ function ReminderMock({ isAr }: { isAr: boolean }) {
   );
 }
 
-function FollowUpMock({ isAr }: { isAr: boolean }) {
+export function FollowUpMock({ isAr }: { isAr: boolean }) {
   return (
     <MockFrame kind="phone" title="WhatsApp">
       <div className="space-y-2 bg-[#e7e4de] p-4">

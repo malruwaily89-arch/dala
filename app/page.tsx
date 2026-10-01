@@ -1,5 +1,6 @@
 import { SiteHeader } from '@/components/site-header'
 import { Hero } from '@/components/hero'
+import { JourneyTeaser } from '@/components/journey-teaser'
 import { Categories } from '@/components/categories'
 import { HowItWorks } from '@/components/how-it-works'
 import { FeaturedSalons } from '@/components/featured-salons'
@@ -12,6 +13,7 @@ export default function Page() {
       <SiteHeader />
       <main>
         <Hero />
+        <JourneyTeaser />
         <Categories />
         <HowItWorks />
         <FeaturedSalons />
