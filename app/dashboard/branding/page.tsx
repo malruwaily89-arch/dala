@@ -73,7 +73,7 @@ export default async function BrandingPage({
                   dir="ltr"
                   defaultValue={t.logoUrl ?? ""}
                   placeholder="https://example.com/logo.png"
-                  className="w-full rounded-[18px] border-2 border-pink-100 px-4 py-3 text-sm focus:border-brand focus:outline-none"
+                  className="w-full rounded-[18px] border-2 border-pink-100 px-4 py-3 text-sm transition-colors hover:border-pink-200 focus:border-brand focus:outline-none"
                 />
                 <span className="mt-1 block text-xs text-zinc-400">
                   ارفعي شعارك على أي خدمة صور وضعي الرابط هنا — مربع أو دائرة أفضل.
@@ -86,7 +86,7 @@ export default async function BrandingPage({
                     name="brandColor"
                     type="color"
                     defaultValue={t.brandColor}
-                    className="h-11 w-16 cursor-pointer rounded-xl border-2 border-pink-100 bg-white p-1"
+                    className="h-11 w-16 cursor-pointer rounded-xl border-2 border-pink-100 bg-white p-1 transition-colors hover:border-pink-200"
                   />
                   <span dir="ltr" className="font-mono text-xs text-zinc-400">
                     {t.brandColor}
@@ -101,7 +101,7 @@ export default async function BrandingPage({
                   dir="ltr"
                   defaultValue={t.whatsappNumber ?? ""}
                   placeholder="05xxxxxxxx"
-                  className="w-full rounded-[18px] border-2 border-pink-100 px-4 py-3 text-sm focus:border-brand focus:outline-none"
+                  className="w-full rounded-[18px] border-2 border-pink-100 px-4 py-3 text-sm transition-colors hover:border-pink-200 focus:border-brand focus:outline-none"
                 />
               </label>
             </div>
@@ -117,7 +117,7 @@ export default async function BrandingPage({
                   name="bankName"
                   defaultValue={t.bankName ?? ""}
                   placeholder="مصرف الراجحي"
-                  className="w-full rounded-[18px] border-2 border-pink-100 px-4 py-3 text-sm focus:border-brand focus:outline-none"
+                  className="w-full rounded-[18px] border-2 border-pink-100 px-4 py-3 text-sm transition-colors hover:border-pink-200 focus:border-brand focus:outline-none"
                 />
               </label>
               <label className="block">
@@ -127,7 +127,7 @@ export default async function BrandingPage({
                   dir="ltr"
                   defaultValue={t.bankIban ?? ""}
                   placeholder="SAxxxxxxxxxxxxxxxxxxxxxx"
-                  className="w-full rounded-[18px] border-2 border-pink-100 px-4 py-3 text-sm focus:border-brand focus:outline-none"
+                  className="w-full rounded-[18px] border-2 border-pink-100 px-4 py-3 text-sm transition-colors hover:border-pink-200 focus:border-brand focus:outline-none"
                 />
               </label>
             </div>

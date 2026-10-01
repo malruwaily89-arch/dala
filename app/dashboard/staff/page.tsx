@@ -69,8 +69,8 @@ export default async function StaffPage({
       {ok && <Banner success>تم تنفيذ الإجراء بنجاح.</Banner>}
 
       {canManageStaffSchedules(user) && (
-        <details className="mt-6 rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
-          <summary className="cursor-pointer font-bold text-brand">+ موظفة جديدة</summary>
+        <details className="mt-6 rounded-xl border border-brand/10 bg-white p-5 shadow-sm transition-colors hover:border-brand-gold/30">
+          <summary className="cursor-pointer rounded-md font-bold text-brand transition-colors hover:text-brand-gold">+ موظفة جديدة</summary>
           <form action={createStaffAction} className="mt-4 space-y-4">
             <div className="flex flex-wrap items-end gap-3">
               <Field name="name" label="الاسم" type="text" />
@@ -80,7 +80,7 @@ export default async function StaffPage({
               <Field name="workEnd" label="إلى" type="time" defaultValue="23:59" />
             </div>
             <DaysPicker defaultDays={[0, 1, 2, 3, 4, 5, 6]} />
-            <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white hover:opacity-90">
+            <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white transition hover:opacity-90">
               حفظ
             </button>
           </form>
@@ -99,7 +99,7 @@ export default async function StaffPage({
             return (
               <li
                 key={s.id}
-                className="rounded-xl border border-brand/10 bg-white p-4 shadow-sm"
+                className="rounded-xl border border-brand/10 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-gold/30 hover:shadow-md"
               >
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                   <div className="min-w-56 flex-1">
@@ -131,14 +131,14 @@ export default async function StaffPage({
                   {canViewStaffSchedule(user, s.id) && (
                     <Link
                       href={`/dashboard/staff/${s.id}/schedule`}
-                      className="rounded-full border border-brand/20 bg-brand/5 px-4 py-2 text-xs font-bold text-brand hover:bg-brand/10"
+                      className="rounded-full border border-brand/20 bg-brand/5 px-4 py-2 text-xs font-bold text-brand transition hover:bg-brand/10"
                     >
                       الجدول
                     </Link>
                   )}
                   <form action={toggleStaffAction}>
                     <input type="hidden" name="id" value={s.id} />
-                    <button className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-bold text-foreground/65 hover:bg-background">
+                    <button className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-bold text-foreground/65 transition hover:border-brand-gold/40 hover:bg-background">
                       {s.isActive ? "إيقاف" : "تفعيل"}
                     </button>
                   </form>
@@ -146,7 +146,7 @@ export default async function StaffPage({
 
                 {canManageStaffSchedules(user) && (
                   <details className="mt-3 border-t border-brand/10 pt-3">
-                    <summary className="cursor-pointer text-xs font-bold text-brand">تعديل المسمى الوظيفي وساعات وأيام العمل</summary>
+                    <summary className="cursor-pointer rounded-md text-xs font-bold text-brand transition-colors hover:text-brand-gold">تعديل المسمى الوظيفي وساعات وأيام العمل</summary>
                     <form action={updateStaffScheduleAction} className="mt-3 space-y-3">
                       <input type="hidden" name="id" value={s.id} />
                       <div className="flex flex-wrap items-end gap-3">
@@ -155,7 +155,7 @@ export default async function StaffPage({
                         <Field name="workEnd" label="إلى" type="time" defaultValue={hours.end} />
                       </div>
                       <DaysPicker defaultDays={hours.days} />
-                      <button className="rounded-full bg-zinc-800 px-5 py-2 text-xs font-bold text-white hover:opacity-90">
+                      <button className="rounded-full bg-zinc-800 px-5 py-2 text-xs font-bold text-white transition hover:opacity-90">
                         حفظ التعديل
                       </button>
                     </form>
@@ -164,7 +164,7 @@ export default async function StaffPage({
 
                 {!isStaffAccount(user) && (
                   <details className="mt-3 border-t border-brand/10 pt-3">
-                    <summary className="cursor-pointer text-xs font-bold text-brand">
+                    <summary className="cursor-pointer rounded-md text-xs font-bold text-brand transition-colors hover:text-brand-gold">
                       حساب الدخول والصلاحيات {s.loginUser ? "(مفعّل)" : "(غير مُنشأ)"}
                     </summary>
                     <div className="mt-3">
@@ -230,7 +230,7 @@ export default async function StaffPage({
                   const avail = availById.get(s.id);
                   const perfInfo = avail ? PERFORMANCE_LABEL[avail.busyLevel] : null;
                   return (
-                    <tr key={s.id} className="border-t border-brand/10">
+                    <tr key={s.id} className="border-t border-brand/10 transition-colors hover:bg-brand-gold/5">
                       <td className="p-4 font-bold">{s.name}</td>
                       <td className="p-4 text-foreground/65">{perf?.todayCount ?? 0}</td>
                       <td className="p-4 text-foreground/65">{formatSar(perf?.collectedToday ?? 0)}</td>
@@ -327,7 +327,7 @@ function DaysPicker({ defaultDays }: { defaultDays: number[] }) {
         {DAY_NAMES.map((label, day) => (
           <label
             key={day}
-            className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-300 px-3 py-2 text-sm has-[:checked]:border-brand has-[:checked]:bg-brand/5 has-[:checked]:font-bold has-[:checked]:text-brand"
+            className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-300 px-3 py-2 text-sm transition-colors hover:border-zinc-400 has-[:checked]:border-brand has-[:checked]:bg-brand/5 has-[:checked]:font-bold has-[:checked]:text-brand has-[:checked]:hover:border-brand"
           >
             <input
               type="checkbox"

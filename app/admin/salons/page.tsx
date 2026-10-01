@@ -117,8 +117,8 @@ export default async function SalonsPage({
         <h2 className="text-lg font-bold">الصالونات ({salons.length})</h2>
         <div className="mt-4 space-y-3">
           {salons.map((s) => (
-            <details key={s.id} className="rounded-lg border border-brand/10 p-4">
-              <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2">
+            <details key={s.id} className="rounded-lg border border-brand/10 p-4 transition-colors hover:border-brand-gold/30">
+              <summary className="flex flex-wrap items-center justify-between gap-2 cursor-pointer rounded-md transition-colors hover:bg-brand-gold/5">
                 <span dir="ltr" className="rounded-full bg-brand-gold/15 px-2 py-0.5 text-xs font-bold text-brand-gold">
                   D{s.sequenceNumber}
                 </span>
@@ -146,7 +146,7 @@ export default async function SalonsPage({
                     </select>
                     <button
                       disabled={!s.subscriptionId}
-                      className="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
+                      className="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-zinc-700 disabled:opacity-40 disabled:hover:bg-zinc-800"
                     >
                       حفظ
                     </button>
@@ -185,7 +185,7 @@ export default async function SalonsPage({
                       dir="ltr"
                       className="flex-1 rounded-lg border border-brand/10 px-2 py-1.5 text-sm"
                     />
-                    <button className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white">
+                    <button className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white transition hover:opacity-90">
                       تسجيل
                     </button>
                   </div>
@@ -229,7 +229,7 @@ function StatusForm({
       <input type="hidden" name="status" value={status} />
       <button
         disabled={!subscriptionId}
-        className={`rounded-lg px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40 ${color}`}
+        className={`rounded-lg px-3 py-1.5 text-xs font-bold text-white transition hover:opacity-90 disabled:opacity-40 disabled:hover:opacity-40 ${color}`}
       >
         {label}
       </button>

@@ -21,12 +21,12 @@ export function PackageCard({ p, months = 1 }: { p: Package; months?: number }) 
 
   return (
     <div
-      className={`relative flex flex-col rounded-[36px] border-2 bg-white p-8 ${
+      className={`relative flex flex-col rounded-[36px] border-2 bg-white p-8 transition-all duration-300 hover:-translate-y-1 ${
         p.pro
-          ? "border-brand-gold shadow-xl shadow-brand/10"
+          ? "border-brand-gold shadow-xl shadow-brand/10 hover:shadow-2xl hover:shadow-brand/15"
           : p.popular
-            ? "border-brand-gold shadow-xl shadow-brand/10"
-            : "border-brand-gold/20 shadow-md shadow-brand/5"
+            ? "border-brand-gold shadow-xl shadow-brand/10 hover:shadow-2xl hover:shadow-brand/15"
+            : "border-brand-gold/20 shadow-md shadow-brand/5 hover:border-brand-gold/40 hover:shadow-lg hover:shadow-brand/10"
       }`}
     >
       {p.pro && (

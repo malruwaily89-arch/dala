@@ -65,7 +65,7 @@ function SignupCard() {
               name="name"
               type="text"
               required
-              className="w-full rounded-xl border border-brand/15 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-brand/15 px-3 py-2.5 text-sm transition-colors hover:border-brand/30 focus:border-brand focus:outline-none"
               placeholder="صالون لمسة"
             />
           </div>
@@ -80,7 +80,7 @@ function SignupCard() {
               dir="ltr"
               defaultValue={emailFromHero}
               required
-              className="w-full rounded-xl border border-brand/15 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-brand/15 px-3 py-2.5 text-sm transition-colors hover:border-brand/30 focus:border-brand focus:outline-none"
               placeholder="you@salon.sa"
             />
           </div>
@@ -94,7 +94,7 @@ function SignupCard() {
               type="password"
               required
               minLength={6}
-              className="w-full rounded-xl border border-brand/15 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-brand/15 px-3 py-2.5 text-sm transition-colors hover:border-brand/30 focus:border-brand focus:outline-none"
             />
           </div>
           <div>
@@ -107,7 +107,7 @@ function SignupCard() {
               type="tel"
               dir="ltr"
               required
-              className="w-full rounded-xl border border-brand/15 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-brand/15 px-3 py-2.5 text-sm transition-colors hover:border-brand/30 focus:border-brand focus:outline-none"
               placeholder="05xxxxxxxx"
             />
           </div>
@@ -120,7 +120,7 @@ function SignupCard() {
               name="city"
               type="text"
               required
-              className="w-full rounded-xl border border-brand/15 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-brand/15 px-3 py-2.5 text-sm transition-colors hover:border-brand/30 focus:border-brand focus:outline-none"
               placeholder="الرياض"
             />
           </div>
@@ -132,7 +132,7 @@ function SignupCard() {
           </button>
         </form>
 
-        <Link href="/login" className="mt-6 block text-center text-xs font-semibold text-brand/50 hover:text-brand">
+        <Link href="/login" className="mt-6 block text-center text-xs font-semibold text-brand/50 transition hover:text-brand">
           {t.signup.loginLink}
         </Link>
       </div>

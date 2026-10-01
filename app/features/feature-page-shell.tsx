@@ -69,7 +69,7 @@ export function FeaturePageShell({ slug }: { slug: FeatureSlug }) {
             {c.steps.map((s, i) => (
               <div
                 key={s.title}
-                className="relative rounded-2xl border border-border bg-card p-6 shadow-sm"
+                className="relative rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-accent hover:shadow-md"
               >
                 <span className="font-serif text-sm tracking-widest text-accent">
                   {String(i + 1).padStart(2, "0")}

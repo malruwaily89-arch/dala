@@ -86,7 +86,7 @@ function dayParam(date: Date): string {
 function ScheduleRow({ row }: { row: Row }) {
   if (row.kind === "gap") {
     return (
-      <tr className="border-t border-brand/10/80">
+      <tr className="border-t border-brand/10/80 transition-colors hover:bg-brand-gold/5">
         <td className="p-3 font-semibold text-zinc-400">
           {formatTime(row.start)} – {formatTime(row.end)}
         </td>
@@ -104,7 +104,7 @@ function ScheduleRow({ row }: { row: Row }) {
   }
   const statusInfo = APPT_STATUS[row.appt.status] ?? { label: row.appt.status, color: "bg-zinc-100 text-foreground/65" };
   return (
-    <tr className="border-t border-brand/10/80">
+    <tr className="border-t border-brand/10/80 transition-colors hover:bg-brand-gold/5">
       <td className="p-3 font-bold text-zinc-800">
         {formatTime(row.appt.startsAt)} – {formatTime(row.appt.endsAt)}
       </td>
@@ -192,7 +192,7 @@ export default async function StaffSchedulePage({
 
   return (
     <div>
-      <Link href="/dashboard/staff" className="text-sm font-semibold text-brand hover:underline">
+      <Link href="/dashboard/staff" className="text-sm font-semibold text-brand transition hover:underline">
         ← رجوع للموظفات
       </Link>
 

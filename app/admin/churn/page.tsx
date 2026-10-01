@@ -29,7 +29,7 @@ export default async function ChurnPage() {
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {canceled.map((c) => (
-                <tr key={c.id}>
+                <tr key={c.id} className="transition-colors hover:bg-brand-gold/5">
                   <td className="py-3 font-bold">{c.tenantName}</td>
                   <td className="py-3">{c.plan}</td>
                   <td className="py-3 text-foreground/55">
@@ -52,7 +52,7 @@ export default async function ChurnPage() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
       <p className="text-sm font-semibold text-foreground/55">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">{value}</p>
     </div>

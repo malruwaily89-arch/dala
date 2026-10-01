@@ -23,7 +23,7 @@ export default async function OverduePage() {
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {overdue.map((o) => (
-                <tr key={o.id}>
+                <tr key={o.id} className="transition-colors hover:bg-brand-gold/5">
                   <td className="py-3 font-bold">{o.tenantName}</td>
                   <td className="py-3" dir="ltr">{o.tenantPhone}</td>
                   <td className="py-3">{o.plan}</td>

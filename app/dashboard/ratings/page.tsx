@@ -87,7 +87,7 @@ export default async function RatingsPage() {
             </thead>
             <tbody>
               {ratings.map((r) => (
-                <tr key={r.id} className="border-t border-brand/10">
+                <tr key={r.id} className="border-t border-brand/10 transition-colors hover:bg-brand-gold/5">
                   <td className="p-4 font-bold">{r.customer.name}</td>
                   <td className="p-4 text-foreground/65">{r.appointment.service.name}</td>
                   <td className="p-4 text-foreground/65">{r.appointment.staff.name}</td>
@@ -172,7 +172,7 @@ export default async function RatingsPage() {
                       </thead>
                       <tbody>
                         {staffAverages.map((s) => (
-                          <tr key={s.name} className="border-t border-brand/10">
+                          <tr key={s.name} className="border-t border-brand/10 transition-colors hover:bg-brand-gold/5">
                             <td className="p-3 font-bold">{s.name}</td>
                             <td className="p-3 text-brand">{s.avg.toFixed(1)} ★</td>
                             <td className="p-3 text-foreground/55">{s.count}</td>
@@ -196,7 +196,7 @@ export default async function RatingsPage() {
                       </thead>
                       <tbody>
                         {serviceAverages.map((s) => (
-                          <tr key={s.name} className="border-t border-brand/10">
+                          <tr key={s.name} className="border-t border-brand/10 transition-colors hover:bg-brand-gold/5">
                             <td className="p-3 font-bold">{s.name}</td>
                             <td className="p-3 text-brand">{s.avg.toFixed(1)} ★</td>
                             <td className="p-3 text-foreground/55">{s.count}</td>
@@ -223,7 +223,7 @@ export default async function RatingsPage() {
           </p>
           <Link
             href="/pricing"
-            className="mt-3 inline-block rounded-full bg-gradient-to-l from-amber-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white hover:opacity-90"
+            className="mt-3 inline-block rounded-full bg-gradient-to-l from-amber-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
           >
             رقّي إلى باقة برو
           </Link>

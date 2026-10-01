@@ -74,7 +74,7 @@ export default async function CustomersPage() {
               {rows.map(({ customer: c, totalVisits, completedVisits, totalSpent, lastVisit, tier }) => {
                 const tierInfo = TIER_LABEL[tier];
                 return (
-                  <tr key={c.id} className="border-t border-brand/10">
+                  <tr key={c.id} className="border-t border-brand/10 transition-colors hover:bg-brand-gold/5">
                     <td className="p-4 font-bold">{c.name}</td>
                     <td dir="ltr" className="p-4 text-foreground/65">
                       {c.phone}

@@ -66,15 +66,15 @@ export default async function AppointmentsPage({
 
       {/* إنشاء موعد */}
       {canAddAppointments(user) && (
-        <details className="mt-6 rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
-          <summary className="cursor-pointer font-bold text-brand">+ موعد جديد</summary>
+        <details className="mt-6 rounded-xl border border-brand/10 bg-white p-5 shadow-sm transition-colors hover:border-brand-gold/30">
+          <summary className="cursor-pointer rounded-md font-bold text-brand transition-colors hover:text-brand-gold">+ موعد جديد</summary>
           <form action={createAppointmentAdminAction} data-admin-booking className="mt-4 grid gap-3 sm:grid-cols-2">
             <Select name="customerId" label="العميلة" options={customers.map((c) => ({ v: c.id, l: `${c.name} (${c.phone})` }))} />
             <Select name="staffId" label="الموظفة" options={staff.map((s) => ({ v: s.id, l: s.name }))} />
             <Select name="serviceId" label="الخدمة" options={services.map((s) => ({ v: s.id, l: s.name }))} />
             <AdminSlotPicker />
             <div className="sm:col-span-2">
-              <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white hover:opacity-90">
+              <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white transition hover:opacity-90">
                 إنشاء الموعد
               </button>
             </div>
@@ -107,7 +107,7 @@ export default async function AppointmentsPage({
                   return (
                     <li
                       key={appt.id}
-                      className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-brand/10 bg-background/60 p-3"
+                      className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-brand/10 bg-background/60 p-3 transition-colors hover:bg-white hover:border-brand-gold/30"
                     >
                       <div className="min-w-52 flex-1">
                         <p className="font-bold text-zinc-800">{formatTime(appt.startsAt)}</p>
@@ -148,13 +148,13 @@ export default async function AppointmentsPage({
       )}
 
       {/* إضافة عميلة سريعة */}
-      <details className="mt-8 rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
-        <summary className="cursor-pointer font-bold text-brand">+ عميلة جديدة</summary>
+      <details className="mt-8 rounded-xl border border-brand/10 bg-white p-5 shadow-sm transition-colors hover:border-brand-gold/30">
+        <summary className="cursor-pointer rounded-md font-bold text-brand transition-colors hover:text-brand-gold">+ عميلة جديدة</summary>
         <form action={createCustomerAction} className="mt-4 flex flex-wrap items-end gap-3">
           <input type="hidden" name="returnTo" value="/dashboard/appointments" />
           <Input name="name" label="الاسم" type="text" />
           <Input name="phone" label="الجوال" type="tel" />
-          <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white hover:opacity-90">
+          <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white transition hover:opacity-90">
             حفظ
           </button>
         </form>
@@ -172,7 +172,7 @@ function Input({ name, label, type }: { name: string; label: string; type: strin
         type={type}
         required
         dir={type === "tel" ? "ltr" : undefined}
-        className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+        className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm transition-colors hover:border-zinc-400 focus:border-brand focus:outline-none"
       />
     </label>
   );
@@ -193,7 +193,7 @@ function Select({
       <select
         name={name}
         required
-        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm transition-colors hover:border-zinc-400 focus:border-brand focus:outline-none"
       >
         {options.map((o) => (
           <option key={o.v} value={o.v}>

@@ -55,7 +55,7 @@ export default async function AdminPage() {
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {tenants.map((t) => (
-                <tr key={t.id}>
+                <tr key={t.id} className="transition-colors hover:bg-brand-gold/5">
                   <td className="py-3 font-bold">{t.name}</td>
                   <td className="py-3" dir="ltr">/b/{t.slug}</td>
                   <td className="py-3">{t.plan}</td>
@@ -96,7 +96,7 @@ export default async function AdminPage() {
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {payments.map((p) => (
-                <tr key={p.id}>
+                <tr key={p.id} className="transition-colors hover:bg-brand-gold/5">
                   <td className="py-3 font-bold">{p.tenantName}</td>
                   <td className="py-3">{formatSar(p.amount)}</td>
                   <td className="py-3">{paymentStatusBadge(p.status)}</td>
@@ -121,7 +121,7 @@ export default async function AdminPage() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
       <p className="text-sm font-semibold text-foreground/55">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">{value}</p>
     </div>

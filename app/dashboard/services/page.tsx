@@ -33,14 +33,14 @@ export default async function ServicesPage({
       {error && <Banner>{ERROR_MESSAGES[error] ?? error}</Banner>}
       {deleted && <Banner success>تم حذف الخدمة بنجاح.</Banner>}
 
-      <details className="mt-6 rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
-        <summary className="cursor-pointer font-bold text-brand">+ خدمة جديدة</summary>
+      <details className="mt-6 rounded-xl border border-brand/10 bg-white p-5 shadow-sm transition-colors hover:border-brand-gold/30">
+        <summary className="cursor-pointer rounded-md font-bold text-brand transition-colors hover:text-brand-gold">+ خدمة جديدة</summary>
         <form action={createServiceAction} className="mt-4 flex flex-wrap items-end gap-3">
           <Field name="name" label="اسم الخدمة" type="text" />
           <Field name="durationMinutes" label="المدة (دقيقة)" type="number" />
           <Field name="price" label="السعر (ر.س)" type="number" />
           <Field name="depositAmount" label="العربون (ر.س)" type="number" />
-          <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white hover:opacity-90">
+          <button className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white transition hover:opacity-90">
             حفظ
           </button>
         </form>
@@ -53,7 +53,7 @@ export default async function ServicesPage({
           {services.map((s) => (
             <li
               key={s.id}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-brand/10 bg-white p-4 shadow-sm"
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-brand/10 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-gold/30 hover:shadow-md"
             >
               <div className="min-w-44 flex-1">
                 <p className="font-bold">{s.name}</p>
@@ -71,7 +71,7 @@ export default async function ServicesPage({
               </span>
               <form action={toggleServiceAction}>
                 <input type="hidden" name="id" value={s.id} />
-                <button className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-bold text-foreground/65 hover:bg-background">
+                <button className="rounded-full border border-zinc-300 px-4 py-2 text-xs font-bold text-foreground/65 transition hover:border-brand-gold/40 hover:bg-background">
                   {s.isActive ? "إيقاف" : "تفعيل"}
                 </button>
               </form>

@@ -32,7 +32,7 @@ export default async function MessagesPage() {
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {stats.recent.map((m) => (
-                <tr key={m.id}>
+                <tr key={m.id} className="transition-colors hover:bg-brand-gold/5">
                   <td className="py-3 font-bold">{m.tenantName}</td>
                   <td className="py-3 text-foreground/55">{m.templateName ?? "—"}</td>
                   <td className="py-3">{m.direction === "out" ? "صادر" : "وارد"}</td>
@@ -57,7 +57,7 @@ export default async function MessagesPage() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
       <p className="text-sm font-semibold text-foreground/55">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">{value}</p>
     </div>

@@ -20,7 +20,7 @@ export function PricingTabs({ regular, pro }: { regular: Package[]; pro: Package
           type="button"
           onClick={() => setTab("regular")}
           className={`flex-1 rounded-full py-2.5 text-sm font-bold transition ${
-            tab === "regular" ? "bg-brand text-white shadow" : "text-brand/50"
+            tab === "regular" ? "bg-brand text-white shadow" : "text-brand/50 hover:bg-brand/5 hover:text-brand/70"
           }`}
         >
           {t.pricingPage.tabRegular}
@@ -30,7 +30,7 @@ export function PricingTabs({ regular, pro }: { regular: Package[]; pro: Package
             type="button"
             onClick={() => setTab("pro")}
             className={`flex-1 rounded-full py-2.5 text-sm font-bold transition ${
-              tab === "pro" ? "bg-brand-gold text-brand shadow" : "text-brand/50"
+              tab === "pro" ? "bg-brand-gold text-brand shadow" : "text-brand/50 hover:bg-brand/5 hover:text-brand/70"
             }`}
           >
             {t.pricingPage.tabPro}

@@ -54,7 +54,7 @@ export default async function ReportsPage() {
             </thead>
             <tbody>
               {report.topServices.map((s) => (
-                <tr key={s.name} className="border-t border-brand/10">
+                <tr key={s.name} className="border-t border-brand/10 transition-colors hover:bg-brand-gold/5">
                   <td className="p-4 font-bold">{s.name}</td>
                   <td className="p-4 text-foreground/65">{s.count}</td>
                 </tr>
@@ -70,7 +70,7 @@ export default async function ReportsPage() {
       ) : (
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {report.topStaff.map((s) => (
-            <div key={s.name} className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
+            <div key={s.name} className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
               <div className="flex items-baseline justify-between">
                 <p className="font-bold">{s.name}</p>
                 <p className="text-sm text-foreground/55">{s.count} موعد</p>
@@ -173,7 +173,7 @@ export default async function ReportsPage() {
           </p>
           <Link
             href="/pricing"
-            className="mt-3 inline-block rounded-full bg-gradient-to-l from-amber-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white hover:opacity-90"
+            className="mt-3 inline-block rounded-full bg-gradient-to-l from-amber-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
           >
             رقّي إلى باقة برو
           </Link>
@@ -197,7 +197,7 @@ function AdvancedCard({
   const valueColor =
     tone === "positive" ? "text-emerald-700" : tone === "negative" ? "text-rose-700" : "text-zinc-800";
   return (
-    <div className="rounded-xl border border-purple-100 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-purple-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
       <p className="text-sm font-semibold text-foreground/55">{label}</p>
       <p className={`mt-1 text-2xl font-extrabold ${valueColor}`}>{value}</p>
       <p className="mt-1 text-xs text-zinc-400">{note}</p>
@@ -207,7 +207,7 @@ function AdvancedCard({
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-brand/10 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
       <p className="text-sm font-semibold text-foreground/55">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">{value}</p>
     </div>
