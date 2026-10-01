@@ -1,12 +1,14 @@
 'use client'
 
-import { Sparkles, CalendarCheck, TrendingUp } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowLeft, ArrowRight, Sparkles, CalendarCheck, TrendingUp } from 'lucide-react'
 import { useLanguage } from '@/components/language-provider'
 
 const icons = [Sparkles, CalendarCheck, TrendingUp]
 
 export function HowItWorks() {
-  const { t } = useLanguage()
+  const { t, lang, dir } = useLanguage()
+  const Arrow = dir === 'rtl' ? ArrowLeft : ArrowRight
 
   return (
     <section id="how-it-works" className="bg-primary text-primary-foreground">
@@ -40,6 +42,16 @@ export function HowItWorks() {
               </div>
             )
           })}
+        </div>
+
+        <div className="mt-14 text-center">
+          <Link
+            href="/journey"
+            className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+          >
+            {lang === 'en' ? 'See the full client journey with WhatsApp' : 'شاهدي رحلة العميلة الكاملة مع واتساب'}
+            <Arrow className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </section>
