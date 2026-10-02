@@ -51,11 +51,6 @@ const copy = {
     cta: "ابدئي تجربتك المجانية",
     steps: [
       {
-        label: "تكتشف رابط صالونك",
-        sub: "من بايو إنستغرام أو واتساب",
-        caption: "نوف تشوف رابط الحجز بصفحة إنستغرام الصالون وتضغطه — بدون تطبيق، بدون تسجيل.",
-      },
-      {
         label: "تختار الخدمة والموظفة",
         sub: "صفحة الحجز الإلكترونية",
         caption: "تختار «قص وتصفيف» مع سارة — الأسعار والمدة واضحة قبل أي التزام.",
@@ -92,11 +87,6 @@ const copy = {
     ],
     cta: "Start your free trial",
     steps: [
-      {
-        label: "She finds your link",
-        sub: "From your Instagram or WhatsApp bio",
-        caption: "Nouf sees the booking link on the salon's Instagram page and taps it — no app, no sign-up.",
-      },
       {
         label: "Picks a service and stylist",
         sub: "Your booking page",
@@ -152,7 +142,10 @@ export function JourneyShell() {
         </section>
 
         <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-          <div className="flex gap-6 overflow-x-auto pb-6 [scrollbar-width:thin]" style={{ scrollSnapType: "x proximity" }}>
+          <div
+            className="flex gap-6 overflow-x-auto pb-6 [scrollbar-width:thin] lg:flex-wrap lg:justify-center lg:gap-y-12 lg:overflow-visible"
+            style={{ scrollSnapType: "x proximity" }}
+          >
             {c.steps.map((step, i) => (
               <div key={step.label} className="flex shrink-0 items-start gap-6" style={{ scrollSnapAlign: "start" }}>
                 <div className="flex w-[280px] flex-col items-center">
@@ -166,12 +159,11 @@ export function JourneyShell() {
                     </div>
                   </div>
 
-                  {i === 0 && <DiscoverMock isAr={isAr} />}
-                  {i === 1 && <ChooseMock isAr={isAr} />}
-                  {i === 2 && <TimeDepositMock isAr={isAr} />}
-                  {i === 3 && <ConfirmMock isAr={isAr} />}
-                  {i === 4 && <ReminderMock isAr={isAr} />}
-                  {i === 5 && <FollowUpMock isAr={isAr} />}
+                  {i === 0 && <ChooseMock isAr={isAr} />}
+                  {i === 1 && <TimeDepositMock isAr={isAr} />}
+                  {i === 2 && <ConfirmMock isAr={isAr} />}
+                  {i === 3 && <ReminderMock isAr={isAr} />}
+                  {i === 4 && <FollowUpMock isAr={isAr} />}
 
                   <p className="mt-4 max-w-[260px] text-center text-xs leading-relaxed text-muted-foreground">
                     {step.caption}
@@ -179,7 +171,7 @@ export function JourneyShell() {
                 </div>
 
                 {i < c.steps.length - 1 && (
-                  <div className="mt-24 flex h-7 w-7 shrink-0 items-center justify-center text-brand-gold">
+                  <div className="mt-24 flex h-7 w-7 shrink-0 items-center justify-center text-brand-gold lg:hidden">
                     <Arrow className="h-5 w-5" />
                   </div>
                 )}
@@ -218,32 +210,6 @@ function LegendItem({ colorClass, label }: { colorClass: string; label: string }
 }
 
 /* --------------------------------- mocks --------------------------------- */
-
-export function DiscoverMock({ isAr }: { isAr: boolean }) {
-  return (
-    <MockFrame kind="phone" title={isAr ? "صالون ميزون روز" : "Maison Rose Salon"}>
-      <div className="flex flex-col items-center gap-3 bg-muted/30 px-4 py-10">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand font-serif text-xl font-bold text-white shadow-lg">
-          {isAr ? "م" : "M"}
-        </div>
-        <p className="font-serif text-sm font-bold text-brand">
-          {isAr ? "صالون ميزون روز" : "Maison Rose Salon"}
-        </p>
-        <div className="w-full rounded-xl border border-border bg-card p-3 text-center">
-          <p className="mb-1.5 text-[10px] text-muted-foreground">
-            {isAr ? "رابط الحجز في البايو" : "Booking link in bio"}
-          </p>
-          <p dir="ltr" className="rounded-full bg-brand/10 px-3 py-1.5 font-mono text-xs text-brand">
-            d-alal.com/b/maison-rose
-          </p>
-        </div>
-        <p className="px-4 text-center text-[11px] text-muted-foreground">
-          {isAr ? "تضغط العميلة الرابط — بدون تطبيق، بدون تسجيل" : "She taps the link — no app, no sign-up"}
-        </p>
-      </div>
-    </MockFrame>
-  );
-}
 
 function ChooseMock({ isAr }: { isAr: boolean }) {
   const services = isAr
