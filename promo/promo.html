@@ -2,127 +2,169 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<title>Dalal Promo</title>
+<title>Mutrafa Promo</title>
 <link rel="stylesheet" href="fonts.css">
 <style>
-:root{--plum:#2a0f3a;--plum2:#5b2a6e;--violet:#7c3aed;--gold:#c9a05a;--gold2:#f0d28a;--ivory:#fbf5ee;--red:#e5484d;--green:#2fb67c}
+:root{--bg:#fbeff1;--pink:#f7dfe5;--pink2:#f1c9d4;--burg:#8c2f4b;--burg2:#a8405f;--dark:#30151d;--ink:#3b1623;--gold1:#f8dc7a;--gold2:#c9971c;--wa:#008069;--green:#1fa971}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:1080px;height:1920px;overflow:hidden;background:#12061c;font-family:'Cairo',sans-serif;color:var(--ivory)}
-#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:linear-gradient(160deg,#2a0f3a 0%,#4a1d5e 55%,#6b2a5c 100%)}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#000;font-family:'Cairo',sans-serif;color:var(--ink)}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:var(--bg)}
 .scene{position:absolute;inset:0;opacity:0}
-.bgimg{position:absolute;inset:-6%;background-size:cover;background-position:center;filter:saturate(1.1)}
-.shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(26,6,40,.78) 0%,rgba(26,6,40,.45) 40%,rgba(26,6,40,.92) 100%)}
+.dark{background:radial-gradient(120% 80% at 50% 20%,#4a2030 0%,#30151d 55%,#1d0a11 100%);color:#fff}
+.light{background:linear-gradient(180deg,#fbeff1 0%,#f7dfe5 100%)}
+.bgimg{position:absolute;inset:-6%;background-size:cover;background-position:center}
 .abs{position:absolute;left:0;right:0;text-align:center}
-.gold{background:linear-gradient(90deg,#f0d28a,#c9a05a 50%,#f6e3b0);-webkit-background-clip:text;background-clip:text;color:transparent}
-.h1{font-weight:900;font-size:112px;line-height:1.28;text-shadow:0 6px 40px rgba(0,0,0,.45)}
-.h2{font-weight:800;font-size:84px;line-height:1.3}
-.sub{font-weight:600;font-size:48px;line-height:1.5;opacity:.92}
-.card{position:absolute;background:rgba(255,255,255,.96);color:#2e1065;border-radius:36px;box-shadow:0 30px 80px rgba(0,0,0,.4)}
-.chip{display:inline-block;padding:18px 40px;border-radius:999px;font-weight:800;font-size:46px}
+.gold{background:linear-gradient(90deg,#f8dc7a,#c9971c 50%,#fbe9a0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rose{color:var(--burg)}
+.h1{font-weight:900;font-size:98px;line-height:1.3}
+.h2{font-weight:900;font-size:80px;line-height:1.3}
+.sub{font-weight:600;font-size:46px;line-height:1.55}
+.card{position:absolute;background:#fff;color:var(--ink);border-radius:36px;box-shadow:0 30px 80px rgba(48,21,29,.35)}
+.chip{display:inline-block;padding:18px 44px;border-radius:999px;font-weight:800;font-size:46px}
+.btn{background:linear-gradient(90deg,#8c2f4b,#a8405f);color:#fff;box-shadow:0 18px 50px rgba(140,47,75,.45)}
+.logo{width:260px;height:260px;border-radius:64px;background:linear-gradient(145deg,#4a2030,#30151d);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px rgba(248,220,122,.35),0 30px 90px rgba(0,0,0,.5)}
+.logo img{width:86%;height:86%;object-fit:contain}
 #sparks{position:absolute;inset:0;pointer-events:none}
-.sp{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--gold2);box-shadow:0 0 18px 6px rgba(240,210,138,.55)}
-/* captions */
-#cap{position:absolute;left:60px;right:60px;top:1330px;text-align:center;font-weight:900;font-size:60px;line-height:1.45;opacity:0}
-#cap span{display:inline-block;background:rgba(18,6,28,.72);padding:10px 30px;border-radius:22px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
-#cap b{color:var(--gold2)}
+.sp{position:absolute;width:10px;height:10px;border-radius:50%;background:#f8dc7a;box-shadow:0 0 18px 6px rgba(248,220,122,.5)}
+#cap{position:absolute;left:50px;right:50px;top:1390px;text-align:center;font-weight:900;font-size:58px;line-height:1.5;opacity:0}
+#cap span{display:inline;background:rgba(48,21,29,.86);color:#fff;padding:8px 26px;border-radius:20px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+#cap b{color:#f8dc7a}
 /* phone */
-.phone{position:absolute;left:260px;top:330px;width:560px;height:1120px;border-radius:78px;background:#16081f;padding:18px;box-shadow:0 50px 120px rgba(0,0,0,.6),0 0 0 3px #3a2350 inset}
-.screen{position:relative;width:100%;height:100%;border-radius:62px;overflow:hidden;background:#f6eefb;color:#2e1065}
-.notch{position:absolute;top:14px;left:50%;margin-left:-70px;width:140px;height:34px;border-radius:20px;background:#16081f;z-index:5}
-.pbtn{position:absolute;left:40px;right:40px;height:92px;border-radius:26px;background:linear-gradient(90deg,#7c3aed,#9d5cf5);color:#fff;font-weight:800;font-size:38px;display:flex;align-items:center;justify-content:center}
-.svc{position:absolute;left:36px;right:36px;height:104px;border-radius:24px;background:#fff;border:3px solid #e6d8f3;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-weight:700;font-size:34px}
-.slot{position:absolute;width:150px;height:76px;border-radius:20px;background:#fff;border:3px solid #e6d8f3;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:32px}
-.bubble{position:absolute;width:640px;border-radius:30px;padding:26px 32px;font-weight:700;font-size:36px;line-height:1.5;background:#fff;color:#2e1065;box-shadow:0 18px 50px rgba(0,0,0,.35)}
-.wa{background:#dcf8c6}
-.feat{position:absolute;left:90px;right:90px;height:200px;border-radius:40px;background:rgba(255,255,255,.1);border:2px solid rgba(240,210,138,.45);display:flex;align-items:center;gap:36px;padding:0 44px;font-weight:800;font-size:54px;backdrop-filter:blur(6px)}
-.feat i{font-style:normal;font-size:86px}
+.phone{position:absolute;left:290px;top:240px;width:500px;height:980px;border-radius:70px;background:#121212;padding:14px;box-shadow:0 50px 110px rgba(48,21,29,.5)}
+.screen{position:relative;width:100%;height:100%;border-radius:57px;overflow:hidden;background:#fff;color:var(--ink)}
+.pane{position:absolute;inset:0;opacity:0}
+.wahead{position:absolute;top:0;left:0;right:0;height:150px;background:var(--wa);color:#fff;padding:62px 30px 0;font-weight:800;font-size:30px;display:flex;align-items:center;gap:14px}
+.wahead i{width:56px;height:56px;border-radius:50%;background:#fff3;display:inline-block}
+.chatbg{position:absolute;top:150px;left:0;right:0;bottom:0;background:#efe7dd}
+.msg{position:absolute;max-width:400px;padding:16px 22px;border-radius:22px;font-weight:700;font-size:28px;line-height:1.5;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.in{background:#fff;right:24px;border-top-right-radius:6px}
+.out{background:#d9fdd3;left:24px;border-top-left-radius:6px}
+.ptitle{position:absolute;top:70px;left:0;right:0;text-align:center;font-weight:900;font-size:34px}
+.field{position:absolute;left:34px;right:34px;height:96px;border-radius:22px;border:3px solid #ead3da;background:#fff;display:flex;align-items:center;padding:0 28px;font-weight:700;font-size:32px}
+.lab{position:absolute;right:38px;font-weight:800;font-size:24px;opacity:.55}
+.opt{position:absolute;left:34px;right:34px;height:96px;border-radius:22px;border:3px solid #ead3da;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-weight:800;font-size:30px}
+.slot{position:absolute;width:128px;height:70px;border-radius:18px;border:3px solid #ead3da;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:27px}
+.row{display:flex;justify-content:space-between;font-weight:700;font-size:27px;padding:8px 0}
+.pbtn{position:absolute;left:34px;right:34px;height:92px;border-radius:24px;color:#fff;font-weight:900;font-size:34px;display:flex;align-items:center;justify-content:center;background:var(--burg)}
+.tap{position:absolute;width:86px;height:86px;border-radius:50%;background:rgba(140,47,75,.28);border:4px solid var(--burg);opacity:0;z-index:20}
+/* steps row */
+#steps{position:absolute;left:0;right:0;top:1245px;height:90px;display:flex;justify-content:center;gap:16px;direction:rtl}
+.st{width:64px;height:64px;border-radius:50%;background:#fff;color:var(--burg);font-weight:900;font-size:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(140,47,75,.2);transition:none}
+.stl{position:absolute;left:0;right:0;top:1318px;text-align:center;font-weight:900;font-size:40px;color:var(--burg)}
+/* dashboard */
+.kpi{position:absolute;width:300px;height:210px;border-radius:34px;padding:30px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.35);color:var(--ink)}
+.kpi b{display:block;font-size:90px;line-height:1.1;color:var(--burg)}
+.kpi span{font-weight:700;font-size:30px;opacity:.7}
+.apt{position:absolute;left:90px;right:90px;height:150px;border-radius:30px;background:#fff;color:var(--ink);box-shadow:0 18px 50px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:space-between;padding:0 40px;font-weight:800;font-size:38px}
+.tag{font-size:28px;font-weight:800;padding:10px 22px;border-radius:999px;background:#d8f5e8;color:#127a50}
 </style>
 </head>
 <body>
 <div id="stage">
 
 <!-- S1 hook -->
-<div class="scene" id="s1">
-  <div class="bgimg" id="s1bg" style="background-image:url(assets/hero-salon.png)"></div><div class="shade"></div>
-  <div class="abs h1" id="s1a" style="top:300px">كم مرة جاتك عميلة<br><span class="gold">وما حضرت؟</span></div>
-  <div class="card" id="s1card" style="left:210px;top:830px;width:660px;height:230px;padding:34px 44px;">
+<div class="scene dark" id="s1">
+  <div class="bgimg" id="s1bg" style="background-image:url(assets/hero-salon.png);opacity:.28"></div>
+  <div class="abs h1" id="s1a" style="top:250px">كم مرة جاتك عميلة<br><span class="gold">وما حضرت؟</span></div>
+  <div class="card" id="s1card" style="left:200px;top:820px;width:680px;height:230px;padding:34px 44px">
     <div style="font-size:30px;opacity:.6;font-weight:700">اليوم · ٤:٠٠ م</div>
     <div style="font-size:50px;font-weight:900;margin-top:6px">سارة — صبغة وتسريحة</div>
-    <div id="s1stamp" style="position:absolute;left:30px;top:80px;border:8px solid var(--red);color:var(--red);font-weight:900;font-size:62px;padding:2px 26px;border-radius:18px;transform:rotate(-12deg);opacity:0;background:rgba(255,255,255,.9)">لم تحضر</div>
+    <div id="s1stamp" style="position:absolute;left:34px;top:84px;border:8px solid #e5484d;color:#e5484d;font-weight:900;font-size:60px;padding:2px 24px;border-radius:18px;transform:rotate(-12deg);opacity:0;background:rgba(255,255,255,.92)">لم تحضر</div>
   </div>
-  <div class="abs h1" id="s1b" style="top:300px;opacity:0">وكم مرة تعارضت<br><span class="gold">مواعيدك؟</span></div>
-  <div class="card" id="s1c1" style="left:150px;top:880px;width:560px;height:200px;padding:30px 40px;opacity:0"><div style="font-size:30px;opacity:.6;font-weight:700">٥:٠٠ م · نورة</div><div style="font-size:46px;font-weight:900">مكياج سهرة</div></div>
-  <div class="card" id="s1c2" style="left:370px;top:880px;width:560px;height:200px;padding:30px 40px;opacity:0"><div style="font-size:30px;opacity:.6;font-weight:700">٥:٠٠ م · ريم</div><div style="font-size:46px;font-weight:900">قص وتصفيف</div></div>
-  <div id="s1x" style="position:absolute;left:0;right:0;top:760px;text-align:center;font-size:150px;opacity:0">⚠️</div>
+  <div class="abs h1" id="s1b" style="top:250px;opacity:0">وكم ضاع وقتك<br><span class="gold">بين الرسائل؟</span></div>
+  <div id="s1chat"></div>
+  <div id="s1badge" style="position:absolute;left:640px;top:760px;min-width:150px;height:150px;border-radius:75px;background:#e5484d;color:#fff;font-weight:900;font-size:78px;display:flex;align-items:center;justify-content:center;padding:0 30px;opacity:0;box-shadow:0 20px 60px rgba(229,72,77,.6)">٩٩+</div>
 </div>
 
-<!-- S2 logo -->
-<div class="scene" id="s2">
-  <div class="abs" id="s2logo" style="top:380px"><img src="assets/dalal-logo.png" style="width:760px;border-radius:70px;box-shadow:0 0 120px rgba(201,160,90,.45),0 40px 100px rgba(0,0,0,.5)"></div>
-  <div class="abs h2" id="s2t" style="top:1020px">نظام الحجز الذكي<br><span class="gold">لصالونك</span></div>
-  <div class="abs" id="s2chips" style="top:1190px">
-    <span class="chip" id="s2c1" style="background:rgba(229,72,77,.18);border:3px solid var(--red);margin:0 10px">غائبات</span>
-    <span class="chip" id="s2c2" style="background:rgba(229,72,77,.18);border:3px solid var(--red);margin:0 10px">تعارض</span>
-  </div>
+<!-- S2 brand -->
+<div class="scene dark" id="s2">
+  <div class="abs" id="s2logo" style="top:300px"><div class="logo" style="margin:0 auto;width:360px;height:360px;border-radius:90px"><img src="assets/mutrafa-icon.png"></div></div>
+  <div class="abs" id="s2name" style="top:730px;font-weight:900;font-size:220px;line-height:1.1" ><span class="gold">مُتْرَفة</span></div>
+  <div class="abs sub" id="s2t" style="top:1040px;font-size:56px;font-weight:800;padding:0 90px">رتّبي حجوزات صالونك<br>واجعلي <span class="gold">العربون</span> جزءاً من تأكيد الموعد</div>
 </div>
 
-<!-- S3 booking page -->
-<div class="scene" id="s3">
-  <div class="abs h2" id="s3t" style="top:130px">صفحة حجز <span class="gold">باسم صالونك</span></div>
-  <div class="phone" id="s3p"><div class="notch"></div><div class="screen">
-    <div style="height:210px;background:linear-gradient(135deg,#5b2a6e,#9d5cf5);padding:80px 36px 0;color:#fff"><div style="font-weight:900;font-size:44px">صالون ريّان</div><div style="font-size:26px;opacity:.85;font-weight:600">احجزي موعدك بدقيقة ✨</div></div>
-    <div style="position:absolute;top:240px;right:36px;font-weight:800;font-size:28px;opacity:.7">اختاري الخدمة</div>
-    <div class="svc" id="sv1" style="top:290px"><span>صبغة شعر</span><span style="color:var(--violet)">٣٥٠ ر.س</span></div>
-    <div class="svc" id="sv2" style="top:414px"><span>مكياج سهرة</span><span style="color:var(--violet)">٤٥٠ ر.س</span></div>
-    <div class="svc" id="sv3" style="top:538px"><span>عناية بالبشرة</span><span style="color:var(--violet)">٢٨٠ ر.س</span></div>
-    <div style="position:absolute;top:690px;right:36px;font-weight:800;font-size:28px;opacity:.7">اختاري الوقت</div>
-    <div class="slot" id="sl1" style="top:740px;right:36px">٣:٠٠ م</div>
-    <div class="slot" id="sl2" style="top:740px;right:206px">٤:٣٠ م</div>
-    <div class="slot" id="sl3" style="top:740px;right:376px;opacity:.35;text-decoration:line-through">٥:٠٠ م</div>
-    <div class="pbtn" id="s3btn" style="top:900px">تأكيد الحجز</div>
-    <div id="s3tap" style="position:absolute;width:90px;height:90px;border-radius:50%;background:rgba(124,58,237,.35);border:4px solid #7c3aed;opacity:0"></div>
+<!-- S3 flow -->
+<div class="scene light" id="s3">
+  <div class="abs h2 rose" id="s3t" style="top:110px;font-size:70px">بـ ٥ خطوات… <span style="color:var(--ink)">الموعد يتأكد</span></div>
+  <div class="phone" id="s3p"><div class="screen">
+    <!-- pane1 whatsapp -->
+    <div class="pane" id="p1"><div class="wahead"><i></i>صالون لومينا</div><div class="chatbg"></div>
+      <div class="msg in" id="m1" style="top:190px;white-space:nowrap">هلا 🌸 أبغى موعد صبغة</div>
+      <div class="msg out" id="m2" style="top:300px;white-space:nowrap">أهلاً فيك! للحجز أرسلي ١</div>
+      <div class="msg in" id="m3" style="top:420px;min-width:60px;text-align:center">١</div>
+      <div class="msg out" id="m4" style="top:520px;max-width:400px;line-height:1.6">رابط صالونك للحجز:<br><span style="color:#1a73e8;text-decoration:underline;font-size:25px;direction:ltr;display:inline-block">mutrafa.d-alal.com/lumina</span></div>
+    </div>
+    <!-- pane2 name phone -->
+    <div class="pane" id="p2"><div class="ptitle" style="top:90px">بياناتك</div>
+      <div class="lab" style="top:200px">الاسم</div><div class="field" style="top:240px">سارة العتيبي</div>
+      <div class="lab" style="top:380px">رقم الجوال</div><div class="field" style="top:420px;direction:ltr;justify-content:flex-end">05X XXX XXXX</div>
+      <div class="pbtn" style="top:640px">التالي</div>
+    </div>
+    <!-- pane3 service -->
+    <div class="pane" id="p3"><div class="ptitle" style="top:80px">اختاري الخدمة والوقت</div>
+      <div class="opt" id="o1" style="top:180px"><span>صبغة</span><span class="rose">٣٠٠ ر.س</span></div>
+      <div class="opt" style="top:296px"><span>قص وتصفيف</span><span class="rose">١٨٠ ر.س</span></div>
+      <div class="lab" style="top:430px">اليوم</div>
+      <div class="slot" style="top:470px;right:34px;width:200px">الأحد ١٣</div><div class="slot" style="top:470px;right:254px;width:200px;opacity:.5">الاثنين ١٤</div>
+      <div class="lab" style="top:580px">الوقت</div>
+      <div class="slot" id="t1" style="top:620px;right:34px">١١:٠٠</div><div class="slot" style="top:620px;right:182px;opacity:.5">١٢:٣٠</div><div class="slot" style="top:620px;right:330px;opacity:.5">٢:٠٠</div>
+      <div class="pbtn" style="top:790px">متابعة للدفع</div>
+    </div>
+    <!-- pane4 payment -->
+    <div class="pane" id="p4"><div class="ptitle" style="top:60px;font-size:30px">العربون وطريقة الدفع</div>
+      <div style="position:absolute;left:30px;right:30px;top:130px;border:3px solid #ead3da;border-radius:22px;padding:14px 24px">
+        <div class="row"><span>صبغة</span><span>الأحد ١٣ · ١١:٠٠</span></div>
+        <div class="row"><span>سعر الخدمة</span><span>٣٠٠ ر.س</span></div>
+        <div class="row rose" style="font-weight:900"><span>العربون المطلوب</span><span>٦٠ ر.س</span></div>
+      </div>
+      <div class="opt" id="pa" style="top:350px;height:84px;border-color:var(--green);background:#e9f8f1"><span>Apple Pay </span><span></span></div>
+      <div class="opt" style="top:448px;height:84px"><span>Google Pay</span><span></span></div>
+      <div class="opt" style="top:546px;height:84px"><span>مدى</span><span></span></div>
+      <div class="opt" style="top:644px;height:84px"><span>Visa / Mastercard</span><span></span></div>
+      <div class="pbtn" id="paybtn" style="top:790px;background:#000;height:100px"> Pay</div>
+    </div>
+    <!-- pane5 done -->
+    <div class="pane" id="p5" style="background:linear-gradient(180deg,#e9f8f1,#fff)">
+      <div id="okc" style="position:absolute;left:150px;top:190px;width:200px;height:200px;border-radius:50%;background:var(--green);color:#fff;font-size:130px;display:flex;align-items:center;justify-content:center;box-shadow:0 20px 60px rgba(31,169,113,.5)">✓</div>
+      <div style="position:absolute;left:0;right:0;top:430px;text-align:center;font-weight:900;font-size:46px">تم تأكيد موعدك 🎉</div>
+      <div style="position:absolute;left:30px;right:30px;top:530px;border:3px solid #cfeadd;border-radius:22px;padding:16px 24px;background:#fff">
+        <div class="row"><span>الخدمة</span><span>صبغة</span></div>
+        <div class="row"><span>الموعد</span><span>الأحد ١٣ · ١١:٠٠</span></div>
+        <div class="row" style="color:var(--green);font-weight:900"><span>العربون</span><span>مدفوع ✓</span></div>
+      </div>
+    </div>
+    <div class="tap" id="tap"></div>
   </div></div>
-  <div class="chip" id="s3badge" style="position:absolute;left:150px;top:1480px;background:linear-gradient(90deg,#c9a05a,#f0d28a);color:#2a0f3a;font-size:46px;opacity:0">متاحة ٢٤ ساعة 🌙</div>
+  <div id="steps"><div class="st" id="st5">٥</div><div class="st" id="st4">٤</div><div class="st" id="st3">٣</div><div class="st" id="st2">٢</div><div class="st" id="st1">١</div></div>
+  <div class="stl" id="stl"></div>
 </div>
 
-<!-- S4 deposit -->
-<div class="scene" id="s4">
-  <div class="bgimg" style="background-image:url(assets/salon-2.png);opacity:.45"></div><div class="shade"></div>
-  <div class="abs h2" id="s4t" style="top:150px">عربون إلكتروني<br><span class="gold">يثبّت الموعد</span></div>
-  <div class="card" id="s4c" style="left:130px;top:620px;width:820px;height:640px;padding:50px 56px">
-    <div style="font-size:34px;opacity:.6;font-weight:700">موعدك · صبغة شعر</div>
-    <div style="font-size:60px;font-weight:900;margin-top:8px">عربون ٥٠ ر.س</div>
-    <div style="margin-top:30px;height:22px;border-radius:12px;background:#eadcf6;overflow:hidden"><div id="s4bar" style="height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#c9a05a)"></div></div>
-    <div class="pbtn" id="s4pay" style="left:56px;right:56px;top:350px;height:110px;font-size:44px">ادفعي العربون</div>
-    <div id="s4ok" style="position:absolute;left:56px;right:56px;top:350px;height:110px;border-radius:26px;background:var(--green);color:#fff;font-weight:900;font-size:46px;display:flex;align-items:center;justify-content:center;opacity:0">✓ تم الدفع · الموعد مثبّت</div>
-    <div style="position:absolute;left:56px;right:56px;top:500px;font-size:32px;opacity:.65;font-weight:600;text-align:center">يُخصم من السعر النهائي</div>
-  </div>
-  <div class="abs" id="s4b" style="top:1330px;opacity:0"><span class="chip" style="background:linear-gradient(90deg,#c9a05a,#f0d28a);color:#2a0f3a;font-size:58px">صفر غائبات 🚫</span></div>
+<!-- S4 dashboard -->
+<div class="scene dark" id="s4">
+  <div class="abs h2" id="s4t" style="top:170px">وكل حجوزاتك في <span class="gold">لوحة تحكم</span> واحدة</div>
+  <div class="kpi" id="k1" style="left:90px;top:460px"><b id="k1n">٠</b><span>حجوزات اليوم</span></div>
+  <div class="kpi" id="k2" style="left:430px;top:460px;width:340px"><b id="k2n">٠</b><span>عرابين محصّلة (ر.س)</span></div>
+  <div class="kpi" id="k3" style="left:810px;top:460px;width:180px;padding:30px 20px"><b style="font-size:70px">٠٪</b><span>غياب</span></div>
+  <div class="apt" id="a1" style="top:740px"><span>١٠:٠٠ · نورة</span><span class="tag">عربون مدفوع ✓</span></div>
+  <div class="apt" id="a2" style="top:920px"><span>١١:٠٠ · سارة</span><span class="tag">عربون مدفوع ✓</span></div>
+  <div class="apt" id="a3" style="top:1100px"><span>١:٣٠ · ريم</span><span class="tag">عربون مدفوع ✓</span></div>
 </div>
 
-<!-- S5 features -->
-<div class="scene" id="s5">
-  <div class="abs h2" id="s5t" style="top:120px">وأكثر… <span class="gold">بدون جهد</span></div>
-  <div class="feat" id="f1" style="top:360px"><i>🗓️</i><span>يمنع تعارض المواعيد تلقائياً</span></div>
-  <div class="feat" id="f2" style="top:600px"><i>💬</i><span>تأكيد وتذكير واتساب</span></div>
-  <div class="feat" id="f3" style="top:840px"><i>⏳</i><span>قائمة انتظار تعبّي أي موعد يتلغى</span></div>
-  <div class="bubble wa" id="s5w" style="left:220px;top:1100px;opacity:0">أهلاً سارة 🌸 تم تأكيد موعدك غداً الساعة ٤:٠٠ م في صالون ريّان</div>
+<!-- S5 trial -->
+<div class="scene light" id="s5">
+  <div class="abs" id="s5a" style="top:280px"><div style="font-size:72px;font-weight:900" class="rose">جرّبي مُترفة مجاناً</div><div class="gold" style="font-size:380px;font-weight:900;line-height:1.05" id="s5n">١٤</div><div style="font-size:92px;font-weight:900;margin-top:-20px">يوماً</div></div>
+  <div class="abs" id="s5b" style="top:1020px"><span class="chip btn" style="font-size:56px">بلا بطاقة بنكية</span></div>
+  <div class="abs sub" id="s5c" style="top:1190px;font-size:40px;padding:0 100px;opacity:.85">تحتاجين فقط: رقم واتساب الصالون<br>وآيبان حساب العربون</div>
 </div>
 
-<!-- S6 pricing -->
-<div class="scene" id="s6">
-  <div class="bgimg" style="background-image:url(assets/salon-1.png);opacity:.4"></div><div class="shade"></div>
-  <div class="abs" id="s6a" style="top:300px"><div style="font-size:70px;font-weight:800">ابدئي بتجربة مجانية</div><div class="gold" style="font-size:300px;font-weight:900;line-height:1.1" id="s6n">١٤</div><div style="font-size:84px;font-weight:900;margin-top:-10px">يوم · بدون بطاقة</div></div>
-  <div class="abs" id="s6b" style="top:1000px"><div style="font-size:50px;font-weight:700;opacity:.9">وبعدها تبدأ من</div><div style="font-size:150px;font-weight:900;line-height:1.1" class="gold">١٩٩ <span style="font-size:60px">ر.س / شهرياً</span></div></div>
-</div>
-
-<!-- S7 CTA -->
-<div class="scene" id="s7">
-  <div class="bgimg" style="background-image:url(assets/hero-salon.png);opacity:.5"></div><div class="shade"></div>
-  <div class="abs" id="s7l" style="top:230px"><img src="assets/dalal-icon.png" style="width:300px;border-radius:70px;box-shadow:0 0 90px rgba(201,160,90,.6)"></div>
-  <div class="abs h1" id="s7t" style="top:600px">لأنك <span class="gold">تستحقين</span><br>الدلال</div>
-  <div class="abs" id="s7b" style="top:1040px"><span class="chip" style="background:linear-gradient(90deg,#7c3aed,#9d5cf5);font-size:62px;padding:26px 70px">سجّلي الحين</span></div>
-  <div class="abs" id="s7u" style="top:1230px"><span class="chip" style="border:4px solid var(--gold);color:var(--gold2);font-size:46px;font-family:'Cairo';direction:ltr;letter-spacing:.5px">mutrafa.d-alal.com</span></div>
+<!-- S6 CTA -->
+<div class="scene dark" id="s6">
+  <div class="bgimg" style="background-image:url(assets/hero-salon.png);opacity:.22"></div>
+  <div class="abs" id="s6l" style="top:240px"><div class="logo" style="margin:0 auto"><img src="assets/mutrafa-icon.png"></div></div>
+  <div class="abs" id="s6n" style="top:560px;font-weight:900;font-size:190px;line-height:1.1"><span class="gold">مُتْرَفة</span></div>
+  <div class="abs h2" id="s6t" style="top:820px;font-size:68px">صالونك… بنظامٍ يليق به</div>
+  <div class="abs" id="s6b" style="top:1060px"><span class="chip btn" style="font-size:64px;padding:28px 80px">اشتركي الآن ←</span></div>
+  <div class="abs" id="s6u" style="top:1250px"><span class="chip" style="border:4px solid #f8dc7a;color:#f8dc7a;font-size:50px;direction:ltr">mutrafa.d-alal.com</span></div>
 </div>
 
 <div id="sparks"></div>
@@ -135,103 +177,90 @@ const eo=x=>1-Math.pow(1-clamp(x),3);
 const eb=x=>{x=clamp(x);const c=1.70158;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
 const prog=(t,a,b)=>clamp((t-a)/(b-a));
 const $=id=>document.getElementById(id);
+const AR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 
-// ---- timing (seconds) — overridden by timing.json when present
-let T={s:[0,7,11,19,26,34,39,45],
+let T={s:[0,7,12,27,34,40,45],
  cap:[
   [0.3,3.4,"كم مرة جاتك عميلة <b>وما حضرت؟</b>"],
-  [3.6,6.8,"وكم مرة <b>تعارضت</b> مواعيدك؟"],
-  [7.2,10.8,"مع <b>دلال</b>… نظام الحجز الذكي لصالونك"],
-  [11.2,18.8,"صفحة حجز <b>باسم صالونك</b> تستقبل حجوزاتك ٢٤ ساعة"],
-  [19.2,25.8,"العربون الإلكتروني <b>يثبّت الموعد</b> ويوقف الغائبات"],
-  [26.2,33.8,"يمنع التعارض، <b>ويذكّر عميلاتك</b> بواتساب، ويعبّي أي موعد يتلغى"],
-  [34.2,38.8,"تجربة مجانية <b>١٤ يوم</b> ومن ١٩٩ ريال بالشهر"],
-  [39.2,44.8,"دلال… لأنك <b>تستحقين الدلال</b>"]]};
+  [3.6,6.8,"وكم <b>ضاع وقتك</b> بين الرسائل والردود؟"],
+  [7.2,11.8,"مع <b>مُترفة</b>… رتّبي حجوزات صالونك واجعلي العربون جزءاً من تأكيد الموعد"],
+  [12.2,16.8,"عميلتك تراسلك <b>على واتساب</b>… فيوصلها رابط صالونك"],
+  [17,19.8,"تسجّل <b>اسمها وجوالها</b>"],
+  [20,23.8,"وتختار <b>الخدمة واليوم والوقت</b>"],
+  [24,26.8,"وتدفع العربون: <b>Apple Pay أو مدى أو فيزا</b>"],
+  [27.2,33.8,"والموعد <b>يتأكد فوراً</b>… وتتابعين الكل من <b>لوحة التحكم</b>"],
+  [34.2,39.8,"جرّبي مُترفة <b>مجاناً ١٤ يوماً</b> بلا بطاقة بنكية"],
+  [40.2,44.8,"مُترفة… <b>اشتركي الآن</b>"]]};
 
-function fade(el,t,a,b,pa=.4,pb=.4){ // visible between a..b with fade in/out
-  const o=Math.min(prog(t,a,a+pa),1-prog(t,b-pb,b)); el.style.opacity=o; return o;}
 function pop(el,t,a,dur=.6,y=60,s=.9){const p=eb(prog(t,a,a+dur)),q=eo(prog(t,a,a+dur*.7));
   el.style.opacity=q; el.style.transform=`translateY(${(1-p)*y}px) scale(${s+(1-s)*p})`;}
 
-// sparkles
-const sp=[];for(let i=0;i<26;i++){const d=document.createElement('div');d.className='sp';$('sparks').appendChild(d);sp.push({d,x:Math.random()*1080,y:Math.random()*1920,ph:Math.random()*6.28,sp:20+Math.random()*50,sz:.5+Math.random()*1.1});}
+const sp=[];for(let i=0;i<24;i++){const d=document.createElement('div');d.className='sp';$('sparks').appendChild(d);sp.push({d,x:Math.random()*1080,y:Math.random()*1920,ph:Math.random()*6.28,sp:20+Math.random()*50,sz:.5+Math.random()*1.0});}
+
+// s1 chat bubbles
+const bubbles=[];const bt=["ممكن موعد بكرة؟","كم سعر الصبغة؟","متى فاضية؟","وين الموقع؟","أبغى أغير موعدي","هل في عرض؟","ردي علي 🙏","الساعة كم؟"];
+bt.forEach((tx,i)=>{const d=document.createElement('div');d.className='msg in';d.style.cssText=`position:absolute;white-space:nowrap;opacity:0;font-size:36px;padding:20px 30px;border-radius:26px;background:#fff;color:#3b1623;font-weight:800;${i%2?'right':'left'}:${70+(i*37)%90}px;top:${760+ (i%4)*0}px`;d.textContent=tx;$('s1chat').appendChild(d);bubbles.push(d);});
 
 function render(t){
   const S=T.s;
-  // scenes visibility
-  const ids=['s1','s2','s3','s4','s5','s6','s7'];
-  ids.forEach((id,i)=>{const e=$(id);const a=S[i],b=S[i+1];
-    const o=(i===0?1:prog(t,a-.0,a+.35))*(i===6?1:1-prog(t,b-.35,b)); e.style.opacity=t>=a-0.01&&t<b?clamp(o):0;});
+  ['s1','s2','s3','s4','s5','s6'].forEach((id,i)=>{const e=$(id);const a=S[i],b=S[i+1];
+    const o=(i===0?1:prog(t,a,a+.35))*(i===5?1:1-prog(t,b-.35,b)); e.style.opacity=(t>=a-.01&&t<b)?clamp(o):0;});
 
-  // ---- S1
-  {const l=t-S[0];
-   $('s1bg').style.transform=`scale(${1+l*.012})`;
-   pop($('s1a'),t,.3,.7);
-   const card=$('s1card'); const hide=prog(t,3.3,3.8);
-   pop(card,t,1.0,.7,80); card.style.opacity=clamp(prog(t,1,1.5))*(1-hide);
-   $('s1stamp').style.opacity=clamp(prog(t,2.3,2.4)); $('s1stamp').style.transform=`rotate(-12deg) scale(${1+ (1-eb(prog(t,2.3,2.7)))*1.8})`;
-   $('s1a').style.opacity=clamp(prog(t,.3,.8))*(1-hide);
-   // second hook
-   const b=$('s1b');b.style.opacity=clamp(prog(t,3.6,4.1)); b.style.transform=`translateY(${(1-eo(prog(t,3.6,4.3)))*50}px)`;
-   const c1=$('s1c1'),c2=$('s1c2');
-   const m=eo(prog(t,4.0,5.0));
-   c1.style.opacity=c2.style.opacity=clamp(prog(t,3.9,4.3));
-   c1.style.transform=`translateX(${(1-m)*-260}px) rotate(${-4*m}deg)`;
-   c2.style.transform=`translateX(${(1-m)*260}px) rotate(${4*m}deg)`;
-   const shake=t>5&&t<6.3?Math.sin(t*90)*8:0; c1.style.left=150+shake+'px';c2.style.left=370-shake+'px';
-   $('s1x').style.opacity=clamp(prog(t,5.0,5.2)); $('s1x').style.transform=`scale(${1+(1-eb(prog(t,5,5.5)))*1.6})`;
-   // fade the first-hook items out during second half
+  // S1
+  {$('s1bg').style.transform=`scale(${1+t*.012})`;
+   const hide=prog(t,3.3,3.8);
+   pop($('s1a'),t,.3,.7); $('s1a').style.opacity=clamp(prog(t,.3,.8))*(1-hide);
+   const c=$('s1card'); pop(c,t,1.0,.7,80); c.style.opacity=clamp(prog(t,1,1.5))*(1-hide);
+   const st=$('s1stamp'); st.style.opacity=clamp(prog(t,2.3,2.4)); st.style.transform=`rotate(-12deg) scale(${1+(1-eb(prog(t,2.3,2.7)))*1.8})`;
+   const b=$('s1b'); b.style.opacity=clamp(prog(t,3.6,4.1)); b.style.transform=`translateY(${(1-eo(prog(t,3.6,4.3)))*50}px)`;
+   bubbles.forEach((d,i)=>{const a=4.0+i*.28;const p=eb(prog(t,a,a+.4));d.style.opacity=clamp(prog(t,a,a+.2))*(1-prog(t,6.6,6.95));
+     d.style.top=(760+i*95)+'px';d.style.transform=`translateY(${(1-p)*60}px) scale(${.85+.15*p})`;});
+   const n=Math.floor(prog(t,4.0,6.2)*99); const bd=$('s1badge'); bd.textContent=AR(Math.max(1,n))+(n>=99?'+':''); bd.style.opacity=clamp(prog(t,4.0,4.3))*(1-prog(t,6.6,6.95));
+   bd.style.transform=`scale(${1+Math.sin(t*14)*.04*prog(t,5,5.2)})`;
+   bd.style.top='560px';bd.style.left='420px';
   }
-  // ---- S2
-  {pop($('s2logo'),t,S[1]+.2,.9,100,.7);
-   pop($('s2t'),t,S[1]+1.0,.7,50);
-   const c1=$('s2c1'),c2=$('s2c2');
-   c1.style.opacity=clamp(prog(t,S[1]+1.8,S[1]+2.2)); c2.style.opacity=clamp(prog(t,S[1]+2.2,S[1]+2.6));
-   const st=prog(t,S[1]+3.0,S[1]+3.5); c1.style.textDecoration=c2.style.textDecoration=st>0?'line-through':'none';
-   c1.style.opacity*=1-.6*st; c2.style.opacity*=1-.6*st;
-   c1.style.borderColor=c2.style.borderColor=st>0?'#2fb67c':'#e5484d';
-   if(st>0){c1.style.background=c2.style.background='rgba(47,182,124,.18)';}
-  }
-  // ---- S3 (phone)
+  // S2
+  {const a=S[1]; pop($('s2logo'),t,a+.2,.9,100,.6); pop($('s2name'),t,a+.9,.8,60,.85); pop($('s2t'),t,a+1.8,.8,50);}
+  // S3
   {const a=S[2]; pop($('s3t'),t,a+.1,.6,40);
    const p=$('s3p'); const e=eb(prog(t,a+.3,a+1.2)); p.style.opacity=clamp(prog(t,a+.3,a+.7)); p.style.transform=`translateY(${(1-e)*400}px) rotate(${(1-e)*-6}deg)`;
-   const sel=(el,on)=>{el.style.background=on?'#efe3ff':'#fff';el.style.borderColor=on?'#7c3aed':'#e6d8f3';};
-   sel($('sv1'),t>a+2.2); sel($('sl2'),t>a+4.2);
-   const tap=$('s3tap');
-   const pts=[[a+1.8,a+2.3,300,330],[a+3.8,a+4.3,220,780],[a+5.6,a+6.2,250,940]];
-   let o=0,x=0,y=0;pts.forEach(([s,e2,px,py])=>{if(t>=s&&t<e2){o=Math.sin(prog(t,s,e2)*Math.PI);x=px;y=py;}});
+   // pane timing (relative): 1:0.8-5.2 2:5.2-8.2 3:8.2-12 4:12-14.8 5:14.8-15
+   const B=[a+.8,a+5.2,a+8.2,a+12.0,a+14.8,a+99];
+   for(let i=0;i<5;i++){const pe=$('p'+(i+1));const o=Math.min(prog(t,B[i],B[i]+.3),1-prog(t,B[i+1]-.01,B[i+1]+.3));pe.style.opacity=clamp(o);pe.style.transform=`translateX(${(1-eo(prog(t,B[i],B[i]+.4)))*60}px)`;}
+   // chat messages
+   [['m1',a+1.2],['m2',a+2.4],['m3',a+3.4],['m4',a+4.0]].forEach(([id,s])=>{const m=$(id);m.style.opacity=clamp(prog(t,s,s+.25));m.style.transform=`translateY(${(1-eo(prog(t,s,s+.4)))*30}px)`;});
+   // taps
+   const tap=$('tap');let o=0,x=0,y=0;
+   [[a+4.9,a+5.4,330,260],[a+9.0,a+9.5,380,210],[a+10.3,a+10.8,330,520],[a+11.4,a+11.9,330,790],[a+13.0,a+13.5,300,350],[a+14.2,a+14.7,300,800]].forEach(([s,e2,px,py])=>{if(t>=s&&t<e2){o=Math.sin(prog(t,s,e2)*Math.PI);x=px-43;y=py-43;}});
    tap.style.opacity=o;tap.style.left=x+'px';tap.style.top=y+'px';
-   const btn=$('s3btn'); const done=t>a+6.2; btn.textContent=done?'✓ تم الحجز':'تأكيد الحجز'; btn.style.background=done?'linear-gradient(90deg,#2fb67c,#46d49a)':'';
-   pop($('s3badge'),t,a+3.0,.6,40);$('s3badge').style.left='150px';
-   const out=prog(t,S[3]-.5,S[3]);
+   $('o1').style.borderColor=t>a+9.4?'#8c2f4b':'#ead3da';$('o1').style.background=t>a+9.4?'#fbeff1':'#fff';
+   $('t1').style.borderColor=t>a+10.7?'#8c2f4b':'#ead3da';$('t1').style.background=t>a+10.7?'#fbeff1':'#fff';
+   $('paybtn').style.background=t>a+14.1?'#1fa971':'#000';
+   const ok=$('okc'); ok.style.transform=`scale(${eb(prog(t,B[4]+.1,B[4]+.8))})`;
+   // step indicators
+   const cur=t<B[1]?1:t<B[2]?2:t<B[3]?3:t<B[4]?4:5; const L=['العميلة تراسل الصالون على واتساب','تسجّل اسمها وجوالها','تختار الخدمة واليوم والوقت','تدفع العربون','الموعد يتأكد ✓'];
+   for(let i=1;i<=5;i++){const s=$('st'+i);s.style.background=i<=cur?'#8c2f4b':'#fff';s.style.color=i<=cur?'#fff':'#8c2f4b';s.style.transform=`scale(${i===cur?1.2:1})`;}
+   $('stl').textContent=L[cur-1];
+   $('steps').style.opacity=$('stl').style.opacity=clamp(prog(t,a+.8,a+1.2));
   }
-  // ---- S4
-  {const a=S[3]; pop($('s4t'),t,a+.1,.7,50); pop($('s4c'),t,a+.6,.8,120,.92);
-   const f=eo(prog(t,a+2.2,a+4.2)); $('s4bar').style.width=(f*100)+'%';
-   const paid=t>a+4.4; $('s4ok').style.opacity=clamp(prog(t,a+4.4,a+4.7)); $('s4pay').style.opacity=1-clamp(prog(t,a+4.4,a+4.7));
-   pop($('s4b'),t,a+5.2,.6,50,.7);
-  }
-  // ---- S5
-  {const a=S[4]; pop($('s5t'),t,a+.1,.6,40);
-   pop($('f1'),t,a+.7,.6,80);pop($('f2'),t,a+2.2,.6,80);pop($('f3'),t,a+4.2,.6,80);
-   const w=$('s5w'); w.style.transform=`translateY(${(1-eb(prog(t,a+3,a+3.6)))*80}px)`; w.style.opacity=clamp(prog(t,a+3,a+3.4))*(1-prog(t,a+5.2,a+5.6));
-  }
-  // ---- S6
-  {const a=S[5]; pop($('s6a'),t,a+.1,.7,60); $('s6n').textContent=['١٤'][0];
-   $('s6n').style.transform=`scale(${1+(1-eb(prog(t,a+.3,a+1)))*.5})`;
-   pop($('s6b'),t,a+2.0,.7,60);}
-  // ---- S7
-  {const a=S[6]; pop($('s7l'),t,a+.1,.8,60,.6); pop($('s7t'),t,a+.7,.8,60); pop($('s7b'),t,a+1.8,.6,50,.8);
-   const pulse=1+Math.sin((t-a)*6)*.03*prog(t,a+2.4,a+2.5); $('s7b').style.transform+=` scale(${pulse})`;
-   pop($('s7u'),t,a+2.6,.6,40);}
+  // S4
+  {const a=S[3]; pop($('s4t'),t,a+.1,.7,40);
+   pop($('k1'),t,a+.6,.6,70);pop($('k2'),t,a+.8,.6,70);pop($('k3'),t,a+1.0,.6,70);
+   $('k1n').textContent=AR(Math.round(8*eo(prog(t,a+.8,a+2))));$('k2n').textContent=AR(Math.round(480*eo(prog(t,a+.8,a+2.4))));
+   pop($('a1'),t,a+1.8,.6,60);pop($('a2'),t,a+2.5,.6,60);pop($('a3'),t,a+3.2,.6,60);}
+  // S5
+  {const a=S[4]; pop($('s5a'),t,a+.1,.7,60); $('s5n').style.display='block';
+   pop($('s5b'),t,a+1.8,.6,50,.8); pop($('s5c'),t,a+2.8,.6,40); $('s5c').style.opacity=Math.min(clamp(prog(t,a+2.8,a+3.3)),1)*.85;}
+  // S6
+  {const a=S[5]; pop($('s6l'),t,a+.1,.8,60,.6); pop($('s6n'),t,a+.7,.7,50,.85); pop($('s6t'),t,a+1.3,.6,40); pop($('s6b'),t,a+1.9,.6,50,.8);
+   $('s6b').style.transform+=` scale(${1+Math.sin((t-a)*6)*.03*prog(t,a+2.5,a+2.6)})`; pop($('s6u'),t,a+2.6,.6,40);}
 
-  // sparks
-  sp.forEach((s,i)=>{const y=(s.y-t*s.sp+1920*10)%1920;s.d.style.transform=`translate(${s.x+Math.sin(t*1.3+s.ph)*30}px,${y}px) scale(${s.sz})`;s.d.style.opacity=.25+.5*Math.abs(Math.sin(t*2+s.ph));});
+  sp.forEach(s=>{const y=(s.y-t*s.sp+1920*10)%1920;s.d.style.transform=`translate(${s.x+Math.sin(t*1.3+s.ph)*30}px,${y}px) scale(${s.sz})`;s.d.style.opacity=.2+.45*Math.abs(Math.sin(t*2+s.ph));});
 
-  // captions
   const cap=$('cap');let cur=null;T.cap.forEach(c=>{if(t>=c[0]&&t<c[1])cur=c;});
   if(cur){cap.firstChild.innerHTML=cur[2];cap.style.opacity=Math.min(prog(t,cur[0],cur[0]+.2),1-prog(t,cur[1]-.2,cur[1]));
-    cap.style.top=(t>=S[2]&&t<S[6]?1500:1330)+'px';}
+    cap.style.top=(t>=S[2]&&t<S[3]?1440:1390)+'px';
+    const light=(t>=S[2]&&t<S[3])||(t>=S[4]&&t<S[5]); }
   else cap.style.opacity=0;
 }
 window.render=render;window.setTiming=x=>{T=x};
