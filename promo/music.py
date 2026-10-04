@@ -40,7 +40,7 @@ def whoosh(s,d=0.7):
     # lowpass-ish by cumulative smoothing
     k=np.ones(40)/40;noise=np.convolve(noise,k,'same')
     L[idx]+=noise*env*0.5*0.35;R[idx]+=noise*env*0.5*0.35
-for s in (7,12,27,34,40):whoosh(s)
+for s in (6.5,12,27,34,40):whoosh(s)
 # success ding at 26.8 and 2.4 thud
 def ding(s,fs=(1318.5,1760.0)):
     idx=(t>=s)&(t<s+1.5);tt=t[idx]-s
