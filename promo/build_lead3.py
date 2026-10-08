@@ -27,5 +27,5 @@ fc.append("[4:v][woman]overlay=190:780:eof_action=pass:enable='between(t,1.3,4.6
 fc.append(f"[o1][phone]overlay=292:440:eof_action=pass:enable='between(t,{S5},{S6})'[out]")
 filt=';'.join(fc)
 cmd=(f"ffmpeg -v error -y -i src/site-phone-demo.mp4 -loop 1 -i tmp/mask_phone.png -i src/site-woman.mp4 -loop 1 -i tmp/mask_woman.png -i tmp/base.mp4 "
-     f"-filter_complex \"{filt}\" -map \"[out]\" -an -t 49.7 -c:v libx264 -preset slow -crf 16 -pix_fmt yuv420p -r 30 -movflags +faststart out/mutrafa-promo-v5-9x16-silent.mp4")
+     f"-filter_complex \"{filt}\" -map \"[out]\" -an -t 49.7 -c:v libx264 -preset slow -crf 16 -pix_fmt yuv420p -r 30 -movflags +faststart out/mutrafa-promo-v6-9x16-silent.mp4")
 run(cmd); print('DONE')
