@@ -1,2 +1,4 @@
 frames/
-render.log
+fr_*/
+*.log
+out/music.wav
