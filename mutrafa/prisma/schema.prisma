@@ -1,0 +1,404 @@
+// مُترَفة — مخطط قاعدة البيانات (PostgreSQL)
+// ملاحظات تصميمية:
+//  - المبالغ بالهللة (Int) لتفادي أخطاء الفاصلة العشرية.
+//  - كل الأوقات تُكتب UTC؛ العرض يتم بتوقيت الصالون (Salon.timezone).
+//  - عزل المستأجرين: كل جدول تشغيلي يحمل salonId.
+//  - منع تعارض المواعيد على مستوى قاعدة البيانات (EXCLUDE constraint)
+//    مضاف في migration مستقلة لأنه غير مدعوم في Prisma DSL.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── الباقات والاشتراكات ─────────────────────────────────────────
+
+enum PlanCode {
+  INDIE // المستقلة   — 199 ر.س
+  SILVER // الفضية     — 299 ر.س
+  GOLD // الذهبية    — 499 ر.س
+  DIAMOND // الألماسية  — 999 ر.س
+}
+
+enum SubscriptionStatus {
+  TRIALING // فترة تجريبية 14 يوماً بميزات الذهبية
+  ACTIVE // مدفوع ونشط
+  PAST_DUE // تأخر السداد — الحجز مفتوح مع تنبيه
+  SUSPENDED // موقوف — صفحة الحجز متوقفة
+  CANCELED // ملغى
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+enum AddonKind {
+  EXTRA_CALENDAR // تقويم موظفة إضافي — 49 ر.س/شهر
+  EXTRA_BOOKINGS_100 // 100 حجز إضافي شهرياً — 49 ر.س
+  EXTRA_BOOKINGS_500 // 500 حجز إضافي شهرياً — 199 ر.س
+}
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  salonId            String             @unique // اشتراك واحد لكل صالون؛ الترقية تعدّل السجل نفسه
+  plan               PlanCode           @default(GOLD)
+  pendingPlan        PlanCode? // باقة بانتظار الدفع — تُفعَّل عند تأكيد السداد فقط
+  status             SubscriptionStatus @default(TRIALING)
+  billingCycle       BillingCycle       @default(MONTHLY)
+  trialEndsAt        DateTime?
+  currentPeriodStart DateTime           @default(now())
+  currentPeriodEnd   DateTime
+  canceledAt         DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  salon    Salon           @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  addons   AddonPurchase[]
+  payments Payment[]
+
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model AddonPurchase {
+  id             String    @id @default(cuid())
+  salonId        String
+  subscriptionId String
+  kind           AddonKind
+  quantity       Int       @default(1)
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+
+  salon        Salon        @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  payments     Payment[]
+
+  @@index([salonId, active])
+  @@map("addon_purchases")
+}
+
+// ─── الصالون والمستخدمون ─────────────────────────────────────────
+
+model Salon {
+  id                    String   @id @default(cuid())
+  name                  String
+  slug                  String   @unique // رابط الحجز: mutrafa.d-alal.com/{slug}
+  whatsappNumber        String // بصيغة دولية 9665XXXXXXXX (للعرض)
+  whatsappPhoneNumberId String?  @unique // معرّف رقم واتساب في Meta — لتوجيه الرسائل الواردة
+  city                  String?
+  timezone              String   @default("Asia/Riyadh")
+  brandColor            String   @default("#8a1538")
+  logoUrl               String?
+  depositPolicy         String? // نص سياسة العربون المعروضة للعميلة
+  bankName              String?
+  bankIban              String?
+  cancellationHours     Int      @default(24) // الإلغاء المجاني قبل الموعد بهذه الساعات
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  users        User[]
+  calendars    Calendar[]
+  services     Service[]
+  customers    Customer[]
+  appointments Appointment[]
+  waitlist     WaitlistEntry[]
+  payments     Payment[]
+  messages     MessageLog[]
+  auditLogs    AuditLog[]
+  reviews      Review[]
+  subscription Subscription?
+  addons       AddonPurchase[]
+
+  @@map("salons")
+}
+
+enum Role {
+  OWNER // مالكة — كل الصلاحيات
+  MANAGER // مشرفة — المواعيد والخدمات والتقارير والإعدادات
+  RECEPTIONIST // استقبال — المواعيد والعميلات وقائمة الانتظار
+}
+
+model User {
+  id           String    @id @default(cuid())
+  salonId      String
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         Role      @default(OWNER)
+  active       Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  salon     Salon      @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  sessions  Session[]
+  auditLogs AuditLog[]
+
+  @@index([salonId])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique // لا نخزن رمز الجلسة الخام أبداً
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// ─── التقويمات (موظفات) والخدمات ─────────────────────────────────
+
+model Calendar {
+  id            String   @id @default(cuid())
+  salonId       String
+  name          String
+  phone         String?
+  workingHours  Json     @default("{\"start\":\"09:00\",\"end\":\"21:00\",\"days\":[0,1,2,3,4,6]}")
+  commissionBps Int      @default(0) // العمولة بالنقاط الأساسية (1500 = 15%) — الذهبية وما فوق
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  salon        Salon             @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  services     CalendarService[]
+  appointments Appointment[]
+
+  @@index([salonId, isActive])
+  @@map("calendars")
+}
+
+model Service {
+  id                String   @id @default(cuid())
+  salonId           String
+  name              String
+  durationMinutes   Int
+  priceHalalas      Int
+  depositHalalas    Int      @default(0)
+  cancellationHours Int? // سياسة إلغاء مخصّصة للخدمة (الذهبية وما فوق)؛ null = سياسة الصالون
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  salon        Salon             @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  calendars    CalendarService[]
+  appointments Appointment[]
+  waitlist     WaitlistEntry[]
+
+  @@index([salonId, isActive])
+  @@map("services")
+}
+
+// ربط: أي موظفة تقدّم أي خدمة
+model CalendarService {
+  calendarId String
+  serviceId  String
+
+  calendar Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  service  Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([calendarId, serviceId])
+  @@map("calendar_services")
+}
+
+// ─── العميلات والمواعيد ──────────────────────────────────────────
+
+model Customer {
+  id          String   @id @default(cuid())
+  salonId     String
+  name        String
+  phone       String // بصيغة دولية 9665XXXXXXXX
+  noShowCount Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  salon        Salon           @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+  waitlist     WaitlistEntry[]
+  reviews      Review[]
+
+  @@unique([salonId, phone])
+  @@map("customers")
+}
+
+enum AppointmentStatus {
+  PENDING_DEPOSIT // بانتظار العربون (مهلة محدودة)
+  CONFIRMED // مؤكد
+  COMPLETED // تمت الخدمة
+  NO_SHOW // لم تحضر
+  CANCELLED // ملغى
+  EXPIRED // انتهت مهلة دفع العربون
+}
+
+enum BookingSource {
+  LINK // من صفحة الصالون
+  WHATSAPP // من محادثة واتساب
+  DASHBOARD // أُدخل من لوحة التحكم
+}
+
+model Appointment {
+  id             String            @id @default(cuid())
+  salonId        String
+  code           String            @unique // رقم الحجز المعروض: MT-XXXXXX
+  customerId     String
+  calendarId     String
+  serviceId      String
+  startsAt       DateTime
+  endsAt         DateTime
+  status         AppointmentStatus @default(PENDING_DEPOSIT)
+  holdUntil      DateTime? // مهلة دفع العربون — بعدها يُحرَّر الوقت
+  depositHalalas Int               @default(0)
+  priceHalalas   Int // سعر الخدمة وقت الحجز (يثبت السعر التاريخي)
+  source         BookingSource     @default(LINK)
+  confirmedAt    DateTime?
+  cancelledAt    DateTime?
+  cancelReason   String?
+  reminderSentAt DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  salon    Salon        @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  customer Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  calendar Calendar     @relation(fields: [calendarId], references: [id], onDelete: Restrict)
+  service  Service      @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  payments Payment[]
+  messages MessageLog[]
+  review   Review?
+
+  @@index([salonId, startsAt])
+  @@index([calendarId, startsAt])
+  @@index([salonId, status, createdAt])
+  @@map("appointments")
+}
+
+// ─── المدفوعات (عربون + اشتراك) ──────────────────────────────────
+
+enum PaymentKind {
+  DEPOSIT // عربون حجز
+  SUBSCRIPTION // اشتراك / ترقية باقة
+  ADDON // إضافة شهرية (تقويم أو حجوزات)
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  salonId        String
+  kind           PaymentKind
+  status         PaymentStatus @default(PENDING)
+  amountHalalas  Int
+  currency       String        @default("SAR")
+  provider       String        @default("sandbox") // sandbox | moyasar
+  providerRef    String        @unique // معرّف الفاتورة لدى البوابة (مطابقة webhook)
+  method         String? // mada | visa | applepay | googlepay
+  appointmentId  String?
+  addonId        String?
+  subscriptionId String?
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+
+  salon        Salon          @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  appointment  Appointment?   @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  subscription Subscription?  @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  addon        AddonPurchase? @relation(fields: [addonId], references: [id], onDelete: SetNull)
+
+  @@index([salonId, status])
+  @@index([appointmentId])
+  @@map("payments")
+}
+
+// ─── قائمة الانتظار ──────────────────────────────────────────────
+
+enum WaitlistStatus {
+  WAITING
+  NOTIFIED
+  BOOKED
+  REMOVED
+}
+
+model WaitlistEntry {
+  id            String         @id @default(cuid())
+  salonId       String
+  customerId    String
+  serviceId     String
+  preferredFrom DateTime? // أقرب وقت مفضل
+  status        WaitlistStatus @default(WAITING)
+  notifiedAt    DateTime?
+  createdAt     DateTime       @default(now())
+
+  salon    Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  service  Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([salonId, serviceId, status])
+  @@map("waitlist_entries")
+}
+
+// ─── تقييمات ─────────────────────────────────────────────────────
+
+model Review {
+  id            String   @id @default(cuid())
+  salonId       String
+  appointmentId String   @unique
+  customerId    String
+  score         Int // 1..5
+  comment       String?
+  createdAt     DateTime @default(now())
+
+  salon       Salon       @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([salonId, createdAt])
+  @@map("reviews")
+}
+
+// ─── سجلات واتساب والتدقيق ───────────────────────────────────────
+
+model MessageLog {
+  id            String   @id @default(cuid())
+  salonId       String
+  appointmentId String?
+  direction     String // out | in
+  toPhone       String?
+  fromPhone     String?
+  body          String
+  waMessageId   String?  @unique // idempotency ضد الإرسال المكرر
+  status        String   @default("queued") // queued | sent | delivered | read | failed | received | simulated
+  error         String?
+  createdAt     DateTime @default(now())
+
+  salon       Salon        @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([salonId, createdAt])
+  @@map("message_logs")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  salonId    String
+  userId     String?
+  action     String // مثال: appointment.cancel
+  entityType String
+  entityId   String?
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  salon Salon @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([salonId, createdAt])
+  @@map("audit_logs")
+}

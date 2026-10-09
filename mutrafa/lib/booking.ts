@@ -1,0 +1,379 @@
+import { db } from "./db";
+import { audit } from "./audit";
+import { loadSalonContext, type SalonContext } from "./salon-context";
+import { computeAvailableSlots, parseWorkingHours, type BusyInterval } from "./availability";
+import { generateBookingCode } from "./booking-code";
+import { createCheckout } from "./payments";
+import { effectiveCancellationHours, isFreeCancellation } from "./cancellation";
+import { hasFeature } from "./plans";
+import { addMinutes, localDayBounds, localDayKey, formatLocalDateTime } from "./time";
+import { normalizeSaPhone } from "./phone";
+import { sendWhatsAppText } from "./whatsapp";
+import { bookingUrl } from "./env";
+
+/** مدة الاحتفاظ بالموعد بانتظار العربون (ساعتان، كما في خطة الموقع) */
+export const DEPOSIT_HOLD_MINUTES = 120;
+
+export class BookingError extends Error {}
+
+const ACTIVE_STATUSES = ["PENDING_DEPOSIT", "CONFIRMED"] as const;
+const OVERLAP_CONSTRAINT = "appointments_no_calendar_overlap";
+
+/** يحرّر الحجوزات المنتهية مهلتها (لا تحجز الوقت بعد الآن) */
+export async function expireStaleHolds(salonId: string | null, now: Date = new Date()): Promise<number> {
+  const result = await db.appointment.updateMany({
+    where: {
+      ...(salonId ? { salonId } : {}),
+      status: "PENDING_DEPOSIT",
+      holdUntil: { lt: now },
+    },
+    data: { status: "EXPIRED" },
+  });
+  return result.count;
+}
+
+interface BookingInput {
+  salonId: string;
+  serviceId: string;
+  calendarId: string;
+  startsAt: Date;
+  customerName: string;
+  customerPhone: string; // أي صيغة؛ نطبّعها هنا
+  source: "LINK" | "WHATSAPP" | "DASHBOARD";
+}
+
+/**
+ * إنشاء حجز — نفس المسار للحجز العام ولوحة التحكم ولواتساب.
+ * الفحوصات: الحدود الشهرية، صحة الخدمة والموظفة، أن الموعد ضمن ساعات العمل وعلى الشبكة،
+ * ثم الإدراج داخل معاملة مع قيد التعارض في قاعدة البيانات كحارس نهائي.
+ */
+export async function createBooking(input: BookingInput, ctx: SalonContext) {
+  const phone = normalizeSaPhone(input.customerPhone);
+  if (!phone) throw new BookingError("رقم الجوال غير صالح. يجب أن يبدأ بـ 05 ويتكون من 10 أرقام.");
+  if (input.customerName.trim().length < 2) throw new BookingError("يرجى إدخال الاسم.");
+
+  if (!ctx.bookingsOpen) throw new BookingError("الحجز متوقف مؤقتاً. يرجى المحاولة لاحقاً.");
+  if (ctx.remaining.monthlyBookings <= 0) {
+    throw new BookingError("تم بلوغ حد الحجوزات الشهري لهذا الصالون.");
+  }
+
+  const salon = await db.salon.findUniqueOrThrow({ where: { id: input.salonId } });
+  const service = await db.service.findFirst({
+    where: { id: input.serviceId, salonId: input.salonId, isActive: true },
+  });
+  if (!service) throw new BookingError("هذه الخدمة غير متاحة.");
+
+  const calendar = await db.calendar.findFirst({
+    where: {
+      id: input.calendarId,
+      salonId: input.salonId,
+      isActive: true,
+      services: { some: { serviceId: service.id } },
+    },
+  });
+  if (!calendar) throw new BookingError("هذه الموظفة لا تقدّم هذه الخدمة.");
+
+  // الموعد يجب أن يكون ضمن الفتحات المتاحة فعلاً (ساعات العمل + الشبكة + غير مشغول)
+  const now = new Date();
+  const dayKey = localDayKey(input.startsAt, salon.timezone);
+  const slots = await availableSlotsFor({
+    salonId: input.salonId,
+    calendarId: calendar.id,
+    serviceId: service.id,
+    dayKey,
+    timeZone: salon.timezone,
+    now,
+    durationMinutes: service.durationMinutes,
+    workingHours: calendar.workingHours,
+  });
+  if (!slots.some((s) => s.getTime() === input.startsAt.getTime())) {
+    throw new BookingError("عذراً، هذا الموعد لم يعد متاحاً. اختاري وقتاً آخر.");
+  }
+
+  const endsAt = addMinutes(input.startsAt, service.durationMinutes);
+  const needsDeposit = service.depositHalalas > 0;
+
+  try {
+    const appointment = await db.$transaction(async (tx) => {
+      const customer = await tx.customer.upsert({
+        where: { salonId_phone: { salonId: input.salonId, phone } },
+        update: { name: input.customerName.trim() },
+        create: { salonId: input.salonId, phone, name: input.customerName.trim() },
+      });
+      return tx.appointment.create({
+        data: {
+          salonId: input.salonId,
+          code: await uniqueBookingCode(),
+          customerId: customer.id,
+          calendarId: calendar.id,
+          serviceId: service.id,
+          startsAt: input.startsAt,
+          endsAt,
+          status: needsDeposit ? "PENDING_DEPOSIT" : "CONFIRMED",
+          holdUntil: needsDeposit ? addMinutes(now, DEPOSIT_HOLD_MINUTES) : null,
+          confirmedAt: needsDeposit ? null : now,
+          depositHalalas: service.depositHalalas,
+          priceHalalas: service.priceHalalas,
+          source: input.source,
+        },
+        include: { customer: true, service: true, calendar: true },
+      });
+    });
+
+    await audit({
+      salonId: input.salonId,
+      action: "appointment.created",
+      entityType: "appointment",
+      entityId: appointment.id,
+      meta: { source: input.source, status: appointment.status },
+    });
+    return appointment;
+  } catch (e) {
+    if (isOverlapError(e)) throw new BookingError("عذراً، هذا الموعد حُجز للتو. اختاري وقتاً آخر.");
+    throw e;
+  }
+}
+
+/** بعد إنشاء الحجز: إن كان عليه عربون يُنشأ له checkout ويُعاد رابط الدفع */
+export async function startDepositPayment(appointmentId: string) {
+  const appt = await db.appointment.findUniqueOrThrow({
+    where: { id: appointmentId },
+    include: { service: true, salon: true },
+  });
+  if (appt.status !== "PENDING_DEPOSIT" || appt.depositHalalas <= 0) {
+    return null;
+  }
+  const payment = await db.payment.create({
+    data: {
+      salonId: appt.salonId,
+      kind: "DEPOSIT",
+      amountHalalas: appt.depositHalalas,
+      appointmentId: appt.id,
+      providerRef: `pending_${appt.id}_${Date.now()}`,
+    },
+  });
+  const checkout = await createCheckout({
+    amountHalalas: appt.depositHalalas,
+    description: `عربون ${appt.service.name} — ${appt.code}`,
+    successPath: `/${appt.salon.slug}/booking/${appt.code}?ok=deposit`,
+    paymentId: payment.id,
+  });
+  await db.payment.update({ where: { id: payment.id }, data: { providerRef: checkout.providerRef } });
+  return checkout;
+}
+
+/** يُستدعى من markPaymentPaid عند دفع العربون */
+export async function confirmAppointmentAfterDeposit(appointmentId: string): Promise<void> {
+  const appt = await db.appointment.findUnique({
+    where: { id: appointmentId },
+    include: { customer: true, salon: true, service: true },
+  });
+  if (!appt || appt.status !== "PENDING_DEPOSIT") return; // مؤكد مسبقاً أو منتهٍ — idempotent
+
+  await db.appointment.update({
+    where: { id: appt.id },
+    data: { status: "CONFIRMED", confirmedAt: new Date(), holdUntil: null },
+  });
+  await notifyCustomer(appt.salonId, appt.id, appt.customer.phone, appointmentConfirmedMessage(appt, appt.salon.timezone));
+}
+
+/** تأكيد عربون يدوياً (تحويل بنكي) من لوحة التحكم */
+export async function confirmDepositManually(salonId: string, userId: string, appointmentId: string): Promise<void> {
+  const appt = await db.appointment.findFirst({ where: { id: appointmentId, salonId, status: "PENDING_DEPOSIT" } });
+  if (!appt) throw new BookingError("لا يمكن تأكيد هذا الحجز.");
+  await db.payment.create({
+    data: {
+      salonId,
+      kind: "DEPOSIT",
+      status: "PAID",
+      amountHalalas: appt.depositHalalas,
+      method: "manual_transfer",
+      appointmentId,
+      providerRef: `manual_${appointmentId}_${Date.now()}`,
+      provider: "manual",
+      paidAt: new Date(),
+    },
+  });
+  await confirmAppointmentAfterDeposit(appointmentId);
+  await audit({ salonId, userId, action: "deposit.confirmed_manually", entityType: "appointment", entityId: appointmentId });
+}
+
+/** إلغاء من الصالون أو العميلة. يحرّر الوقت ويُخطر قائمة الانتظار (الذهبية). */
+export async function cancelAppointment(params: {
+  salonId: string;
+  appointmentId: string;
+  byCustomer: boolean;
+  reason: string;
+  userId?: string | null;
+  now?: Date;
+}): Promise<{ freeCancellation: boolean }> {
+  const now = params.now ?? new Date();
+  const appt = await db.appointment.findFirst({
+    where: { id: params.appointmentId, salonId: params.salonId, status: { in: [...ACTIVE_STATUSES] } },
+    include: { service: true, salon: true, customer: true },
+  });
+  if (!appt) throw new BookingError("لا يمكن إلغاء هذا الحجز.");
+
+  const ctx = await loadSalonContext(params.salonId, now);
+  const hours = effectiveCancellationHours(appt.salon.cancellationHours, appt.service.cancellationHours, ctx.entitlements);
+  const free = isFreeCancellation(appt.startsAt, now, hours);
+
+  await db.appointment.update({
+    where: { id: appt.id },
+    data: {
+      status: "CANCELLED",
+      cancelledAt: now,
+      cancelReason: free ? params.reason : `${params.reason} (بعد مهلة الإلغاء المجاني — العربون محتفظ به)`,
+    },
+  });
+  await audit({
+    salonId: params.salonId,
+    userId: params.userId ?? null,
+    action: "appointment.cancelled",
+    entityType: "appointment",
+    entityId: appt.id,
+    meta: { byCustomer: params.byCustomer, freeCancellation: free },
+  });
+
+  await notifyCustomer(
+    params.salonId,
+    appt.id,
+    appt.customer.phone,
+    `تم إلغاء الحجز ${appt.code}. ${free ? "" : "ملاحظة: الإلغاء بعد مهلة الإلغاء المجاني، والعربون محتفظ به وفق السياسة. "}نتمنى رؤيتك قريباً 🌸`
+  );
+
+  if (hasFeature(ctx.entitlements, "waitlist.auto")) {
+    await notifyWaitlistForFreedSlot(params.salonId, appt.serviceId, appt.startsAt);
+  }
+  return { freeCancellation: free };
+}
+
+/** تعليم الموعد: مكتمل (ويُرسل طلب التقييم) أو لم تحضر (يرفع عداد العميلة) */
+export async function markAppointmentOutcome(params: {
+  salonId: string;
+  appointmentId: string;
+  outcome: "COMPLETED" | "NO_SHOW";
+  userId: string;
+}): Promise<void> {
+  const appt = await db.appointment.findFirst({
+    where: { id: params.appointmentId, salonId: params.salonId, status: "CONFIRMED" },
+    include: { customer: true, salon: true },
+  });
+  if (!appt) throw new BookingError("لا يمكن تحديث هذا الحجز.");
+
+  await db.$transaction(async (tx) => {
+    await tx.appointment.update({ where: { id: appt.id }, data: { status: params.outcome } });
+    if (params.outcome === "NO_SHOW") {
+      await tx.customer.update({ where: { id: appt.customerId }, data: { noShowCount: { increment: 1 } } });
+    }
+  });
+
+  if (params.outcome === "COMPLETED") {
+    await notifyCustomer(
+      params.salonId,
+      appt.id,
+      appt.customer.phone,
+      `نتمنى أن نالت الخدمة إعجابك 🌸 شاركينا رأيك في دقيقة:\n${bookingUrl(appt.salon.slug)}/booking/${appt.code}`
+    );
+  }
+  await audit({
+    salonId: params.salonId,
+    userId: params.userId,
+    action: `appointment.${params.outcome.toLowerCase()}`,
+    entityType: "appointment",
+    entityId: appt.id,
+  });
+}
+
+/** فتحات متاحة ليوم معين لموظفة وخدمة (تستخدمها الصفحة العامة ولوحة التحكم) */
+export async function availableSlotsFor(params: {
+  salonId: string;
+  calendarId: string;
+  serviceId: string;
+  dayKey: string;
+  timeZone: string;
+  now?: Date;
+  durationMinutes?: number;
+  workingHours?: unknown;
+}) {
+  const service = params.durationMinutes
+    ? { durationMinutes: params.durationMinutes }
+    : await db.service.findUniqueOrThrow({ where: { id: params.serviceId }, select: { durationMinutes: true } });
+  const calendar = params.workingHours
+    ? { workingHours: params.workingHours }
+    : await db.calendar.findUniqueOrThrow({ where: { id: params.calendarId }, select: { workingHours: true } });
+
+  const bounds = localDayBounds(params.dayKey, params.timeZone);
+  const busyRows = await db.appointment.findMany({
+    where: {
+      calendarId: params.calendarId,
+      salonId: params.salonId,
+      status: { in: [...ACTIVE_STATUSES] },
+      startsAt: { lt: bounds.end },
+      endsAt: { gt: bounds.start },
+      // الحجز المعلّق منتهي المهلة لا يحجز الوقت
+      OR: [{ status: "CONFIRMED" }, { status: "PENDING_DEPOSIT", holdUntil: { gt: params.now ?? new Date() } }],
+    },
+    select: { startsAt: true, endsAt: true },
+  });
+  const busy: BusyInterval[] = busyRows.map((r) => ({ start: r.startsAt, end: r.endsAt }));
+
+  return computeAvailableSlots({
+    dayKey: params.dayKey,
+    timeZone: params.timeZone,
+    hours: parseWorkingHours(calendar.workingHours),
+    durationMinutes: service.durationMinutes,
+    busy,
+    now: params.now ?? new Date(),
+  });
+}
+
+/** الفئة: إشعار قائمة الانتظار الأولى عند تحرّر موعد — الذهبية وما فوق */
+async function notifyWaitlistForFreedSlot(salonId: string, serviceId: string, freedAt: Date): Promise<void> {
+  const salon = await db.salon.findUniqueOrThrow({ where: { id: salonId } });
+  const entry = await db.waitlistEntry.findFirst({
+    where: {
+      salonId,
+      serviceId,
+      status: "WAITING",
+      OR: [{ preferredFrom: null }, { preferredFrom: { lte: freedAt } }],
+    },
+    orderBy: { createdAt: "asc" },
+    include: { customer: true, service: true },
+  });
+  if (!entry) return;
+  await db.waitlistEntry.update({ where: { id: entry.id }, data: { status: "NOTIFIED", notifiedAt: new Date() } });
+  await notifyCustomer(
+    salonId,
+    null,
+    entry.customer.phone,
+    `أخبار سارة 🌸 تحرّر موعد في ${entry.service.name} بتاريخ ${formatLocalDateTime(freedAt, salon.timezone)}.\nاحجزي قبل غيرك عبر: ${bookingUrl(salon.slug)}`
+  );
+}
+
+export function appointmentConfirmedMessage(
+  appt: { code: string; startsAt: Date; service: { name: string } },
+  timeZone: string
+): string {
+  return `تم تأكيد حجزك ✅\nرقم الحجز: ${appt.code}\n${appt.service.name} — ${formatLocalDateTime(appt.startsAt, timeZone)}\nإلينا لقاؤك 🌸`;
+}
+
+async function notifyCustomer(salonId: string, appointmentId: string | null, phone: string, body: string) {
+  // لا يفشل أي إجراء بسبب واتساب: sendWhatsAppText يسجّل الفشل داخلياً
+  await sendWhatsAppText({ salonId, appointmentId, toPhone: phone, body });
+}
+
+async function uniqueBookingCode(attempt = 0): Promise<string> {
+  const code = generateBookingCode();
+  const exists = await db.appointment.findUnique({ where: { code }, select: { id: true } });
+  if (!exists) return code;
+  if (attempt >= 5) throw new BookingError("تعذّر توليد رقم حجز فريد، أعيدي المحاولة.");
+  return uniqueBookingCode(attempt + 1);
+}
+
+function isOverlapError(e: unknown): boolean {
+  const message = e instanceof Error ? e.message : String(e);
+  const code = (e as { code?: string })?.code;
+  return message.includes(OVERLAP_CONSTRAINT) || code === "23P01";
+}
+
