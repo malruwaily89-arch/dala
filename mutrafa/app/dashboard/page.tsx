@@ -21,20 +21,27 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const { start, end } = localDayBounds(dayKey, tz);
   const canManage = canUse(user, ctx, "appointments.manage");
 
-  const [appointments, calendars, services] = await Promise.all([
+  const [appointments, calendars] = await Promise.all([
     db.appointment.findMany({
       where: { salonId: salon.id, startsAt: { gte: start, lt: end }, status: { notIn: ["CANCELLED", "EXPIRED"] } },
       include: { customer: true, service: true, calendar: true },
       orderBy: { startsAt: "asc" },
     }),
-    db.calendar.findMany({ where: { salonId: salon.id, isActive: true }, orderBy: { createdAt: "asc" } }),
-    db.service.findMany({ where: { salonId: salon.id, isActive: true }, select: { durationMinutes: true } }),
+    db.calendar.findMany({
+      where: { salonId: salon.id, isActive: true },
+      orderBy: { createdAt: "asc" },
+      include: { services: { include: { service: true } } },
+    }),
   ]);
 
   const confirmed = appointments.filter((a) => a.status === "CONFIRMED").length;
   const pending = appointments.filter((a) => a.status === "PENDING_DEPOSIT").length;
   const done = appointments.filter((a) => a.status === "COMPLETED").length;
-  const minDuration = services.length ? Math.min(...services.map((s) => s.durationMinutes)) : 30;
+  // أقصر مدة لكل موظفة حسب الخدمات التي تقدمها هي فعلاً
+  const minDurationOf = (c: (typeof calendars)[number]) => {
+    const durations = c.services.filter((cs) => cs.service.isActive).map((cs) => cs.durationMinutes ?? cs.service.durationMinutes);
+    return durations.length ? Math.min(...durations) : null;
+  };
 
   // إشغال الموظفات اليوم: الدقائق المحجوزة / دقائق العمل
   const occupancy = calendars.map((c) => {
@@ -49,7 +56,10 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       .map((a) => ({ start: a.startsAt, end: a.endsAt }));
     const bookedMinutes = busy.reduce((sum, b) => sum + (b.end.getTime() - b.start.getTime()) / 60_000, 0);
     const slots = working
-      ? computeAvailableSlots({ dayKey, timeZone: tz, hours, durationMinutes: minDuration, busy, now })
+      ? (() => {
+          const d = minDurationOf(c);
+          return d === null ? [] : computeAvailableSlots({ dayKey, timeZone: tz, hours, durationMinutes: d, busy, now });
+        })()
       : [];
     return {
       id: c.id,

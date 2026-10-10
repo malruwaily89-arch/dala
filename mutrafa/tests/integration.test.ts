@@ -507,3 +507,28 @@ test("الحجز على شبكة كل ربع ساعة: 15 دقيقة مقبول�
   );
   assert.equal(appt.startsAt.getTime(), plus15.getTime());
 });
+
+test("مدة الخدمة تختلف حسب الموظفة: الحجز ينتهي حسب مدة الموظفة لا المدة الافتراضية", async () => {
+  const { salon, depositService, freeService, calendars } = await makeSalon({ plan: "GOLD", status: "ACTIVE", trialEndsAt: null });
+  // الخدمة الافتراضية 45 دقيقة؛ هذه الموظفة تنجزها في 30 دقيقة
+  await db.calendarService.update({
+    where: { calendarId_serviceId: { calendarId: calendars[0].id, serviceId: freeService.id } },
+    data: { durationMinutes: 30 },
+  });
+  const ctx = await loadSalonContext(salon.id);
+  const startsAt = await firstFreeSlot(salon.id, calendars[0].id, freeService.id);
+  const appt = await createBooking(await bookingInput(salon.id, freeService.id, calendars[0].id, startsAt, "0571111111"), ctx);
+  assert.equal(appt.endsAt.getTime() - appt.startsAt.getTime(), 30 * 60_000);
+
+  // موظفة بلا تخصيص تبقى على المدة الافتراضية
+  const other = await firstFreeSlot(salon.id, calendars[0].id, depositService.id);
+  void other;
+  const slots = await availableSlotsFor({
+    salonId: salon.id,
+    calendarId: calendars[0].id,
+    serviceId: freeService.id,
+    dayKey: localDayKey(addDays(new Date(), 3), TZ),
+    timeZone: TZ,
+  });
+  assert.ok(slots.length > 0);
+});

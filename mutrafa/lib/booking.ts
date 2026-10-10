@@ -70,8 +70,11 @@ export async function createBooking(input: BookingInput, ctx: SalonContext) {
       isActive: true,
       services: { some: { serviceId: service.id } },
     },
+    include: { services: { where: { serviceId: service.id }, select: { durationMinutes: true } } },
   });
   if (!calendar) throw new BookingError("هذه الموظفة لا تقدّم هذه الخدمة.");
+  // مدة الخدمة عند هذه الموظفة (إن حُددت)، وإلا المدة الافتراضية للخدمة
+  const duration = calendar.services[0]?.durationMinutes ?? service.durationMinutes;
 
   // الموعد يجب أن يكون ضمن الفتحات المتاحة فعلاً (ساعات العمل + الشبكة + غير مشغول)
   const now = new Date();
@@ -84,7 +87,7 @@ export async function createBooking(input: BookingInput, ctx: SalonContext) {
     dayKey,
     timeZone: salon.timezone,
     now,
-    durationMinutes: service.durationMinutes,
+    durationMinutes: duration,
     workingHours: calendar.workingHours,
     stepMinutes: SLOT_STEP_MINUTES,
   });
@@ -92,7 +95,7 @@ export async function createBooking(input: BookingInput, ctx: SalonContext) {
     throw new BookingError("عذراً، هذا الموعد لم يعد متاحاً. اختاري وقتاً آخر.");
   }
 
-  const endsAt = addMinutes(input.startsAt, service.durationMinutes);
+  const endsAt = addMinutes(input.startsAt, duration);
   const needsDeposit = service.depositHalalas > 0;
 
   try {
@@ -299,9 +302,16 @@ export async function availableSlotsFor(params: {
   workingHours?: unknown;
   stepMinutes?: number;
 }) {
-  const service = params.durationMinutes
-    ? { durationMinutes: params.durationMinutes }
-    : await db.service.findUniqueOrThrow({ where: { id: params.serviceId }, select: { durationMinutes: true } });
+  // المدة الفعلية = مدة الموظفة للخدمة إن وُجدت، وإلا مدة الخدمة الافتراضية
+  const duration =
+    params.durationMinutes ??
+    (await (async () => {
+      const link = await db.calendarService.findUnique({
+        where: { calendarId_serviceId: { calendarId: params.calendarId, serviceId: params.serviceId } },
+        select: { durationMinutes: true, service: { select: { durationMinutes: true } } },
+      });
+      return link?.durationMinutes ?? link?.service.durationMinutes ?? 0;
+    })());
   const calendar = params.workingHours
     ? { workingHours: params.workingHours }
     : await db.calendar.findUniqueOrThrow({ where: { id: params.calendarId }, select: { workingHours: true } });
@@ -325,7 +335,7 @@ export async function availableSlotsFor(params: {
     dayKey: params.dayKey,
     timeZone: params.timeZone,
     hours: parseWorkingHours(calendar.workingHours),
-    durationMinutes: service.durationMinutes,
+    durationMinutes: duration,
     busy,
     now: params.now ?? new Date(),
     stepMinutes: params.stepMinutes,

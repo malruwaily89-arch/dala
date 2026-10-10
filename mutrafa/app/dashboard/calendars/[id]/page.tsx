@@ -10,6 +10,8 @@ import { APPOINTMENT_STATUS } from "@/lib/labels";
 import { displayPhone } from "@/lib/phone";
 import { Badge, Banner, Card, PageHeader, btnGhost } from "@/components/ui";
 import { QuickBook } from "@/components/dashboard/quick-book";
+import { updateCalendarServicesAction } from "@/app/actions/catalog";
+import { inputCls, btnPrimary } from "@/components/ui";
 
 export const metadata: Metadata = { title: "جدول الموظفة" };
 
@@ -28,6 +30,8 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
     include: { services: { include: { service: true } } },
   });
   if (!calendar) notFound();
+  const allServices = await db.service.findMany({ where: { salonId: salon.id, isActive: true }, orderBy: { name: "asc" } });
+  const linked = new Map(calendar.services.map((cs) => [cs.serviceId, cs]));
 
   const now = new Date();
   const dayKey = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : localDayKey(now, tz);
@@ -57,7 +61,9 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
   }));
 
   const rows = buildDayTimeline({ dayKey, timeZone: tz, hours, bookings, now });
-  const minDuration = calendar.services.length ? Math.min(...calendar.services.map((s) => s.service.durationMinutes)) : 30;
+  const effectiveDuration = (cs: { durationMinutes: number | null; service: { durationMinutes: number } }) =>
+    cs.durationMinutes ?? cs.service.durationMinutes;
+  const minDuration = calendar.services.length ? Math.min(...calendar.services.map(effectiveDuration)) : 30;
   const freeStarts = computeAvailableSlots({
     dayKey,
     timeZone: tz,
@@ -71,7 +77,12 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
   const workEndMs = rows.length ? rows[rows.length - 1].start.getTime() + 15 * 60_000 : 0;
   const activeServices = calendar.services
     .filter((cs) => cs.service.isActive)
-    .map((cs) => ({ id: cs.service.id, name: cs.service.name, durationMinutes: cs.service.durationMinutes }));
+    .map((cs) => ({ id: cs.service.id, name: cs.service.name, durationMinutes: effectiveDuration(cs) }));
+  // طول الفترة الفارغة الحقيقي: من الخانة حتى الحجز التالي أو نهاية الدوام
+  const gapMinutes = (startMs: number) => {
+    const next = bookings.map((b) => b.start.getTime()).filter((t) => t > startMs).sort((a, b) => a - b)[0];
+    return Math.round(((next ?? workEndMs) - startMs) / 60_000);
+  };
   const fittingServices = (startMs: number) =>
     activeServices.filter((svc) => {
       const endMs = startMs + svc.durationMinutes * 60_000;
@@ -99,6 +110,7 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
       />
 
       {ok === "booked" && <Banner tone="success">تم حفظ الحجز بنجاح ✅</Banner>}
+      {ok === "services" && <Banner tone="success">تم حفظ خدمات الموظفة ومددها ✅</Banner>}
       {error && <Banner>{error}</Banner>}
       {!workingDay && <Banner tone="info">هذه الموظفة في إجازة في هذا اليوم.</Banner>}
 
@@ -110,6 +122,42 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
         </form>
         <Link href={`/dashboard/calendars/${calendar.id}?date=${next}`} className={btnGhost}>اليوم التالي ›</Link>
       </div>
+
+      <details className="mb-8 rounded-2xl border border-brand/10 bg-white p-5 shadow-sm">
+        <summary className="cursor-pointer font-bold text-brand">الخدمات التي تقدمها ومدة كل خدمة</summary>
+        <p className="mt-2 text-xs text-zinc-500">
+          حددي الخدمات التي تقدمها هذه الموظفة، ومدة كل منها عندها. إن تركتِ المدة فارغة تُستخدم المدة الافتراضية للخدمة.
+        </p>
+        <form action={updateCalendarServicesAction} className="mt-4 space-y-3">
+          <input type="hidden" name="calendarId" value={calendar.id} />
+          {allServices.length === 0 && <p className="text-sm text-zinc-500">أضيفي خدمات أولاً من صفحة الخدمات.</p>}
+          {allServices.map((svc) => {
+            const link = linked.get(svc.id);
+            return (
+              <div key={svc.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-zinc-100 px-4 py-3">
+                <label className="flex min-w-48 flex-1 items-center gap-2 text-sm font-semibold">
+                  <input type="checkbox" name="serviceIds" value={svc.id} defaultChecked={Boolean(link)} className="h-4 w-4 accent-brand" />
+                  {svc.name}
+                </label>
+                <label className="flex items-center gap-2 text-xs text-zinc-600">
+                  المدة (دقيقة)
+                  <input
+                    name={`duration_${svc.id}`}
+                    type="number"
+                    min={15}
+                    max={480}
+                    step={5}
+                    defaultValue={link?.durationMinutes ?? ""}
+                    placeholder={String(svc.durationMinutes)}
+                    className={`${inputCls} w-28`}
+                  />
+                </label>
+              </div>
+            );
+          })}
+          {allServices.length > 0 && <button className={btnPrimary}>حفظ الخدمات</button>}
+        </form>
+      </details>
 
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
         <Card>
@@ -159,7 +207,15 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
 
                 {row.status === "free" && (
                   <div className="flex flex-1 items-center justify-between gap-3">
-                    <span className="text-sm font-semibold text-emerald-700">متاح</span>
+                    {fittingServices(row.start.getTime()).length > 0 ? (
+                      <span className="text-sm font-semibold text-emerald-700">
+                        متاح · فترة {gapMinutes(row.start.getTime())} دقيقة
+                      </span>
+                    ) : (
+                      <span className="text-sm text-zinc-500">
+                        فارغة {gapMinutes(row.start.getTime())} دقيقة · لا تكفي لأي خدمة
+                      </span>
+                    )}
                     {fittingServices(row.start.getTime()).length > 0 ? (
                       <QuickBook
                         calendarId={calendar.id}
@@ -170,7 +226,7 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
                         services={fittingServices(row.start.getTime())}
                       />
                     ) : (
-                      <span className="text-xs text-zinc-400">لا تتسع لأي خدمة</span>
+                      <span />
                     )}
                   </div>
                 )}

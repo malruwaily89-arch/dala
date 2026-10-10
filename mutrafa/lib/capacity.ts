@@ -20,7 +20,10 @@ export async function remainingFreeSlots(
   });
   const active = calendars
     .map((c) => {
-      const services = c.services.filter((cs) => cs.service.isActive).map((cs) => cs.service.durationMinutes);
+      // مدة كل خدمة عند هذه الموظفة (تتجاوز المدة الافتراضية إن حُددت)
+      const services = c.services
+        .filter((cs) => cs.service.isActive)
+        .map((cs) => cs.durationMinutes ?? cs.service.durationMinutes);
       return { id: c.id, name: c.name, hours: parseWorkingHours(c.workingHours), minDuration: services.length ? Math.min(...services) : null };
     })
     .filter((c) => c.minDuration !== null);

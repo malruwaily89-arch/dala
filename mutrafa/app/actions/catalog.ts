@@ -152,3 +152,45 @@ export async function toggleCalendarAction(formData: FormData) {
   }
   if (done) revalidatePath(path);
 }
+
+/** ضبط الخدمات التي تقدمها الموظفة ومدة كل خدمة عندها (فارغة = المدة الافتراضية للخدمة) */
+export async function updateCalendarServicesAction(formData: FormData) {
+  const calendarId = String(formData.get("calendarId") ?? "");
+  const path = `/dashboard/calendars/${encodeURIComponent(calendarId)}`;
+  let done = false;
+  try {
+    const { user, salon } = await requireCan("calendars.manage");
+    const calendar = await db.calendar.findFirst({ where: { id: calendarId, salonId: salon.id }, select: { id: true } });
+    if (!calendar) throw new BookingError("التقويم غير موجود");
+
+    const services = await db.service.findMany({ where: { salonId: salon.id, isActive: true } });
+    const selected = new Set(formData.getAll("serviceIds").map(String));
+    const rows: { calendarId: string; serviceId: string; durationMinutes: number | null }[] = [];
+    for (const svc of services) {
+      if (!selected.has(svc.id)) continue;
+      const raw = String(formData.get(`duration_${svc.id}`) ?? "").trim();
+      let duration: number | null = null;
+      if (raw) {
+        const n = Number(raw);
+        if (!Number.isInteger(n) || n < 15 || n > 480 || n % 5 !== 0) {
+          throw new BookingError(`مدة "${svc.name}" يجب أن تكون بين 15 و480 دقيقة، وبخطوة 5 دقائق`);
+        }
+        duration = n;
+      }
+      rows.push({ calendarId, serviceId: svc.id, durationMinutes: duration });
+    }
+
+    await db.$transaction([
+      db.calendarService.deleteMany({ where: { calendarId } }),
+      db.calendarService.createMany({ data: rows }),
+    ]);
+    await audit({ salonId: salon.id, userId: user.id, action: "calendar.services_updated", entityType: "calendar", entityId: calendarId, meta: { count: rows.length } });
+    done = true;
+  } catch (e) {
+    fail(path, e);
+  }
+  if (done) {
+    revalidatePath(path);
+    redirect(`${path}?ok=services`);
+  }
+}

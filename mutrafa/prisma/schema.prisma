@@ -198,8 +198,9 @@ model Service {
 
 // ربط: أي موظفة تقدّم أي خدمة
 model CalendarService {
-  calendarId String
-  serviceId  String
+  calendarId      String
+  serviceId       String
+  durationMinutes Int? // مدة الخدمة عند هذه الموظفة (تتجاوز مدة الخدمة الافتراضية إن وُجدت)
 
   calendar Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   service  Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
