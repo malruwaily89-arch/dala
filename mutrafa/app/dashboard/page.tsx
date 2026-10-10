@@ -77,16 +77,21 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   return (
     <div>
       <PageHeader title="اليوم" subtitle={formatLocalDate(now, tz)} />
+      {pending > 0 && (
+        <Banner tone="warning">
+          {pending} حجز بانتظار العربون اليوم. الحجز يُلغى تلقائياً إن لم يُدفع خلال مهلته، ويتحرر الوقت للعميلات الأخريات.
+        </Banner>
+      )}
       {welcome === "1" && (
         <Banner tone="success">أهلاً بك في مُترَفة 🌸 ابدئي بإضافة خدماتك ثم موظفاتك، وشاركي رابط حجزك مع عميلاتك.</Banner>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <Stat label="مواعيد متاحة اليوم" value={String(totalFree)} note="لكامل الصالون (حسب أقصر خدمة)" />
-        <Stat label="مواعيد اليوم" value={String(appointments.length)} />
-        <Stat label="مؤكدة" value={String(confirmed)} note={`${done} مكتملة`} />
-        <Stat label="بانتظار العربون" value={String(pending)} />
-        <Stat label="حجوزات الشهر" value={`${ctx.usage.monthlyBookings} من ${usage}`} note={`متبقٍ ${ctx.remaining.monthlyBookings} حجز هذا الشهر`} />
+        <Stat label="مواعيد متاحة اليوم" value={String(totalFree)} note="لكامل الصالون (حسب أقصر خدمة)" tone="sky" />
+        <Stat label="مواعيد اليوم" value={String(appointments.length)} tone="brand" />
+        <Stat label="مؤكدة" value={String(confirmed)} note={`${done} مكتملة`} tone="emerald" />
+        <Stat label="بانتظار العربون" value={String(pending)} tone={pending > 0 ? "amber" : "brand"} />
+        <Stat label="حجوزات الشهر" value={`${ctx.usage.monthlyBookings} من ${usage}`} note={`متبقٍ ${ctx.remaining.monthlyBookings} حجز هذا الشهر`} tone="gold" />
       </div>
 
       <h2 className="mb-3 mt-10 text-lg font-bold text-ink">إشغال الموظفات والمواعيد الفارغة</h2>
