@@ -85,9 +85,10 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {occupancy.map((o) => (
-            <Card key={o.id}>
+            <Link key={o.id} href={`/dashboard/calendars/${o.id}`} className="block rounded-2xl transition hover:-translate-y-0.5 hover:shadow-md">
+            <Card>
               <div className="flex items-center justify-between">
-                <Link href={`/dashboard/calendars/${o.id}`} className="font-bold text-brand hover:underline">{o.name}</Link>
+                <p className="font-bold text-brand">{o.name}</p>
                 {!o.working && <Badge className="bg-zinc-100 text-zinc-600">إجازة اليوم</Badge>}
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-100">
@@ -98,6 +99,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
                 {o.nextFree && ` · أقرب موعد فارغ ${o.nextFree}`}
               </p>
             </Card>
+            </Link>
           ))}
         </div>
       )}
