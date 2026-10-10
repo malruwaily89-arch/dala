@@ -15,6 +15,7 @@ export interface PeriodSummary {
   noShow: number;
   cancelled: number;
   serviceRevenueHalalas: number; // سعر الخدمات المكتملة
+  confirmedRevenueHalalas: number; // قيمة المواعيد المؤكدة التي لم تُنفَّذ بعد
   depositsCollectedHalalas: number; // العربون المحصّل (مدفوعات PAID)
   noShowDepositHalalas: number; // عربون محصّل من غير الحاضرات — ربح صافٍ
   newCustomers: number;
@@ -72,6 +73,9 @@ export async function periodSummary(
   const serviceRevenueHalalas = appointments
     .filter((a) => a.status === "COMPLETED")
     .reduce((sum, a) => sum + a.priceHalalas, 0);
+  const confirmedRevenueHalalas = appointments
+    .filter((a) => a.status === "CONFIRMED")
+    .reduce((sum, a) => sum + a.priceHalalas, 0);
 
   const countable = bookingsCreated - byStatus("EXPIRED");
   return {
@@ -83,6 +87,7 @@ export async function periodSummary(
     noShow,
     cancelled,
     serviceRevenueHalalas,
+    confirmedRevenueHalalas,
     depositsCollectedHalalas: payments._sum.amountHalalas ?? 0,
     noShowDepositHalalas,
     newCustomers,
@@ -133,30 +138,32 @@ export async function commissionReport(salonId: string, timeZone: string, now = 
   });
 }
 
-/** عدد الحجوزات لكل يوم محلي في الفترة (الأيام بلا حجوزات تظهر بصفر) */
+/** الحجوزات لكل يوم محلي مفصّلة بالحالة (تستخدمها الرسوم البيانية والتصدير) */
 export async function dailyBookings(
   salonId: string,
   from: Date,
   to: Date,
   timeZone: string
-): Promise<{ day: string; count: number; completed: number }[]> {
+): Promise<{ day: string; count: number; confirmed: number; completed: number; noShow: number }[]> {
   const rows = await db.appointment.findMany({
     where: { salonId, startsAt: { gte: from, lt: to }, status: { notIn: ["CANCELLED", "EXPIRED"] } },
     select: { startsAt: true, status: true },
   });
-  const byDay = new Map<string, { count: number; completed: number }>();
+  const byDay = new Map<string, { count: number; confirmed: number; completed: number; noShow: number }>();
   for (const r of rows) {
     const key = localDayKey(r.startsAt, timeZone);
-    const entry = byDay.get(key) ?? { count: 0, completed: 0 };
+    const entry = byDay.get(key) ?? { count: 0, confirmed: 0, completed: 0, noShow: 0 };
     entry.count += 1;
+    if (r.status === "CONFIRMED") entry.confirmed += 1;
     if (r.status === "COMPLETED") entry.completed += 1;
+    if (r.status === "NO_SHOW") entry.noShow += 1;
     byDay.set(key, entry);
   }
-  const days: { day: string; count: number; completed: number }[] = [];
+  const days: { day: string; count: number; confirmed: number; completed: number; noShow: number }[] = [];
   for (let cur = from; cur < to; cur = addDays(cur, 1)) {
     const key = localDayKey(cur, timeZone);
     if (days.length && days[days.length - 1].day === key) continue;
-    const entry = byDay.get(key) ?? { count: 0, completed: 0 };
+    const entry = byDay.get(key) ?? { count: 0, confirmed: 0, completed: 0, noShow: 0 };
     days.push({ day: key, ...entry });
   }
   return days;
