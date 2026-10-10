@@ -10,7 +10,7 @@ import { displayPhone } from "@/lib/phone";
 import { formatBookingCode } from "@/lib/booking-code";
 import { createDashboardBookingAction } from "@/app/actions/appointments";
 import { AppointmentActions } from "@/components/dashboard/appointment-actions";
-import { Badge, Banner, Card, EmptyState, Field, PageHeader, PhoneField, btnPrimary, inputCls } from "@/components/ui";
+import { Badge, Banner, Card, EmptyState, Field, PageHeader, PhoneField, btnGhost, btnPrimary, inputCls, selectCls } from "@/components/ui";
 
 export const metadata: Metadata = { title: "المواعيد" };
 
@@ -107,7 +107,7 @@ export default async function AppointmentsPage({ searchParams }: Props) {
           <div className="flex flex-wrap items-center gap-3 md:col-span-3">
             <button className={btnPrimary}>بحث</button>
             {searching && (
-              <Link href="/dashboard/appointments" className="rounded-full border px-4 py-2 text-sm font-bold">عرض اليوم</Link>
+              <Link href="/dashboard/appointments" className={btnGhost}>عرض اليوم</Link>
             )}
           </div>
         </form>
@@ -115,12 +115,12 @@ export default async function AppointmentsPage({ searchParams }: Props) {
 
       {!searching && (
         <div className="mb-6 flex flex-wrap items-center gap-3">
-          <Link href={`/dashboard/appointments?date=${prev}`} className="rounded-full border px-4 py-2 text-sm font-bold">‹ اليوم السابق</Link>
+          <Link href={`/dashboard/appointments?date=${prev}`} className={btnGhost}>‹ اليوم السابق</Link>
           <form className="flex items-center gap-2">
-            <input type="date" name="date" defaultValue={dayKey} className={`${inputCls} w-44`} />
+            <input type="date" name="date" aria-label="اختاري التاريخ" defaultValue={dayKey} className={`${inputCls} w-44`} />
             <button className={btnPrimary}>عرض</button>
           </form>
-          <Link href={`/dashboard/appointments?date=${next}`} className="rounded-full border px-4 py-2 text-sm font-bold">اليوم التالي ›</Link>
+          <Link href={`/dashboard/appointments?date=${next}`} className={btnGhost}>اليوم التالي ›</Link>
         </div>
       )}
 
@@ -140,19 +140,19 @@ export default async function AppointmentsPage({ searchParams }: Props) {
               <Field label="اسم العميلة" name="customerName" required />
               <PhoneField name="customerPhone" label="الجوال" />
               <Field label="الخدمة">
-                <select name="serviceId" required className={inputCls}>
+                <select name="serviceId" required className={selectCls}>
                   {services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </Field>
               <Field label="الموظفة">
-                <select name="calendarId" required defaultValue={presetCalendar} className={inputCls}>
+                <select name="calendarId" required defaultValue={presetCalendar} className={selectCls}>
                   {calendars.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </Field>
               <Field label="التاريخ" name="date" type="date" required defaultValue={dayKey} />
               <Field label="الوقت" name="time" type="time" required step={900} defaultValue={presetTime} />
               <Field label="عدد الأسابيع" hint="تكرار الحجز نفس اليوم والوقت كل أسبوع">
-                <select name="weeks" defaultValue="1" className={inputCls}>
+                <select name="weeks" defaultValue="1" className={selectCls}>
                   {[1, 2, 3, 4, 6, 8].map((n) => <option key={n} value={n}>{n === 1 ? "مرة واحدة" : `${n} أسابيع`}</option>)}
                 </select>
               </Field>

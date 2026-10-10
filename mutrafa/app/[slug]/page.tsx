@@ -6,7 +6,7 @@ import { hasFeature } from "@/lib/plans";
 import { localDayKey, addDays, formatLocalDate } from "@/lib/time";
 import { BookingWizard, type WizardDay } from "@/components/booking-wizard";
 import { joinWaitlistAction } from "@/app/actions/public";
-import { Banner, Card, Field, PhoneField, btnPrimary } from "@/components/ui";
+import { Banner, Card, Field, PhoneField, btnPrimary, selectCls } from "@/components/ui";
 import { isSlugAvailableFormat } from "@/lib/reserved";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ error?: string; waitlist?: string }> };
@@ -51,7 +51,7 @@ export default async function SalonBookingPage({ params, searchParams }: Props) 
           // eslint-disable-next-line @next/next/no-img-element
           <img src={`/api/salon-logo/${salon.slug}`} alt={salon.name} className="mx-auto mb-4 h-20 w-20 rounded-2xl bg-white object-contain p-1 shadow-sm" />
         )}
-        <p className="font-serif text-sm text-gold">{salon.city ?? "صالون"}</p>
+        <p className="font-serif text-sm font-semibold text-brand-deep">{salon.city ?? "صالون"}</p>
         <h1 className="mt-1 font-serif text-3xl font-bold text-brand">{salon.name}</h1>
         <p className="mt-2 text-sm text-zinc-600">احجزي موعدك بسهولة — ويُثبَّت الموعد بعد دفع العربون.</p>
       </header>
@@ -95,7 +95,7 @@ export default async function SalonBookingPage({ params, searchParams }: Props) 
             <PhoneField name="phone" label="الجوال" />
             <label className="block md:col-span-2">
               <span className="mb-1.5 block text-sm font-semibold">الخدمة</span>
-              <select name="serviceId" required className="w-full rounded-xl border border-zinc-300 bg-white px-3.5 py-2.5 text-sm">
+              <select name="serviceId" required className={selectCls}>
                 {salon.services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </label>

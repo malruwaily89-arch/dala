@@ -64,8 +64,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </aside>
 
       <nav className="fixed inset-x-0 bottom-0 z-20 flex gap-1 overflow-x-auto border-t border-zinc-200 bg-white px-2 py-2 md:hidden">
-        {nav.slice(0, 6).map((item) => (
-          <Link key={item.href} href={item.href} className="shrink-0 px-3 text-xs font-semibold text-zinc-700">{item.label}</Link>
+        {/* كل الصفحات تبقى في الشريط القابل للتمرير أفقياً، وإلا تختفي الصفحات بعد السادسة على الجوال */}
+        {nav.map((item) => (
+          <Link key={item.href} href={item.href} className="shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-brand-soft hover:text-brand">{item.label}</Link>
         ))}
       </nav>
 

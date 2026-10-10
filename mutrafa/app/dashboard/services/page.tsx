@@ -4,7 +4,7 @@ import { requireDashboardUser, canUse } from "@/lib/guard";
 import { formatSar } from "@/lib/money";
 import { hasFeature } from "@/lib/plans";
 import { createServiceAction, toggleServiceAction } from "@/app/actions/catalog";
-import { Badge, Banner, Card, EmptyState, Field, PageHeader, btnGhost, btnPrimary } from "@/components/ui";
+import { Badge, Banner, Card, EmptyState, Field, PageHeader, btnDanger, btnGhost, btnPrimary } from "@/components/ui";
 import { UpgradeCard } from "@/components/dashboard/upgrade";
 
 export const metadata: Metadata = { title: "الخدمات" };
@@ -64,7 +64,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                 {canManage && (
                   <form action={toggleServiceAction}>
                     <input type="hidden" name="id" value={s.id} />
-                    <button className={`${btnGhost} px-4 py-2 text-xs`}>{s.isActive ? "إيقاف" : "تفعيل"}</button>
+                    <button className={s.isActive ? btnDanger : `${btnGhost} px-4 py-2 text-xs`}>{s.isActive ? "إيقاف" : "تفعيل"}</button>
                   </form>
                 )}
               </Card>

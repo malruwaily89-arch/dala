@@ -167,7 +167,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             </div>
           ))}
         </div>
-        <p className="mt-3 text-xs text-zinc-400">الحجوزات الملغاة لا تُحسب في الرسم.</p>
+        <p className="mt-3 text-xs text-zinc-500">الحجوزات الملغاة لا تُحسب في الرسم.</p>
       </Card>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -251,7 +251,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
       <div className="mt-8 grid gap-4 md:grid-cols-2">
         <Card className="border-emerald-200 bg-emerald-50/60">
-          <p className="font-bold text-emerald-800">عربون من غير الحاضرات</p>
+          <p className="font-bold text-emerald-800">عربون من مواعيد الغياب</p>
           <p className="mt-1 text-xs text-zinc-600">عربون لا يُعاد عند الغياب، وهو ربح صافٍ للصالون.</p>
           <p className="mt-3 font-serif text-2xl font-bold text-emerald-800">{formatSar(c.noShowDepositHalalas)}</p>
         </Card>

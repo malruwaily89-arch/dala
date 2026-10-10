@@ -6,7 +6,7 @@ import { hasFeature } from "@/lib/plans";
 import { parseWorkingHours } from "@/lib/availability";
 import { DAY_NAMES } from "@/lib/labels";
 import { createCalendarAction, toggleCalendarAction } from "@/app/actions/catalog";
-import { Badge, Banner, Card, EmptyState, Field, PageHeader, btnGhost, btnPrimary } from "@/components/ui";
+import { Badge, Banner, Card, EmptyState, Field, PageHeader, btnDanger, btnGhost, btnPrimary } from "@/components/ui";
 
 export const metadata: Metadata = { title: "الموظفات" };
 
@@ -56,7 +56,7 @@ export default async function CalendarsPage({ searchParams }: { searchParams: Pr
                 <legend className="mb-2 text-sm font-semibold">أيام العمل</legend>
                 <div className="flex flex-wrap gap-2">
                   {DAY_NAMES.map((d, i) => (
-                    <label key={d} className="flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-sm">
+                    <label key={d} className="flex cursor-pointer items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-sm transition has-[:checked]:border-brand has-[:checked]:bg-brand-soft has-[:checked]:font-bold has-[:checked]:text-brand">
                       <input type="checkbox" name="days" value={i} defaultChecked={i !== 5} className="accent-brand" />
                       {d}
                     </label>
@@ -67,7 +67,7 @@ export default async function CalendarsPage({ searchParams }: { searchParams: Pr
                 <legend className="mb-2 text-sm font-semibold">الخدمات التي تقدّمها</legend>
                 <div className="flex flex-wrap gap-2">
                   {services.map((s) => (
-                    <label key={s.id} className="flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-sm">
+                    <label key={s.id} className="flex cursor-pointer items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-sm transition has-[:checked]:border-brand has-[:checked]:bg-brand-soft has-[:checked]:font-bold has-[:checked]:text-brand">
                       <input type="checkbox" name="serviceIds" value={s.id} defaultChecked className="accent-brand" />
                       {s.name}
                     </label>
@@ -105,7 +105,7 @@ export default async function CalendarsPage({ searchParams }: { searchParams: Pr
                   {canManage && (
                     <form action={toggleCalendarAction}>
                       <input type="hidden" name="id" value={c.id} />
-                      <button className={`${btnGhost} px-4 py-2 text-xs`}>{c.isActive ? "إيقاف" : "تفعيل"}</button>
+                      <button className={c.isActive ? btnDanger : `${btnGhost} px-4 py-2 text-xs`}>{c.isActive ? "إيقاف" : "تفعيل"}</button>
                     </form>
                   )}
                 </Card>

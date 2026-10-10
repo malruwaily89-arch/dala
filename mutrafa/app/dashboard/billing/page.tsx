@@ -92,7 +92,7 @@ export default async function BillingPage({ searchParams }: Props) {
               <form action={buyAddonAction} className="mt-4 flex gap-2">
                 <input type="hidden" name="kind" value={k} />
                 <input type="number" name="quantity" min={1} max={10} defaultValue={1} className={`${inputCls} w-20`} />
-                <button className={btnGhost}>شراء</button>
+                <button className={btnPrimary}>شراء</button>
               </form>
             </Card>
           );

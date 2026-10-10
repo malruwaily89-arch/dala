@@ -8,7 +8,7 @@ import { APPOINTMENT_STATUS } from "@/lib/labels";
 import { effectiveCancellationHours, isFreeCancellation } from "@/lib/cancellation";
 import { loadSalonContext } from "@/lib/salon-context";
 import { customerCancelAction, submitReviewAction } from "@/app/actions/public";
-import { Banner, Badge, Card, btnPrimary, btnDanger, inputCls } from "@/components/ui";
+import { Banner, Badge, Card, btnPrimary, btnDanger, inputCls, selectCls } from "@/components/ui";
 
 export const metadata: Metadata = { title: "حجزك" };
 
@@ -87,7 +87,7 @@ export default async function BookingStatusPage({ params, searchParams }: Props)
             <input type="hidden" name="slug" value={slug} />
             <input type="hidden" name="code" value={appt.code} />
             <p className="font-bold text-ink">كيف كانت تجربتك؟</p>
-            <select name="score" required defaultValue="5" className={inputCls}>
+            <select name="score" required defaultValue="5" className={selectCls}>
               {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{"★".repeat(n)} ({n} من 5)</option>)}
             </select>
             <textarea name="comment" rows={3} maxLength={500} placeholder="ملاحظتك (اختياري)" className={inputCls} />

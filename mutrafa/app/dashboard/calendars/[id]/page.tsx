@@ -8,10 +8,9 @@ import { parseWorkingHours, computeAvailableSlots } from "@/lib/availability";
 import { localDayBounds, localDayKey, addDays, formatLocalDate, formatLocalTime } from "@/lib/time";
 import { APPOINTMENT_STATUS } from "@/lib/labels";
 import { displayPhone } from "@/lib/phone";
-import { Badge, Banner, Card, PageHeader, btnGhost } from "@/components/ui";
+import { Badge, Banner, Card, PageHeader, Stat, btnGhost, btnPrimary, inputCls } from "@/components/ui";
 import { QuickBook } from "@/components/dashboard/quick-book";
 import { updateCalendarServicesAction } from "@/app/actions/catalog";
-import { inputCls, btnPrimary } from "@/components/ui";
 
 export const metadata: Metadata = { title: "جدول الموظفة" };
 
@@ -118,8 +117,8 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <Link href={`/dashboard/calendars/${calendar.id}?date=${prev}`} className={btnGhost}>‹ اليوم السابق</Link>
         <form className="flex items-center gap-2">
-          <input type="date" name="date" defaultValue={dayKey} className="rounded-xl border border-zinc-300 px-3 py-2 text-sm" />
-          <button className="rounded-full bg-brand px-5 py-2 text-sm font-bold text-white">عرض</button>
+          <input type="date" name="date" aria-label="اختاري التاريخ" defaultValue={dayKey} className={`${inputCls} w-44`} />
+          <button className={btnPrimary}>عرض</button>
         </form>
         <Link href={`/dashboard/calendars/${calendar.id}?date=${next}`} className={btnGhost}>اليوم التالي ›</Link>
       </div>
@@ -161,14 +160,8 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
       </details>
 
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
-        <Card>
-          <p className="text-sm font-semibold text-zinc-600">حجوزات اليوم</p>
-          <p className="mt-1 font-serif text-2xl font-bold">{bookings.length}</p>
-        </Card>
-        <Card>
-          <p className="text-sm font-semibold text-zinc-600">مواعيد متاحة (حسب أقصر خدمة)</p>
-          <p className="mt-1 font-serif text-2xl font-bold text-emerald-700">{freeStarts.length}</p>
-        </Card>
+        <Stat label="حجوزات اليوم" value={String(bookings.length)} tone="brand" />
+        <Stat label="مواعيد متاحة (حسب أقصر خدمة)" value={String(freeStarts.length)} tone="emerald" />
         <Card>
           <p className="text-sm font-semibold text-zinc-600">نسبة الإشغال</p>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-100">
@@ -186,7 +179,7 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
             return (
               <li
                 key={row.start.toISOString()}
-                className={`flex flex-wrap items-center gap-4 px-5 py-3 ${row.status === "past" ? "bg-zinc-50/60 text-zinc-400" : ""}`}
+                className={`flex flex-wrap items-center gap-4 px-5 py-3 ${row.status === "past" ? "bg-zinc-50/60 text-zinc-500" : ""}`}
               >
                 <span className="w-16 font-serif text-lg font-bold">{row.label}</span>
 
@@ -203,7 +196,7 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
                 )}
 
                 {row.status === "booked" && !b && (
-                  <span className="flex-1 text-sm text-zinc-400">ضمن حجز سابق</span>
+                  <span className="flex-1 text-sm text-zinc-500">ضمن حجز سابق</span>
                 )}
 
                 {row.status === "free" && (

@@ -7,7 +7,7 @@ import { formatLocalDate } from "@/lib/time";
 import { displayPhone } from "@/lib/phone";
 import { formatSar, sarFromHalalas } from "@/lib/money";
 import { updateHealthNotesAction, sellSessionPackAction } from "@/app/actions/salon-extras";
-import { Badge, Banner, Card, EmptyState, PageHeader, Stat, btnGhost, btnPrimary, inputCls } from "@/components/ui";
+import { Badge, Banner, Card, EmptyState, PageHeader, Stat, btnGhost, btnPrimary, inputCls, selectCls } from "@/components/ui";
 
 export const metadata: Metadata = { title: "العميلات" };
 
@@ -95,10 +95,16 @@ export default async function CustomersPage({
       </div>
 
       <form className="mb-6 flex flex-wrap items-center gap-3">
-        <input name="q" defaultValue={q} placeholder="ابحثي بالاسم أو رقم الجوال (مثل 0512)" className={`${inputCls} max-w-md`} />
+        <input
+          name="q"
+          aria-label="بحث في العميلات"
+          defaultValue={q}
+          placeholder="ابحثي بالاسم أو رقم الجوال (مثل 0512)"
+          className={`${inputCls} max-w-md`}
+        />
         <button className={btnPrimary}>بحث</button>
         {q && (
-          <Link href="/dashboard/customers" className="text-sm font-semibold text-brand underline">
+          <Link href="/dashboard/customers" className={`${btnGhost} px-4 py-2 text-xs`}>
             مسح البحث
           </Link>
         )}
@@ -137,7 +143,7 @@ export default async function CustomersPage({
                   <dd className="font-bold text-sky-900">{r.upcoming}</dd>
                 </div>
                 <div className="rounded-xl bg-gold-soft p-2">
-                  <dt className="text-[11px] text-gold">الإنفاق</dt>
+                  <dt className="text-[11px] text-brand-deep">الإنفاق</dt>
                   <dd className="text-sm font-bold text-brand-deep">{formatSar(r.spent)}</dd>
                 </div>
               </dl>
@@ -149,7 +155,7 @@ export default async function CustomersPage({
                     return (
                       <li key={p.id} className="flex items-center justify-between gap-2 rounded-xl border border-gold/30 bg-white p-2.5 text-xs">
                         <span className="font-bold text-ink">{p.service}</span>
-                        <Badge className={left > 0 ? "bg-gold-soft text-gold" : "bg-zinc-200 text-zinc-600"}>
+                        <Badge className={left > 0 ? "bg-gold-soft text-brand-deep" : "bg-zinc-200 text-zinc-600"}>
                           {left > 0 ? `متبقي ${left} من ${p.total}` : "مكتملة"}
                         </Badge>
                       </li>
@@ -177,7 +183,7 @@ export default async function CustomersPage({
                       <summary className={`${btnGhost} w-full cursor-pointer list-none text-xs`}>بيع باقة جلسات</summary>
                       <form action={sellSessionPackAction} className="mt-3 grid gap-2">
                         <input type="hidden" name="customerId" value={r.id} />
-                        <select name="serviceId" required className={inputCls}>
+                        <select name="serviceId" required className={selectCls}>
                           {services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
                         <div className="grid grid-cols-2 gap-2">

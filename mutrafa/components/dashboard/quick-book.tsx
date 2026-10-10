@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createCalendarBookingAction, createFreeformBookingAction } from "@/app/actions/appointments";
-import { PhoneField, btnGhost, btnPrimary, inputCls } from "../ui";
+import { PhoneField, btnGhost, btnPrimary, inputCls, selectCls } from "../ui";
 
 export interface QuickBookService {
   id: string;
@@ -108,7 +108,7 @@ export function QuickBook({
                 <>
                   <label className="block">
                     <span className="mb-1.5 block text-sm font-semibold">الخدمة</span>
-                    <select name="serviceId" required className={inputCls}>
+                    <select name="serviceId" required className={selectCls}>
                       {services.map((s) => (
                         <option key={s.id} value={s.id}>{s.name} ({s.durationMinutes} دقيقة)</option>
                       ))}
@@ -143,7 +143,7 @@ export function QuickBook({
               {mode === "block" && (
                 <label className="block">
                   <span className="mb-1.5 block text-sm font-semibold">السبب</span>
-                  <select name="blockLabel" className={inputCls} defaultValue={BLOCK_LABELS[0]}>
+                  <select name="blockLabel" className={selectCls} defaultValue={BLOCK_LABELS[0]}>
                     {BLOCK_LABELS.map((b) => <option key={b} value={b}>{b}</option>)}
                   </select>
                 </label>
@@ -156,7 +156,7 @@ export function QuickBook({
                     name="durationMinutes"
                     value={duration}
                     onChange={(e) => setDuration(Number(e.target.value))}
-                    className={inputCls}
+                    className={selectCls}
                   >
                     {durationOptions.map((v) => (
                       <option key={v} value={v}>{v} دقيقة</option>

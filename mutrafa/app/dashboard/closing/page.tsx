@@ -5,7 +5,7 @@ import { requireDashboardUser, canUse } from "@/lib/guard";
 import { localDayBounds, localDayKey, addDays, formatLocalDate } from "@/lib/time";
 import { formatSar } from "@/lib/money";
 import { PrintButton } from "@/components/dashboard/print-button";
-import { Banner, Card, EmptyState, PageHeader, Stat, btnGhost } from "@/components/ui";
+import { Banner, Card, EmptyState, PageHeader, Stat, btnGhost, btnPrimary, inputCls } from "@/components/ui";
 
 export const metadata: Metadata = { title: "الإغلاق اليومي" };
 
@@ -64,8 +64,8 @@ export default async function ClosingPage({ searchParams }: { searchParams: Prom
       <div className="mb-6 flex flex-wrap items-center gap-3 print:hidden">
         <Link href={`/dashboard/closing?date=${prev}`} className={btnGhost}>‹ اليوم السابق</Link>
         <form className="flex items-center gap-2">
-          <input type="date" name="date" defaultValue={dayKey} className="rounded-xl border border-zinc-300 px-3 py-2 text-sm" />
-          <button className={btnGhost}>عرض</button>
+          <input type="date" name="date" aria-label="اختاري التاريخ" defaultValue={dayKey} className={`${inputCls} w-44`} />
+          <button className={btnPrimary}>عرض</button>
         </form>
         <Link href={`/dashboard/closing?date=${next}`} className={btnGhost}>اليوم التالي ›</Link>
       </div>
@@ -101,7 +101,7 @@ export default async function ClosingPage({ searchParams }: { searchParams: Prom
                     <td className="p-3 font-semibold text-brand">{r.name}</td>
                     <td className="p-3">{r.done}</td>
                     <td className="p-3 text-rose-700">{r.noShows}</td>
-                    <td className="p-3 font-bold text-gold">{formatSar(r.revenue)}</td>
+                    <td className="p-3 font-bold text-brand-deep">{formatSar(r.revenue)}</td>
                   </tr>
                 ))}
               </tbody>

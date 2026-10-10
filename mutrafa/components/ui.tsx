@@ -8,7 +8,16 @@ export const btnGhost =
 export const btnDanger =
   "inline-flex items-center justify-center rounded-full border border-rose-300 bg-white px-4 py-2 text-xs font-bold text-rose-700 transition hover:bg-rose-50";
 export const inputCls =
-  "w-full rounded-xl border border-zinc-300 bg-white px-3.5 py-2.5 text-sm text-ink transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15";
+  "w-full min-h-11 rounded-xl border border-zinc-300 bg-white px-3.5 py-2.5 text-sm text-ink transition placeholder:text-zinc-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 disabled:bg-zinc-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-70";
+/** قائمة منسدلة: نفس شكل الحقل مع سهم مُصمَّم (التنسيق في globals.css) */
+export const selectCls =
+  "field-select w-full min-h-11 rounded-xl border border-zinc-300 bg-white ps-3.5 pe-10 py-2.5 text-sm text-ink transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 disabled:bg-zinc-50";
+
+/** خانة اختيار اللون: مربع واضح بإطار، والعينة داخله مستديرة الزوايا */
+const colorCls =
+  "h-11 w-full cursor-pointer rounded-xl border border-zinc-300 bg-white p-1.5 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-0";
+
+export { FileField } from "./file-field";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`rounded-2xl border border-brand/10 bg-white p-5 shadow-sm ${className}`}>{children}</div>;
@@ -96,7 +105,7 @@ export function Field({
           defaultValue={defaultValue}
           dir={dir ?? (type === "tel" || type === "email" ? "ltr" : undefined)}
           step={step}
-          className={inputCls}
+          className={type === "color" ? colorCls : inputCls}
         />
       )}
       {hint && <span className="mt-1 block text-xs text-zinc-500">{hint}</span>}

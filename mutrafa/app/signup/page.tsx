@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { signupAction } from "@/app/actions/auth";
-import { Banner, Field, PhoneField, btnPrimary, Card, inputCls } from "@/components/ui";
+import { Banner, Field, PhoneField, btnPrimary, Card, selectCls } from "@/components/ui";
 import { MarketingShell } from "@/components/marketing/shell";
 import { PLANS, PLAN_CODES, TRIAL_DAYS, isPlanCode, type PlanCode } from "@/lib/plans";
 
@@ -44,7 +44,7 @@ export default async function SignupPage({
               <Field label="البريد الإلكتروني" name="email" type="email" required />
               <Field label="كلمة المرور" name="password" type="password" required hint="8 أحرف على الأقل" />
               <Field label="الباقة">
-                <select name="plan" defaultValue={selected} className={inputCls}>
+                <select name="plan" defaultValue={selected} className={selectCls}>
                   {PLAN_CODES.map((code) => (
                     <option key={code} value={code}>
                       {PLANS[code].nameAr} — {PLANS[code].priceSar} ر.س / شهر

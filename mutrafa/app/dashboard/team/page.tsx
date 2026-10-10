@@ -4,7 +4,7 @@ import { requireDashboardUser, canUse } from "@/lib/guard";
 import { hasFeature } from "@/lib/plans";
 import { assignableRoles, ROLE_LABEL } from "@/lib/permissions";
 import { inviteUserAction, toggleUserAction } from "@/app/actions/team";
-import { Badge, Banner, Card, Field, PageHeader, btnGhost, btnPrimary, inputCls, EmptyState } from "@/components/ui";
+import { Badge, Banner, Card, Field, PageHeader, btnDanger, btnGhost, btnPrimary, selectCls, EmptyState } from "@/components/ui";
 import { UpgradeCard } from "@/components/dashboard/upgrade";
 
 export const metadata: Metadata = { title: "الفريق" };
@@ -34,7 +34,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
             <Field label="البريد الإلكتروني" name="email" type="email" required />
             <Field label="كلمة مرور مؤقتة" name="password" type="password" required hint="8 أحرف على الأقل" />
             <Field label="الدور">
-              <select name="role" defaultValue="OWNER" className={inputCls}>
+              <select name="role" defaultValue="OWNER" className={selectCls}>
                 {roles.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
               </select>
             </Field>
@@ -59,7 +59,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
               {u.id !== user.id && (
                 <form action={toggleUserAction}>
                   <input type="hidden" name="id" value={u.id} />
-                  <button className={`${btnGhost} px-4 py-2 text-xs`}>{u.active ? "تعطيل" : "تفعيل"}</button>
+                  <button className={u.active ? btnDanger : `${btnGhost} px-4 py-2 text-xs`}>{u.active ? "تعطيل" : "تفعيل"}</button>
                 </form>
               )}
             </Card>

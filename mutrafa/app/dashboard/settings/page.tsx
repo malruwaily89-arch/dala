@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { formatLocalDate, localDayKey } from "@/lib/time";
 import { updateSettingsAction } from "@/app/actions/settings";
 import { addClosedDayAction, removeClosedDayAction, removeLogoAction, uploadLogoAction } from "@/app/actions/salon-extras";
-import { Banner, Card, EmptyState, Field, PageHeader, btnPrimary, btnGhost, inputCls } from "@/components/ui";
+import { Banner, Card, EmptyState, Field, FileField, PageHeader, btnDanger, btnPrimary, inputCls } from "@/components/ui";
 
 export const metadata: Metadata = { title: "إعدادات الصالون" };
 
@@ -83,16 +83,22 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <div className="flex items-center gap-4 rounded-xl border border-gold/30 bg-gold-soft p-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/api/salon-logo/${salon.slug}`} alt="شعار الصالون" className="h-20 w-20 rounded-xl bg-white object-contain p-1" />
-              <form action={removeLogoAction}>
-                <button className="text-sm font-bold text-rose-700 underline-offset-4 hover:underline">إزالة الشعار</button>
+              <form action={removeLogoAction} className="ms-auto">
+                <button className={btnDanger}>إزالة الشعار</button>
               </form>
             </div>
           ) : (
             <p className="rounded-xl border border-dashed border-brand/25 p-4 text-sm text-zinc-500">لم يُرفع شعار بعد.</p>
           )}
-          <form action={uploadLogoAction} encType="multipart/form-data" className="flex flex-wrap items-center gap-3">
-            <input type="file" name="logo" accept="image/png,image/jpeg,image/webp" required className="text-sm" />
-            <button className={btnGhost}>رفع الشعار</button>
+          <form action={uploadLogoAction} encType="multipart/form-data" className="space-y-4">
+            <FileField
+              name="logo"
+              label="ملف شعار الصالون"
+              accept="image/png,image/jpeg,image/webp"
+              required
+              hint="PNG أو JPG أو WEBP، حتى 512 كيلوبايت"
+            />
+            <button className={`${btnPrimary} w-full sm:w-auto`}>رفع الشعار</button>
           </form>
         </Card>
 
@@ -116,7 +122,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
                   </span>
                   <form action={removeClosedDayAction}>
                     <input type="hidden" name="id" value={d.id} />
-                    <button className="text-xs font-bold text-zinc-600 underline-offset-4 hover:underline">حذف</button>
+                    <button className={btnDanger}>حذف</button>
                   </form>
                 </li>
               ))}

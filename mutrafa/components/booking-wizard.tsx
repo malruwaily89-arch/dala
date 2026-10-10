@@ -76,7 +76,8 @@ export function BookingWizard({
         {STEP_TITLES.map((t, i) => (
           <li
             key={t}
-            className={`rounded-full px-3 py-1 ${i === step ? "bg-brand text-white" : i < step ? "bg-brand-soft text-brand" : "bg-zinc-100 text-zinc-500"}`}
+            aria-current={i === step ? "step" : undefined}
+            className={`rounded-full px-3 py-1 ${i === step ? "bg-brand text-white" : i < step ? "bg-brand-soft text-brand" : "bg-zinc-100 text-zinc-600"}`}
           >
             {i + 1}. {t}
           </li>
@@ -199,8 +200,6 @@ export function BookingWizard({
           <label className="block">
             <span className="mb-1.5 block text-sm font-semibold">الاسم</span>
             <input name="name" required minLength={2} className={inputCls} />
-          </label>
-          <label className="block">
           </label>
           <PhoneField name="phone" label="الجوال" />
 
