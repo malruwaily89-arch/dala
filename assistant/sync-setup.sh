@@ -20,20 +20,24 @@ for dir in syncthing "$FILES_HOST_DIR"; do
 done
 docker compose --profile sync up -d syncthing
 
-st() { docker exec assistant-syncthing syncthing cli "$@"; }
+# Syncthing v2 needs the GUI API key; it lives in the container's own config, so it never leaves the container.
+st() {
+  docker exec assistant-syncthing sh -c 'STGUIAPIKEY=$(sed -n "s:.*<apikey>\(.*\)</apikey>.*:\1:p" /var/syncthing/config/config.xml | head -1) exec syncthing cli "$@"' sh "$@"
+}
 for i in $(seq 1 30); do
   st show system >/dev/null 2>&1 && break
   [ "$i" = 30 ] && fail "Syncthing ما اشتغل. السجل: docker logs assistant-syncthing --tail 30"
   sleep 2
 done
 
-st config devices add --device-id "$LAPTOP" --name laptop
+st config devices list | grep -qx "$LAPTOP" ||
+  st config devices add --device-id "$LAPTOP" --name laptop
 st config folders list | grep -qx assistant-files ||
   st config folders add --id assistant-files --label "ملفات المساعد" --path /var/syncthing/assistant-files
 st config folders assistant-files devices list | grep -qx "$LAPTOP" ||
   st config folders assistant-files devices add --device-id "$LAPTOP"
 
 echo "✔ السيرفر جاهز يشارك $FILES_HOST_DIR مع اللابتوب"
-echo "معرّف السيرفر: $(docker exec assistant-syncthing syncthing --device-id)"
+echo "معرّف السيرفر: $(st show system | sed -n 's/.*"myID": *"\([^"]*\)".*/\1/p')"
 echo "في Syncthing على اللابتوب بيطلع طلب إضافة الجهاز assistant-vps بنفس المعرّف: اضغط Add Device ثم Save."
 echo "بعدها يطلع طلب مشاركة المجلد \"ملفات المساعد\": اضغط Add، واختر مكان المجلد على جهازك، ثم Save."

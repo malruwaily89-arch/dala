@@ -15,7 +15,7 @@ services:
 
   # Optional: ./sync-setup.sh starts it to mirror the files folder to a laptop.
   syncthing:
-    image: syncthing/syncthing:1
+    image: syncthing/syncthing:2
     container_name: assistant-syncthing
     profiles: ["sync"]
     restart: unless-stopped
