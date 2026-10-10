@@ -119,6 +119,9 @@ ask META_APP_ID "App ID لتطبيق Meta (أعلى صفحة التطبيق في
 printf '%s|%s' "$META_APP_ID" "$WHATSAPP_APP_SECRET" > "$SECRETS/app"
 
 TOKEN_INFO=$(curl -s --max-time 20 -G "$GRAPH/debug_token" --data-urlencode "input_token@$SECRETS/token" --data-urlencode "access_token@$SECRETS/app")
+if printf '%s' "$TOKEN_INFO" | grep -q '"error"'; then
+  fail "Meta رفضت App ID مع App Secret، يعني الـ App Secret في .env غلط (اضغط Show قبل النسخ). صححه وأعد تشغيل السكربت. رد Meta: $TOKEN_INFO"
+fi
 EXPIRES=$(printf '%s' "$TOKEN_INFO" | json 'd["data"].get("expires_at","")')
 [ "$EXPIRES" = "0" ] || echo "⚠️ التوكن مؤقت وبينتهي. سوِّ توكن دائم من System User في Business Settings وحطه في .env"
 WABA=$(printf '%s' "$TOKEN_INFO" | json 'next((s["target_ids"][0] for s in d["data"].get("granular_scopes",[]) if s.get("scope")=="whatsapp_business_messaging" and s.get("target_ids")), "")')
