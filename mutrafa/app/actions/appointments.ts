@@ -23,36 +23,57 @@ function requireDate(value: FormDataEntryValue | null, label: string): string {
 
 /** حجز من لوحة التحكم (مكالمة/زيارة) — يمر بنفس فحوصات الحجز العام */
 export async function createDashboardBookingAction(formData: FormData) {
-  let ok = false;
+  let created = 0;
+  const failures: string[] = [];
+  let fatal: unknown = null;
   try {
-    const { salon, ctx } = await requireCan("appointments.manage");
+    const { salon } = await requireCan("appointments.manage");
     const date = requireDate(formData.get("date"), "التاريخ");
     const time = String(formData.get("time") ?? "");
     if (!/^([01]\d|2[0-3]):(00|15|30|45)$/.test(time)) {
       throw new BookingError("يرجى اختيار الوقت من المواعيد كل ربع ساعة (مثل 9:00 و9:15 و9:30)");
     }
+    // التكرار الأسبوعي: حجز نفس الوقت كل 7 أيام لعدد من الأسابيع (1 = حجز واحد)
+    const weeks = Math.min(8, Math.max(1, Math.round(Number(formData.get("weeks") ?? 1)) || 1));
     const [y, m, d] = date.split("-").map(Number);
     const [hh, mm] = time.split(":").map(Number);
-    await createBooking(
-      {
-        salonId: salon.id,
-        serviceId: String(formData.get("serviceId") ?? ""),
-        calendarId: String(formData.get("calendarId") ?? ""),
-        startsAt: zonedToUtc(y, m, d, hh, mm, salon.timezone),
-        customerName: String(formData.get("customerName") ?? ""),
-        customerPhone: String(formData.get("customerPhone") ?? ""),
-        source: "DASHBOARD",
-      },
-      ctx
-    );
-    ok = true;
+    const serviceId = String(formData.get("serviceId") ?? "");
+    const calendarId = String(formData.get("calendarId") ?? "");
+    const customerName = String(formData.get("customerName") ?? "");
+    const customerPhone = String(formData.get("customerPhone") ?? "");
+
+    for (let i = 0; i < weeks; i++) {
+      const day = new Date(Date.UTC(y, m - 1, d + 7 * i));
+      const dayKey = day.toISOString().slice(0, 10);
+      const { ctx } = await requireCan("appointments.manage");
+      try {
+        await createBooking(
+          {
+            salonId: salon.id,
+            serviceId,
+            calendarId,
+            startsAt: zonedToUtc(day.getUTCFullYear(), day.getUTCMonth() + 1, day.getUTCDate(), hh, mm, salon.timezone),
+            customerName,
+            customerPhone,
+            source: "DASHBOARD",
+          },
+          ctx
+        );
+        created++;
+      } catch (e) {
+        // نكمل بقية الأسابيع ونعرض أيها تعذّر
+        if (e instanceof BookingError) failures.push(`${dayKey}: ${e.message}`);
+        else throw e;
+      }
+    }
   } catch (e) {
-    fail(APPT, e);
+    fatal = e;
   }
-  if (ok) {
-    revalidatePath(APPT);
-    redirect(`${APPT}?ok=created`);
-  }
+  if (fatal) fail(APPT, fatal);
+  revalidatePath(APPT);
+  const params = new URLSearchParams({ ok: "created", count: String(created) });
+  if (failures.length) params.set("error", `تعذّر حجز ${failures.length} موعد: ${failures.join(" · ")}`);
+  redirect(`${APPT}?${params.toString()}`);
 }
 
 async function outcomeAction(formData: FormData, outcome: "COMPLETED" | "NO_SHOW") {

@@ -26,6 +26,7 @@ type Props = {
     name?: string;
     code?: string;
     phone?: string;
+    count?: string;
   }>;
 };
 
@@ -48,7 +49,7 @@ function phoneQueryTerm(raw: string): string {
 
 export default async function AppointmentsPage({ searchParams }: Props) {
   const { user, salon, ctx } = await requireDashboardUser();
-  const { date, error, ok, calendarId: presetCalendar, time: presetTime, name, code, phone } = await searchParams;
+  const { date, error, ok, calendarId: presetCalendar, time: presetTime, name, code, phone, count } = await searchParams;
   const tz = salon.timezone;
   const dayKey = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : localDayKey(new Date(), tz);
   const { start, end } = localDayBounds(dayKey, tz);
@@ -96,7 +97,7 @@ export default async function AppointmentsPage({ searchParams }: Props) {
     <div>
       <PageHeader title="المواعيد" subtitle={searching ? "نتائج البحث في كل الأيام" : formatLocalDate(start, tz)} />
       {error && <Banner>{error}</Banner>}
-      {ok === "created" && <Banner tone="success">تم إنشاء الحجز.</Banner>}
+      {ok === "created" && <Banner tone="success">تم إنشاء {count && count !== "1" ? `${count} حجوزات` : "الحجز"}.</Banner>}
 
       <Card className="mb-6">
         <form className="grid gap-4 md:grid-cols-3">
@@ -150,6 +151,11 @@ export default async function AppointmentsPage({ searchParams }: Props) {
               </Field>
               <Field label="التاريخ" name="date" type="date" required defaultValue={dayKey} />
               <Field label="الوقت" name="time" type="time" required step={900} defaultValue={presetTime} />
+              <Field label="عدد الأسابيع" hint="تكرار الحجز نفس اليوم والوقت كل أسبوع">
+                <select name="weeks" defaultValue="1" className={inputCls}>
+                  {[1, 2, 3, 4, 6, 8].map((n) => <option key={n} value={n}>{n === 1 ? "مرة واحدة" : `${n} أسابيع`}</option>)}
+                </select>
+              </Field>
               <div className="flex items-end md:col-span-2 xl:col-span-2">
                 <button className={`${btnPrimary} w-full`}>إنشاء الحجز</button>
               </div>

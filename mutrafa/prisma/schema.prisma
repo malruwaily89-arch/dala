@@ -115,6 +115,9 @@ model Salon {
   reviews      Review[]
   subscription Subscription?
   addons       AddonPurchase[]
+  closedDays   ClosedDay[]
+  logo         SalonLogo?
+  sessionPacks SessionPack[]
 
   @@map("salons")
 }
@@ -192,6 +195,7 @@ model Service {
   salon        Salon             @relation(fields: [salonId], references: [id], onDelete: Cascade)
   calendars    CalendarService[]
   appointments Appointment[]
+  sessionPacks SessionPack[]
   waitlist     WaitlistEntry[]
 
   @@index([salonId, isActive])
@@ -219,12 +223,14 @@ model Customer {
   name        String
   phone       String // بصيغة دولية 9665XXXXXXXX
   noShowCount Int      @default(0)
+  healthNotes String? // حساسية أو ملاحظات صحية — تظهر للموظفات قبل الخدمة
   createdAt   DateTime @default(now())
 
   salon        Salon           @relation(fields: [salonId], references: [id], onDelete: Cascade)
   appointments Appointment[]
   waitlist     WaitlistEntry[]
   reviews      Review[]
+  sessionPacks SessionPack[]
 
   @@unique([salonId, phone])
   @@map("customers")
@@ -248,7 +254,7 @@ enum BookingSource {
 model Appointment {
   id             String            @id @default(cuid())
   salonId        String
-  code           String            // رقم الحجز المعروض: M + رقم متسلسل داخل الصالون (M1001)
+  code           String // رقم الحجز المعروض: M + رقم متسلسل داخل الصالون (M1001)
   customerId     String
   calendarId     String
   serviceId      String
@@ -266,13 +272,15 @@ model Appointment {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
-  salon    Salon        @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  customer Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  calendar Calendar     @relation(fields: [calendarId], references: [id], onDelete: Restrict)
-  service  Service      @relation(fields: [serviceId], references: [id], onDelete: Restrict)
-  payments Payment[]
-  messages MessageLog[]
-  review   Review?
+  salon         Salon        @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  customer      Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  calendar      Calendar     @relation(fields: [calendarId], references: [id], onDelete: Restrict)
+  service       Service      @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  payments      Payment[]
+  messages      MessageLog[]
+  review        Review?
+  sessionPack   SessionPack? @relation(fields: [sessionPackId], references: [id], onDelete: SetNull)
+  sessionPackId String?
 
   @@unique([salonId, code])
   @@index([salonId, startsAt])
@@ -405,4 +413,51 @@ model AuditLog {
 
   @@index([salonId, createdAt])
   @@map("audit_logs")
+}
+
+// ─── أيام الإغلاق (عطلات، إجازات الصالون) ──────────────────────
+
+model ClosedDay {
+  id        String   @id @default(cuid())
+  salonId   String
+  dayKey    String // YYYY-MM-DD حسب توقيت الصالون
+  reason    String?
+  createdAt DateTime @default(now())
+
+  salon Salon @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  @@unique([salonId, dayKey])
+  @@map("closed_days")
+}
+
+// ─── باقات الجلسات (مثلاً 5 جلسات مانيكير بسعر مخفّض) ──────────
+
+model SessionPack {
+  id            String   @id @default(cuid())
+  salonId       String
+  customerId    String
+  serviceId     String
+  totalSessions Int
+  usedSessions  Int      @default(0)
+  priceHalalas  Int
+  createdAt     DateTime @default(now())
+
+  salon        Salon         @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  service      Service       @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  appointments Appointment[]
+
+  @@index([salonId, customerId])
+  @@map("session_packs")
+}
+
+// ─── شعار الصالون (مفصول عن الصالون حتى لا يُحمَّل مع كل طلب) ─────
+
+model SalonLogo {
+  salonId String @id
+  mime    String
+  data    Bytes
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  @@map("salon_logos")
 }

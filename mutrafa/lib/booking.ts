@@ -47,6 +47,12 @@ interface BookingInput {
  * الفحوصات: الحدود الشهرية، صحة الخدمة والموظفة، أن الموعد ضمن ساعات العمل وعلى الشبكة،
  * ثم الإدراج داخل معاملة مع قيد التعارض في قاعدة البيانات كحارس نهائي.
  */
+/** هل الصالون مغلق في هذا اليوم (عطلة أو إجازة مسجّلة في الإعدادات) */
+async function isClosedDay(salonId: string, dayKey: string): Promise<boolean> {
+  const row = await db.closedDay.findUnique({ where: { salonId_dayKey: { salonId, dayKey } }, select: { id: true } });
+  return row !== null;
+}
+
 export async function createBooking(input: BookingInput, ctx: SalonContext) {
   const phone = normalizeSaPhone(input.customerPhone);
   if (!phone) throw new BookingError("رقم الجوال غير صالح. اكتبي 9 أرقام تبدأ بـ 5 بعد رمز الدولة +966.");
@@ -58,6 +64,9 @@ export async function createBooking(input: BookingInput, ctx: SalonContext) {
   }
 
   const salon = await db.salon.findUniqueOrThrow({ where: { id: input.salonId } });
+  if (await isClosedDay(input.salonId, localDayKey(input.startsAt, salon.timezone))) {
+    throw new BookingError("الصالون مغلق في هذا اليوم. اختاري يوماً آخر.");
+  }
   const service = await db.service.findFirst({
     where: { id: input.serviceId, salonId: input.salonId, isActive: true },
   });
@@ -268,6 +277,18 @@ export async function markAppointmentOutcome(params: {
 
   await db.$transaction(async (tx) => {
     await tx.appointment.update({ where: { id: appt.id }, data: { status: params.outcome } });
+    if (params.outcome === "COMPLETED") {
+      // تُخصم جلسة من أقدم باقة نشطة للعميلة لنفس الخدمة
+      const packs = await tx.sessionPack.findMany({
+        where: { salonId: params.salonId, customerId: appt.customerId, serviceId: appt.serviceId },
+        orderBy: { createdAt: "asc" },
+      });
+      const pack = packs.find((p) => p.usedSessions < p.totalSessions);
+      if (pack) {
+        await tx.sessionPack.update({ where: { id: pack.id }, data: { usedSessions: { increment: 1 } } });
+        await tx.appointment.update({ where: { id: appt.id }, data: { sessionPackId: pack.id } });
+      }
+    }
     if (params.outcome === "NO_SHOW") {
       await tx.customer.update({ where: { id: appt.customerId }, data: { noShowCount: { increment: 1 } } });
     }
@@ -302,6 +323,7 @@ export async function availableSlotsFor(params: {
   workingHours?: unknown;
   stepMinutes?: number;
 }) {
+  if (await isClosedDay(params.salonId, params.dayKey)) return [];
   // المدة الفعلية = مدة الموظفة للخدمة إن وُجدت، وإلا مدة الخدمة الافتراضية
   const duration =
     params.durationMinutes ??

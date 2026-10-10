@@ -32,15 +32,25 @@ export default async function SalonBookingPage({ params, searchParams }: Props) 
   });
   if (!salon) notFound();
 
-  const ctx = await loadSalonContext(salon.id);
+  const [ctx, logo, closed] = await Promise.all([
+    loadSalonContext(salon.id),
+    db.salonLogo.findUnique({ where: { salonId: salon.id }, select: { salonId: true } }),
+    db.closedDay.findMany({ where: { salonId: salon.id }, select: { dayKey: true } }),
+  ]);
+  const closedKeys = new Set(closed.map((c) => c.dayKey));
+  // أيام الإغلاق لا تظهر في قائمة الأيام أصلاً
   const days: WizardDay[] = Array.from({ length: 14 }, (_, i) => {
     const d = addDays(new Date(), i);
     return { key: localDayKey(d, salon.timezone), label: formatLocalDate(d, salon.timezone) };
-  }).filter((d, i, arr) => arr.findIndex((x) => x.key === d.key) === i);
+  }).filter((d, i, arr) => arr.findIndex((x) => x.key === d.key) === i && !closedKeys.has(d.key));
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <header className="mb-8 text-center">
+        {logo && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={`/api/salon-logo/${salon.slug}`} alt={salon.name} className="mx-auto mb-4 h-20 w-20 rounded-2xl bg-white object-contain p-1 shadow-sm" />
+        )}
         <p className="font-serif text-sm text-gold">{salon.city ?? "صالون"}</p>
         <h1 className="mt-1 font-serif text-3xl font-bold text-brand">{salon.name}</h1>
         <p className="mt-2 text-sm text-zinc-600">احجزي موعدك بسهولة — ويُثبَّت الموعد بعد دفع العربون.</p>

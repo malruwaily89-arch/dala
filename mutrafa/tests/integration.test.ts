@@ -574,3 +574,35 @@ test("حجز داخلي واستراحة: يشغل الوقت، لا يُرسل 
   assert.equal(svc.priceHalalas, 15000);
   void freeService;
 });
+
+test("يوم الإغلاق: لا حجز فيه ولا فتحات تُعرض", async () => {
+  const { salon, freeService, calendars } = await makeSalon({ plan: "SILVER", status: "ACTIVE", trialEndsAt: null });
+  const ctx = await loadSalonContext(salon.id);
+  const startsAt = await firstFreeSlot(salon.id, calendars[0].id, freeService.id);
+  const dayKey = localDayKey(startsAt, TZ);
+  await db.closedDay.create({ data: { salonId: salon.id, dayKey, reason: "اختبار" } });
+
+  await assert.rejects(
+    createBooking(await bookingInput(salon.id, freeService.id, calendars[0].id, startsAt), ctx),
+    (e: unknown) => e instanceof BookingError && /مغلق/.test((e as Error).message)
+  );
+  const slots = await availableSlotsFor({ salonId: salon.id, calendarId: calendars[0].id, serviceId: freeService.id, dayKey, timeZone: TZ });
+  assert.equal(slots.length, 0);
+});
+
+test("باقة الجلسات: تُخصم جلسة عند إتمام الموعد، ولا تُخصم عند عدم الحضور", async () => {
+  const { salon, freeService, calendars } = await makeSalon({ plan: "GOLD", status: "ACTIVE", trialEndsAt: null });
+  const ctx = await loadSalonContext(salon.id);
+  const actor = await db.user.create({ data: { salonId: salon.id, email: `p${RUN}${counter++}@x.test`, passwordHash: "x", name: "م", role: "OWNER" } });
+  const startsAt = await firstFreeSlot(salon.id, calendars[0].id, freeService.id);
+  const appt = await createBooking(await bookingInput(salon.id, freeService.id, calendars[0].id, startsAt), ctx);
+  const pack = await db.sessionPack.create({
+    data: { salonId: salon.id, customerId: appt.customerId, serviceId: freeService.id, totalSessions: 2, priceHalalas: 10000 },
+  });
+
+  await markAppointmentOutcome({ salonId: salon.id, appointmentId: appt.id, outcome: "COMPLETED", userId: actor.id });
+  const afterDone = await db.sessionPack.findUniqueOrThrow({ where: { id: pack.id } });
+  assert.equal(afterDone.usedSessions, 1);
+  const linked = await db.appointment.findUniqueOrThrow({ where: { id: appt.id } });
+  assert.equal(linked.sessionPackId, pack.id);
+});

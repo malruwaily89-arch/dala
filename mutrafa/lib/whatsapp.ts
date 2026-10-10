@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { db } from "./db";
-import { bookingUrl } from "./env";
+import { appUrl, bookingUrl } from "./env";
 import { displayPhone } from "./phone";
 
 /**
@@ -30,7 +30,7 @@ export interface SendParams {
 export async function sendWhatsAppText(params: SendParams): Promise<void> {
   const salon = await db.salon.findUnique({
     where: { id: params.salonId },
-    select: { whatsappPhoneNumberId: true },
+    select: { whatsappPhoneNumberId: true, slug: true, logo: { select: { mime: true } } },
   });
   const base = {
     salonId: params.salonId,
@@ -56,8 +56,7 @@ export async function sendWhatsAppText(params: SendParams): Promise<void> {
         messaging_product: "whatsapp",
         recipient_type: "individual",
         to: params.toPhone,
-        type: "text",
-        text: { preview_url: false, body: params.body },
+        ...logoMessage(salon, params.body),
       }),
     });
     const data = (await res.json()) as { messages?: { id: string }[]; error?: { message?: string } };
@@ -71,6 +70,18 @@ export async function sendWhatsAppText(params: SendParams): Promise<void> {
       data: { ...base, status: "failed", error: e instanceof Error ? e.message : String(e) },
     });
   }
+}
+
+/**
+ * الرسالة تحمل شعار الصالون كصورة مع النص كتعليق عليها، ليتعرف عليه العميلة.
+ * Meta تحتاج رابطاً عاماً بـ https، فإن لم يكن الموقع على https نرسل نصاً فقط.
+ */
+function logoMessage(salon: { slug: string; logo: { mime: string } | null } | null, body: string) {
+  const base = appUrl();
+  if (salon?.logo && base.startsWith("https://")) {
+    return { type: "image", image: { link: `${base}/api/salon-logo/${salon.slug}`, caption: body } };
+  }
+  return { type: "text", text: { preview_url: false, body } };
 }
 
 /** التحقق من توقيع Meta (X-Hub-Signature-256) على جسم الطلب الخام */

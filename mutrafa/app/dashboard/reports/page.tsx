@@ -5,7 +5,7 @@ import { hasFeature } from "@/lib/plans";
 import { buildReport, type ReportPeriod } from "@/lib/report-data";
 import { formatSar } from "@/lib/money";
 import { addDays, formatLocalDate } from "@/lib/time";
-import { Card, EmptyState, PageHeader, btnPrimary } from "@/components/ui";
+import { Card, EmptyState, PageHeader, STAT_TONES, Stat, btnPrimary } from "@/components/ui";
 import { UpgradeCard } from "@/components/dashboard/upgrade";
 import { PrintButton } from "@/components/dashboard/print-button";
 
@@ -31,6 +31,9 @@ function trend(current: number, previous: number): { text: string; tone: string 
 }
 
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
+
+/** ألوان مؤشرات الفترة تتناوب بالترتيب ليسهل تمييزها بصرياً */
+const KPI_TONES = ["brand", "emerald", "gold", "sky", "amber", "rose"] as const;
 
 export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
   const { user, salon, ctx } = await requireDashboardUser();
@@ -90,41 +93,37 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
       <h2 className="mb-3 text-lg font-bold text-ink">نظرة الشهر الحالي</h2>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-emerald-200">
-          <p className="text-sm font-semibold text-zinc-600">حجوزات مؤكدة هذا الشهر</p>
-          <p className="mt-1 font-serif text-2xl font-bold text-emerald-700">{month.confirmed}</p>
-          <p className="mt-1 text-xs text-zinc-500">لم تُنفَّذ بعد</p>
-        </Card>
-        <Card className="border-gold/40 bg-gold-soft/40">
-          <p className="text-sm font-semibold text-zinc-600">العائد المتوقع هذا الشهر</p>
-          <p className="mt-1 font-serif text-2xl font-bold text-brand">{formatSar(month.expectedRevenueHalalas)}</p>
-          <p className="mt-1 text-xs text-zinc-600">
-            مكتمل {formatSar(month.completedRevenueHalalas)} + مؤكد {formatSar(month.confirmedRevenueHalalas)}
-          </p>
-        </Card>
-        <Card>
-          <p className="text-sm font-semibold text-zinc-600">مواعيد متاحة حتى نهاية الشهر</p>
-          <p className="mt-1 font-serif text-2xl font-bold text-ink">{month.freeSlots}</p>
-          <p className="mt-1 text-xs text-zinc-500">لكامل الصالون (حسب أقصر خدمة)</p>
-        </Card>
-        <Card>
-          <p className="text-sm font-semibold text-zinc-600">حجوزات متبقية من حد الباقة</p>
-          <p className="mt-1 font-serif text-2xl font-bold text-ink">{month.quotaRemaining}</p>
-          <p className="mt-1 text-xs text-zinc-500">من {ctx.entitlements.monthlyBookings} حجز شهرياً</p>
-        </Card>
+        <Stat label="حجوزات مؤكدة هذا الشهر" value={String(month.confirmed)} note="لم تُنفَّذ بعد" tone="emerald" />
+        <Stat
+          label="العائد المتوقع هذا الشهر"
+          value={formatSar(month.expectedRevenueHalalas)}
+          note={`مكتمل ${formatSar(month.completedRevenueHalalas)} + مؤكد ${formatSar(month.confirmedRevenueHalalas)}`}
+          tone="gold"
+        />
+        <Stat label="مواعيد متاحة حتى نهاية الشهر" value={String(month.freeSlots)} note="لكامل الصالون (حسب أقصر خدمة)" tone="sky" />
+        <Stat
+          label="حجوزات متبقية من حد الباقة"
+          value={String(month.quotaRemaining)}
+          note={`من ${ctx.entitlements.monthlyBookings} حجز شهرياً`}
+          tone={month.quotaRemaining <= 10 ? "rose" : "brand"}
+        />
       </div>
 
       <h2 className="mb-3 mt-10 text-lg font-bold text-ink">مؤشرات الفترة</h2>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {kpis.map((k) => (
-          <Card key={k.label}>
-            <p className="text-sm font-semibold text-zinc-600">{k.label}</p>
-            <div className="mt-1 flex items-baseline justify-between gap-2">
-              <p className={`font-serif text-2xl font-bold ${k.warn ? "text-rose-700" : "text-ink"}`}>{k.value}</p>
-              {k.delta && <span className={`text-sm font-bold ${k.delta.tone}`}>{k.delta.text}</span>}
+        {kpis.map((k, i) => {
+          const bar = STAT_TONES[KPI_TONES[i % KPI_TONES.length]].bar;
+          return (
+            <div key={k.label} className="relative overflow-hidden rounded-2xl border border-brand/10 bg-white p-5 shadow-sm">
+              <span className={`absolute inset-y-0 start-0 w-1.5 ${bar}`} aria-hidden />
+              <p className="text-sm font-semibold text-zinc-600">{k.label}</p>
+              <div className="mt-1 flex items-baseline justify-between gap-2">
+                <p className={`font-serif text-2xl font-bold ${k.warn ? "text-rose-700" : "text-ink"}`}>{k.value}</p>
+                {k.delta && <span className={`text-sm font-bold ${k.delta.tone}`}>{k.delta.text}</span>}
+              </div>
             </div>
-          </Card>
-        ))}
+          );
+        })}
       </div>
 
       <Card className="mt-8">

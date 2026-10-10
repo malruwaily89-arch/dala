@@ -23,6 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     { href: "/dashboard/services", label: "الخدمات", show: canUse(user, ctx, "services.manage") },
     { href: "/dashboard/calendars", label: "الموظفات", show: canUse(user, ctx, "calendars.manage") },
     { href: "/dashboard/reports", label: "التقارير", show: canUse(user, ctx, "reports.view") },
+    { href: "/dashboard/closing", label: "الإغلاق اليومي", show: canUse(user, ctx, "reports.view") },
     { href: "/dashboard/team", label: "الفريق", show: canUse(user, ctx, "team.manage") },
     { href: "/dashboard/audit", label: "السجل", show: canUse(user, ctx, "audit.view") },
     { href: "/dashboard/billing", label: "الباقة والفواتير", show: canUse(user, ctx, "billing.manage") },
