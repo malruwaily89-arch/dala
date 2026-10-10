@@ -1,33 +1,85 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireDashboardUser, canUse } from "@/lib/guard";
 import { localDayBounds, localDayKey, formatLocalTime, formatLocalDate, addDays } from "@/lib/time";
 import { APPOINTMENT_STATUS, SOURCE_LABEL } from "@/lib/labels";
 import { formatSar } from "@/lib/money";
 import { displayPhone } from "@/lib/phone";
+import { formatBookingCode } from "@/lib/booking-code";
 import { createDashboardBookingAction } from "@/app/actions/appointments";
 import { AppointmentActions } from "@/components/dashboard/appointment-actions";
 import { Badge, Banner, Card, EmptyState, Field, PageHeader, PhoneField, btnPrimary, inputCls } from "@/components/ui";
 
 export const metadata: Metadata = { title: "المواعيد" };
 
-type Props = { searchParams: Promise<{ date?: string; error?: string; ok?: string; calendarId?: string; time?: string }> };
+const SEARCH_LIMIT = 200;
+
+type Props = {
+  searchParams: Promise<{
+    date?: string;
+    error?: string;
+    ok?: string;
+    calendarId?: string;
+    time?: string;
+    name?: string;
+    code?: string;
+    phone?: string;
+  }>;
+};
+
+type AppointmentRow = Prisma.AppointmentGetPayload<{ include: { customer: true; service: true; calendar: true } }>;
+
+/** رقم الحجز يُكتب "1001" أو "M1001" — نوحّده إلى الصيغة المخزّنة */
+function normalizeCodeQuery(raw: string): string | null {
+  const value = raw.trim().toUpperCase().replace(/\s/g, "");
+  if (!value) return null;
+  if (/^\d+$/.test(value)) return formatBookingCode(Number(value));
+  return value;
+}
+
+/** الجوال مخزّن بصيغة 9665...، فنبحث بالأرقام بدون الصفر أو رمز الدولة */
+function phoneQueryTerm(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length < 3) return "";
+  return digits.startsWith("966") ? digits.slice(3) : digits.replace(/^0/, "");
+}
 
 export default async function AppointmentsPage({ searchParams }: Props) {
   const { user, salon, ctx } = await requireDashboardUser();
-  const { date, error, ok, calendarId: presetCalendar, time: presetTime } = await searchParams;
+  const { date, error, ok, calendarId: presetCalendar, time: presetTime, name, code, phone } = await searchParams;
   const tz = salon.timezone;
   const dayKey = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : localDayKey(new Date(), tz);
   const { start, end } = localDayBounds(dayKey, tz);
   const canManage = canUse(user, ctx, "appointments.manage");
 
+  const searchName = (name ?? "").trim().slice(0, 60);
+  const searchCode = normalizeCodeQuery((code ?? "").slice(0, 20));
+  const searchPhone = phoneQueryTerm((phone ?? "").slice(0, 20));
+  const searching = Boolean(searchName || searchCode || searchPhone);
+
+  const customerFilter: Prisma.CustomerWhereInput = {};
+  if (searchName) customerFilter.name = { contains: searchName, mode: "insensitive" };
+  if (searchPhone) customerFilter.phone = { contains: searchPhone };
+
   const [appointments, services, calendars] = await Promise.all([
-    db.appointment.findMany({
-      where: { salonId: salon.id, startsAt: { gte: start, lt: end } },
-      include: { customer: true, service: true, calendar: true },
-      orderBy: { startsAt: "asc" },
-    }),
+    searching
+      ? db.appointment.findMany({
+          where: {
+            salonId: salon.id,
+            ...(Object.keys(customerFilter).length ? { customer: customerFilter } : {}),
+            ...(searchCode ? { code: searchCode } : {}),
+          },
+          include: { customer: true, service: true, calendar: true },
+          orderBy: { startsAt: "desc" },
+          take: SEARCH_LIMIT,
+        })
+      : db.appointment.findMany({
+          where: { salonId: salon.id, startsAt: { gte: start, lt: end } },
+          include: { customer: true, service: true, calendar: true },
+          orderBy: { startsAt: "asc" },
+        }),
     db.service.findMany({ where: { salonId: salon.id, isActive: true, kind: "STANDARD" }, orderBy: { name: "asc" } }),
     db.calendar.findMany({
       where: { salonId: salon.id, isActive: true },
@@ -42,57 +94,42 @@ export default async function AppointmentsPage({ searchParams }: Props) {
 
   return (
     <div>
-      <PageHeader title="المواعيد" subtitle={formatLocalDate(start, tz)} />
+      <PageHeader title="المواعيد" subtitle={searching ? "نتائج البحث في كل الأيام" : formatLocalDate(start, tz)} />
       {error && <Banner>{error}</Banner>}
       {ok === "created" && <Banner tone="success">تم إنشاء الحجز.</Banner>}
 
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <Link href={`/dashboard/appointments?date=${prev}`} className="rounded-full border px-4 py-2 text-sm font-bold">‹ اليوم السابق</Link>
-        <form className="flex items-center gap-2">
-          <input type="date" name="date" defaultValue={dayKey} className={`${inputCls} w-44`} />
-          <button className={btnPrimary}>عرض</button>
+      <Card className="mb-6">
+        <form className="grid gap-4 md:grid-cols-3">
+          <Field label="بحث بالاسم" name="name" defaultValue={searchName} />
+          <Field label="بحث برقم الحجز" name="code" defaultValue={code?.trim() ?? ""} hint="مثال: M1001" dir="ltr" />
+          <Field label="بحث برقم الجوال" name="phone" defaultValue={phone?.trim() ?? ""} dir="ltr" />
+          <div className="flex flex-wrap items-center gap-3 md:col-span-3">
+            <button className={btnPrimary}>بحث</button>
+            {searching && (
+              <Link href="/dashboard/appointments" className="rounded-full border px-4 py-2 text-sm font-bold">عرض اليوم</Link>
+            )}
+          </div>
         </form>
-        <Link href={`/dashboard/appointments?date=${next}`} className="rounded-full border px-4 py-2 text-sm font-bold">اليوم التالي ›</Link>
-      </div>
+      </Card>
 
-      {appointments.length === 0 ? (
-        <EmptyState>لا مواعيد في هذا اليوم.</EmptyState>
-      ) : (
-        <div className="overflow-x-auto rounded-2xl border border-brand/10 bg-white shadow-sm">
-          <table className="w-full min-w-[720px] text-start text-sm">
-            <thead className="bg-brand-soft/60 text-xs font-bold text-zinc-600">
-              <tr>
-                <th className="p-4 text-start">الوقت</th>
-                <th className="p-4 text-start">العميلة</th>
-                <th className="p-4 text-start">الخدمة / الموظفة</th>
-                <th className="p-4 text-start">المصدر</th>
-                <th className="p-4 text-start">الحالة</th>
-                <th className="p-4 text-start">إجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.map((a) => {
-                const st = APPOINTMENT_STATUS[a.status];
-                return (
-                  <tr key={a.id} className="border-t border-zinc-100 align-top">
-                    <td className="p-4 font-bold">{formatLocalTime(a.startsAt, tz)}</td>
-                    <td className="p-4">
-                      <p className="font-semibold">{a.customer.name}</p>
-                      <p dir="ltr" className="text-xs text-zinc-500">{displayPhone(a.customer.phone)} · {a.code}</p>
-                    </td>
-                    <td className="p-4 text-zinc-700">{a.service.name}<br /><span className="text-xs text-zinc-500">{a.calendar.name}</span></td>
-                    <td className="p-4 text-xs text-zinc-600">{SOURCE_LABEL[a.source]}</td>
-                    <td className="p-4"><Badge className={st.tone}>{st.label}</Badge><p className="mt-1 text-xs text-zinc-500">عربون {formatSar(a.depositHalalas)}</p></td>
-                    <td className="p-4">{canManage && <AppointmentActions id={a.id} status={a.status} />}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      {!searching && (
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <Link href={`/dashboard/appointments?date=${prev}`} className="rounded-full border px-4 py-2 text-sm font-bold">‹ اليوم السابق</Link>
+          <form className="flex items-center gap-2">
+            <input type="date" name="date" defaultValue={dayKey} className={`${inputCls} w-44`} />
+            <button className={btnPrimary}>عرض</button>
+          </form>
+          <Link href={`/dashboard/appointments?date=${next}`} className="rounded-full border px-4 py-2 text-sm font-bold">اليوم التالي ›</Link>
         </div>
       )}
 
-      {canManage && (
+      {appointments.length === 0 ? (
+        <EmptyState>{searching ? "لا توجد حجوزات تطابق البحث." : "لا مواعيد في هذا اليوم."}</EmptyState>
+      ) : (
+        <AppointmentsTable rows={appointments} tz={tz} canManage={canManage} showDate={searching} />
+      )}
+
+      {canManage && !searching && (
         <Card className="mt-10">
           <h2 className="mb-4 font-bold text-ink">حجز جديد من لوحة التحكم</h2>
           {services.length === 0 || calendars.length === 0 ? (
@@ -121,6 +158,56 @@ export default async function AppointmentsPage({ searchParams }: Props) {
           <p className="mt-3 text-xs text-zinc-500">يمر الحجز بنفس فحوصات الحجز العام: ساعات العمل، والتعارض، والحد الشهري.</p>
         </Card>
       )}
+    </div>
+  );
+}
+
+function AppointmentsTable({
+  rows,
+  tz,
+  canManage,
+  showDate,
+}: {
+  rows: AppointmentRow[];
+  tz: string;
+  canManage: boolean;
+  showDate: boolean;
+}) {
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-brand/10 bg-white shadow-sm">
+      <table className="w-full min-w-[720px] text-start text-sm">
+        <thead className="bg-brand-soft/60 text-xs font-bold text-zinc-600">
+          <tr>
+            <th className="p-4 text-start">{showDate ? "التاريخ والوقت" : "الوقت"}</th>
+            <th className="p-4 text-start">العميلة</th>
+            <th className="p-4 text-start">الخدمة / الموظفة</th>
+            <th className="p-4 text-start">المصدر</th>
+            <th className="p-4 text-start">الحالة</th>
+            <th className="p-4 text-start">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((a) => {
+            const st = APPOINTMENT_STATUS[a.status];
+            return (
+              <tr key={a.id} className="border-t border-zinc-100 align-top">
+                <td className="p-4 font-bold">
+                  {showDate && <p className="text-xs font-normal text-zinc-500">{formatLocalDate(a.startsAt, tz)}</p>}
+                  {formatLocalTime(a.startsAt, tz)}
+                </td>
+                <td className="p-4">
+                  <p className="font-semibold">{a.customer.name}</p>
+                  <p dir="ltr" className="text-xs text-zinc-500">{displayPhone(a.customer.phone)} · {a.code}</p>
+                </td>
+                <td className="p-4 text-zinc-700">{a.service.name}<br /><span className="text-xs text-zinc-500">{a.calendar.name}</span></td>
+                <td className="p-4 text-xs text-zinc-600">{SOURCE_LABEL[a.source]}</td>
+                <td className="p-4"><Badge className={st.tone}>{st.label}</Badge><p className="mt-1 text-xs text-zinc-500">عربون {formatSar(a.depositHalalas)}</p></td>
+                <td className="p-4">{canManage && <AppointmentActions id={a.id} status={a.status} />}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

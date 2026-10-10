@@ -4,7 +4,7 @@ import { normalizeSaPhone, displayPhone } from "../lib/phone";
 import { halalasFromSar, formatSar } from "../lib/money";
 import { isFreeCancellation, effectiveCancellationHours } from "../lib/cancellation";
 import { entitlementsFor } from "../lib/plans";
-import { generateBookingCode, isBookingCode } from "../lib/booking-code";
+import { formatBookingCode, isBookingCode } from "../lib/booking-code";
 
 test("أرقام الجوال: 9 أرقام تبدأ بـ 5 بعد +966، والصيغ الملصوقة مقبولة", () => {
   assert.equal(normalizeSaPhone("512345678"), "966512345678", "الإدخال الرسمي");
@@ -37,11 +37,13 @@ test("السياسة الخاصة بالخدمة تُطبَّق فقط مع مي
   assert.equal(effectiveCancellationHours(24, null, entitlementsFor("GOLD")), 24);
 });
 
-test("رقم الحجز: بصيغة MT-XXXXXX بلا أحرف ملتبسة", () => {
-  for (let i = 0; i < 200; i++) {
-    const code = generateBookingCode();
-    assert.ok(isBookingCode(code), code);
-    assert.doesNotMatch(code, /[01IO]/);
-  }
-  assert.equal(isBookingCode("MT-0OIL11"), false);
+test("رقم الحجز: M متبوعاً بالرقم المتسلسل", () => {
+  assert.equal(formatBookingCode(1001), "M1001");
+  assert.ok(isBookingCode(formatBookingCode(1001)));
+  assert.ok(isBookingCode("M1"));
+  assert.equal(isBookingCode("MT-7K3QZ9"), false);
+  assert.equal(isBookingCode("m1001"), false);
+  assert.equal(isBookingCode("M"), false);
+  assert.equal(isBookingCode("M10O1"), false);
+  assert.equal(isBookingCode("M1234567890"), false);
 });

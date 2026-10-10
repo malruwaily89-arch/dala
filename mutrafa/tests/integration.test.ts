@@ -15,12 +15,18 @@ import { canUse, assertCan, ForbiddenError } from "../lib/guard";
 import { addDays, addHours, addMinutes, localDayKey, zonedToUtc, localDayBounds } from "../lib/time";
 import { entitlementsFor } from "../lib/plans";
 import { createHmac } from "crypto";
-import { generateBookingCode } from "../lib/booking-code";
+import { formatBookingCode } from "../lib/booking-code";
 
 const TZ = "Asia/Riyadh";
 const RUN = Date.now().toString(36);
 const created: string[] = [];
 let counter = 0;
+let codeNo = 0;
+/** رقم حجز فريد للاختبار (الترقيم فريد داخل الصالون) */
+function testCode(): string {
+  codeNo += 1;
+  return formatBookingCode(10000 + codeNo);
+}
 
 type MakeOpts = {
   plan: "INDIE" | "SILVER" | "GOLD" | "DIAMOND";
@@ -180,14 +186,14 @@ test("قيد قاعدة البيانات يمنع التعارض حتى عند �
     endsAt: addMinutes(startsAt, 45),
     status: "CONFIRMED" as const,
   };
-  await db.appointment.create({ data: { ...base, code: generateBookingCode() } });
+  await db.appointment.create({ data: { ...base, code: testCode() } });
   await assert.rejects(
-    db.appointment.create({ data: { ...base, code: generateBookingCode(), startsAt: addMinutes(startsAt, 20), endsAt: addMinutes(startsAt, 65) } }),
+    db.appointment.create({ data: { ...base, code: testCode(), startsAt: addMinutes(startsAt, 20), endsAt: addMinutes(startsAt, 65) } }),
     /appointments_no_calendar_overlap|exclusion/i
   );
   // الملغى لا يحجز الوقت — مسموح
   await db.appointment.create({
-    data: { ...base, code: generateBookingCode(), status: "CANCELLED", startsAt: addMinutes(startsAt, 20), endsAt: addMinutes(startsAt, 65) },
+    data: { ...base, code: testCode(), status: "CANCELLED", startsAt: addMinutes(startsAt, 20), endsAt: addMinutes(startsAt, 65) },
   });
 });
 
@@ -228,7 +234,7 @@ test("حد الحجوزات الشهري: الإنديه تبلغ 120 حجزاً
     await db.appointment.create({
       data: {
         salonId: salon.id,
-        code: generateBookingCode().padEnd(9, "X"),
+        code: testCode(),
         customerId: cust.id,
         calendarId: calendars[0].id,
         serviceId: freeService.id,
@@ -260,7 +266,7 @@ test("سياسة الإلغاء الخاصة بالخدمة تُطبَّق في 
     const appt = await db.appointment.create({
       data: {
         salonId: salon.id,
-        code: generateBookingCode().padEnd(9, "Z"),
+        code: testCode(),
         customerId: (await db.customer.create({ data: { salonId: salon.id, phone: "966533333333", name: "ك" } })).id,
         calendarId: calendars[0].id,
         serviceId: freeService.id,
@@ -375,7 +381,7 @@ test("عمولة الموظفة تُحسب من الخدمات المكتملة 
     await db.appointment.create({
       data: {
         salonId: salon.id,
-        code: generateBookingCode().padEnd(9, "Q"),
+        code: testCode(),
         customerId: cust.id,
         calendarId: calendars[0].id,
         serviceId: freeService.id,
@@ -406,7 +412,7 @@ test("المهام المجدولة: تذكير 24 ساعة مرة واحدة ف
   const reminderAppt = await db.appointment.create({
     data: {
       salonId: salon.id,
-      code: generateBookingCode().padEnd(9, "W"),
+      code: testCode(),
       customerId: cust.id,
       calendarId: calendars[0].id,
       serviceId: freeService.id,
@@ -420,7 +426,7 @@ test("المهام المجدولة: تذكير 24 ساعة مرة واحدة ف
   const staleHold = await db.appointment.create({
     data: {
       salonId: salon.id,
-      code: generateBookingCode().padEnd(9, "V"),
+      code: testCode(),
       customerId: cust.id,
       calendarId: calendars[0].id,
       serviceId: freeService.id,

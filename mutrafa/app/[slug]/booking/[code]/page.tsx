@@ -26,11 +26,12 @@ export default async function BookingStatusPage({ params, searchParams }: Props)
   const { ok, error, late } = await searchParams;
   if (!isBookingCode(code)) notFound();
 
-  const appt = await db.appointment.findUnique({
-    where: { code },
+  // الرقم فريد داخل الصالون فقط، لذا يُبحث عنه ضمن صالون الرابط
+  const appt = await db.appointment.findFirst({
+    where: { code, salon: { slug } },
     include: { salon: true, service: true, calendar: true, review: true },
   });
-  if (!appt || appt.salon.slug !== slug) notFound();
+  if (!appt) notFound();
 
   const ctx = await loadSalonContext(appt.salonId);
   const hours = effectiveCancellationHours(appt.salon.cancellationHours, appt.service.cancellationHours, ctx.entitlements);

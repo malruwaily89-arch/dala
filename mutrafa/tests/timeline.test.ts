@@ -9,7 +9,7 @@ const hours = { start: "09:00", end: "12:00", days: [0, 1, 2, 3, 4, 5, 6] };
 test("الجدول: شبكة كل ربع ساعة، والحجز يظهر عند بدايته ويغطي خاناته التالية", () => {
   const booking: TimelineBooking = {
     id: "a1",
-    code: "MT-AAAAAA",
+    code: "M1001",
     customerName: "سارة",
     customerPhone: "966512345678",
     serviceName: "صبغة",
@@ -29,7 +29,7 @@ test("الجدول: شبكة كل ربع ساعة، والحجز يظهر عند
     ["09:00", "09:15", "09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "11:45"]
   );
   assert.equal(rows[4].status, "booked");
-  assert.equal(rows[4].booking?.code, "MT-AAAAAA");
+  assert.equal(rows[4].booking?.code, "M1001");
   assert.equal(rows[5].continued, true);
   assert.equal(rows[5].booking, undefined);
   assert.equal(rows[8].status, "free", "11:00 بعد انتهاء الحجز متاح");

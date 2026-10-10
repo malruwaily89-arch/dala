@@ -13,7 +13,7 @@ import { PrismaClient, type PlanCode, type AppointmentStatus, type Role } from "
 import { randomBytes, randomInt, scryptSync } from "crypto";
 import { addDays, addMinutes, localDayKey } from "../lib/time";
 import { computeAvailableSlots, parseWorkingHours, type BusyInterval } from "../lib/availability";
-import { generateBookingCode } from "../lib/booking-code";
+import { allocateBookingCode } from "../lib/booking-code";
 import { normalizeSaPhone } from "../lib/phone";
 import { entitlementsFor, PLANS } from "../lib/plans";
 
@@ -175,7 +175,7 @@ async function main() {
           const appt = await db.appointment.create({
             data: {
               salonId: salon.id,
-              code: generateBookingCode(),
+              code: await allocateBookingCode(db, salon.id),
               customerId: customer.id,
               calendarId: cal.id,
               serviceId: service.id,

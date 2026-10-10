@@ -2,7 +2,7 @@ import { db } from "./db";
 import { audit } from "./audit";
 import { loadSalonContext, type SalonContext } from "./salon-context";
 import { computeAvailableSlots, parseWorkingHours, SLOT_STEP_MINUTES, type BusyInterval } from "./availability";
-import { generateBookingCode } from "./booking-code";
+import { allocateBookingCode } from "./booking-code";
 import { createCheckout } from "./payments";
 import { effectiveCancellationHours, isFreeCancellation } from "./cancellation";
 import { hasFeature } from "./plans";
@@ -108,7 +108,7 @@ export async function createBooking(input: BookingInput, ctx: SalonContext) {
       return tx.appointment.create({
         data: {
           salonId: input.salonId,
-          code: await uniqueBookingCode(),
+          code: await allocateBookingCode(tx, input.salonId),
           customerId: customer.id,
           calendarId: calendar.id,
           serviceId: service.id,
@@ -475,7 +475,7 @@ export async function createFreeformBooking(params: {
       return tx.appointment.create({
         data: {
           salonId: params.salonId,
-          code: await uniqueBookingCode(),
+          code: await allocateBookingCode(tx, params.salonId),
           customerId: customer.id,
           calendarId: calendar.id,
           serviceId: service.id,
@@ -502,14 +502,6 @@ export async function createFreeformBooking(params: {
     if (isOverlapError(e)) throw new BookingError("هذا الوقت مشغول. اختاري وقتاً آخر.");
     throw e;
   }
-}
-
-async function uniqueBookingCode(attempt = 0): Promise<string> {
-  const code = generateBookingCode();
-  const exists = await db.appointment.findUnique({ where: { code }, select: { id: true } });
-  if (!exists) return code;
-  if (attempt >= 5) throw new BookingError("تعذّر توليد رقم حجز فريد، أعيدي المحاولة.");
-  return uniqueBookingCode(attempt + 1);
 }
 
 function isOverlapError(e: unknown): boolean {

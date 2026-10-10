@@ -7,8 +7,9 @@ import { resumeDepositAction } from "@/app/actions/public";
 export default async function PayDepositPage({ params }: { params: Promise<{ slug: string; code: string }> }) {
   const { slug, code } = await params;
   if (!isBookingCode(code)) notFound();
-  const appt = await db.appointment.findUnique({ where: { code }, include: { salon: true } });
-  if (!appt || appt.salon.slug !== slug) notFound();
+  // الرقم فريد داخل الصالون فقط، لذا يُبحث عنه ضمن صالون الرابط
+  const appt = await db.appointment.findFirst({ where: { code, salon: { slug } } });
+  if (!appt) notFound();
   if (appt.status !== "PENDING_DEPOSIT") redirect(`/${slug}/booking/${code}`);
 
   let url: string;

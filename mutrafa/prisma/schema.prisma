@@ -94,6 +94,7 @@ model Salon {
   city                  String?
   timezone              String   @default("Asia/Riyadh")
   brandColor            String   @default("#8a1538")
+  bookingSeq            Int      @default(1000) // آخر رقم حجز أُعطي للصالون (يزيد قبل كل حجز)
   logoUrl               String?
   depositPolicy         String? // نص سياسة العربون المعروضة للعميلة
   bankName              String?
@@ -247,7 +248,7 @@ enum BookingSource {
 model Appointment {
   id             String            @id @default(cuid())
   salonId        String
-  code           String            @unique // رقم الحجز المعروض: MT-XXXXXX
+  code           String            // رقم الحجز المعروض: M + رقم متسلسل داخل الصالون (M1001)
   customerId     String
   calendarId     String
   serviceId      String
@@ -273,6 +274,7 @@ model Appointment {
   messages MessageLog[]
   review   Review?
 
+  @@unique([salonId, code])
   @@index([salonId, startsAt])
   @@index([calendarId, startsAt])
   @@index([salonId, status, createdAt])
