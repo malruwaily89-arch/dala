@@ -1,16 +1,22 @@
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { formatSar } from "@/lib/utils";
-import { createServiceAction, toggleServiceAction } from "@/app/actions/appointments";
+import { createServiceAction, toggleServiceAction, deleteServiceAction } from "@/app/actions/appointments";
 import { EmptyState, Banner } from "../ui";
+import { DeleteServiceForm } from "./DeleteServiceForm";
+
+const ERROR_MESSAGES: Record<string, string> = {
+  missing: "يرجى تعبئة جميع الحقول المطلوبة.",
+  has_appointments: "لا يمكن حذف هذه الخدمة لوجود مواعيد مرتبطة بها — استخدمي «إيقاف» بدلاً من الحذف.",
+};
 
 export default async function ServicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; deleted?: string }>;
 }) {
   const user = await requireUser();
-  const { error } = await searchParams;
+  const { error, deleted } = await searchParams;
 
   const services = await db.service.findMany({
     where: { tenantId: user.tenantId },
@@ -24,7 +30,8 @@ export default async function ServicesPage({
         حددي مدة كل خدمة بدقة — حماية جدولك تعتمد عليها، والعربون يمنع التأجيل.
       </p>
 
-      {error && <Banner>{error}</Banner>}
+      {error && <Banner>{ERROR_MESSAGES[error] ?? error}</Banner>}
+      {deleted && <Banner success>تم حذف الخدمة بنجاح.</Banner>}
 
       <details className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <summary className="cursor-pointer font-bold text-brand">+ خدمة جديدة</summary>
@@ -68,6 +75,7 @@ export default async function ServicesPage({
                   {s.isActive ? "إيقاف" : "تفعيل"}
                 </button>
               </form>
+              <DeleteServiceForm id={s.id} name={s.name} />
             </li>
           ))}
         </ul>

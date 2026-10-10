@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "staff" ALTER COLUMN "workingHours" SET DEFAULT '{"start":"00:00","end":"23:59","days":[0,1,2,3,4,5,6]}';

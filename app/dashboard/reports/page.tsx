@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
+import { canViewReportsAndFinance } from "@/lib/permissions";
 import { getMonthlyReport, getAdvancedReport } from "@/app/actions/reports";
 import { EmptyState } from "../ui";
 import { formatSar, isProPlan } from "@/lib/utils";
@@ -7,6 +9,7 @@ import { ReportExportButtons } from "./ReportExportButtons";
 
 export default async function ReportsPage() {
   const user = await requireUser();
+  if (!canViewReportsAndFinance(user)) redirect("/dashboard");
   const report = await getMonthlyReport();
   const isPro = isProPlan(user.tenant.plan);
   const advanced = isPro ? await getAdvancedReport() : null;

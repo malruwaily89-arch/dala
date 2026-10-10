@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { createAppointmentTx } from "@/lib/scheduling";
+import { createAppointmentTx, getAvailableSlots } from "@/lib/scheduling";
+import { canCancelAppointments, canAddAppointments, canManageStaffSchedules } from "@/lib/permissions";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 import { formatDateTime, formatSar } from "@/lib/utils";
 import { sendRatingRequestWhatsApp } from "@/app/b/[slug]/booking/[code]/actions";
@@ -76,6 +77,7 @@ export async function noShowAction(formData: FormData) {
 /** إلغاء الموعد + إخطار قائمة الانتظار */
 export async function cancelAppointmentAction(formData: FormData) {
   const user = await requireUser();
+  if (!canCancelAppointments(user)) redirect("/dashboard/appointments?error=forbidden");
   const id = String(formData.get("id"));
   const appt = await db.appointment.findFirst({
     where: { id, tenantId: user.tenantId, status: { in: ["pending_deposit", "confirmed"] } },
@@ -88,19 +90,28 @@ export async function cancelAppointmentAction(formData: FormData) {
   revalidatePath("/dashboard/appointments");
 }
 
+/** يجلب الأوقات المتاحة فعلياً (موظفة+خدمة+يوم) لقائمة الحجز اليدوي المنسدلة — نطاق البيانات مقيّد بمستأجر المستخدم الحالي */
+export async function fetchAdminSlotsAction(params: { staffId: string; serviceId: string; dateIso: string }): Promise<string[]> {
+  const user = await requireUser();
+  const { staffId, serviceId, dateIso } = params;
+  if (!staffId || !serviceId || !dateIso) return [];
+  const slots = await getAvailableSlots({ tenantId: user.tenantId, staffId, serviceId, date: new Date(dateIso) });
+  return slots.map((s) => s.toISOString());
+}
+
 /** إنشاء موعد من لوحة التحكم */
 export async function createAppointmentAdminAction(formData: FormData) {
   const user = await requireUser();
+  if (!canAddAppointments(user)) redirect("/dashboard/appointments?error=forbidden");
   const customerId = String(formData.get("customerId"));
   const staffId = String(formData.get("staffId"));
   const serviceId = String(formData.get("serviceId"));
-  const dateStr = String(formData.get("date")); // yyyy-mm-dd
-  const timeStr = String(formData.get("time")); // HH:mm
+  const slotIso = String(formData.get("slotIso") || "");
 
-  if (!customerId || !staffId || !serviceId || !dateStr || !timeStr) {
+  if (!customerId || !staffId || !serviceId || !slotIso) {
     redirect("/dashboard/appointments?error=missing");
   }
-  const startsAt = new Date(`${dateStr}T${timeStr}`);
+  const startsAt = new Date(slotIso);
   try {
     await createAppointmentTx({
       tenantId: user.tenantId,
@@ -123,14 +134,18 @@ export async function createCustomerAction(formData: FormData) {
   const user = await requireUser();
   const name = String(formData.get("name") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
-  if (!name || !phone) redirect("/dashboard/customers?error=missing");
-  await db.customer.upsert({
+  const returnTo = String(formData.get("returnTo") || "/dashboard/customers");
+  if (!name || !phone) redirect(`${returnTo}?error=missing`);
+
+  const existing = await db.customer.findUnique({
     where: { tenantId_phone: { tenantId: user.tenantId, phone } },
-    update: { name },
-    create: { tenantId: user.tenantId, name, phone },
   });
+  if (existing) redirect(`${returnTo}?error=phone_exists`);
+
+  await db.customer.create({ data: { tenantId: user.tenantId, name, phone } });
   revalidatePath("/dashboard/customers");
   revalidatePath("/dashboard/appointments");
+  redirect(returnTo);
 }
 
 /** إدارة الخدمات */
@@ -156,21 +171,66 @@ export async function toggleServiceAction(formData: FormData) {
   revalidatePath("/dashboard/services");
 }
 
+/** حذف خدمة نهائياً — يُرفض لو عندها مواعيد سابقة (نقترح الإيقاف بدلاً من الحذف حينها) */
+export async function deleteServiceAction(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id"));
+  const service = await db.service.findFirst({ where: { id, tenantId: user.tenantId } });
+  if (!service) redirect("/dashboard/services?error=1");
+
+  const appointmentCount = await db.appointment.count({ where: { serviceId: id } });
+  if (appointmentCount > 0) redirect("/dashboard/services?error=has_appointments");
+
+  await db.service.delete({ where: { id } });
+  revalidatePath("/dashboard/services");
+  redirect("/dashboard/services?deleted=1");
+}
+
 /** إدارة الموظفات */
+/** يقرأ أيام العمل المختارة (checkboxes باسم day) — الأحد=0 ... السبت=6. بدون اختيار = كل أيام الأسبوع */
+function parseSelectedDays(formData: FormData): number[] {
+  const values = formData.getAll("day").map((d) => Number(d)).filter((d) => d >= 0 && d <= 6 && !Number.isNaN(d));
+  return values.length > 0 ? values.sort() : [0, 1, 2, 3, 4, 5, 6];
+}
+
 export async function createStaffAction(formData: FormData) {
   const user = await requireUser();
+  if (!canManageStaffSchedules(user)) redirect("/dashboard/staff?error=forbidden");
   const name = String(formData.get("name") || "").trim();
+  const jobTitle = String(formData.get("jobTitle") || "").trim() || null;
   const phone = String(formData.get("phone") || "").trim() || null;
-  const start = String(formData.get("workStart") || "09:00");
-  const end = String(formData.get("workEnd") || "21:00");
+  const start = String(formData.get("workStart") || "00:00");
+  const end = String(formData.get("workEnd") || "23:59");
+  const days = parseSelectedDays(formData);
   if (!name) redirect("/dashboard/staff?error=missing");
   await db.staff.create({
     data: {
       tenantId: user.tenantId,
       name,
+      jobTitle,
       phone,
-      workingHours: JSON.stringify({ start, end, days: [0, 1, 2, 3, 4, 6] }),
+      workingHours: JSON.stringify({ start, end, days }),
     },
+  });
+  revalidatePath("/dashboard/staff");
+}
+
+/** تعديل ساعات وأيام عمل موظفة موجودة */
+export async function updateStaffScheduleAction(formData: FormData) {
+  const user = await requireUser();
+  if (!canManageStaffSchedules(user)) redirect("/dashboard/staff?error=forbidden");
+  const id = String(formData.get("id"));
+  const jobTitle = String(formData.get("jobTitle") || "").trim() || null;
+  const start = String(formData.get("workStart") || "00:00");
+  const end = String(formData.get("workEnd") || "23:59");
+  const days = parseSelectedDays(formData);
+
+  const staff = await db.staff.findFirst({ where: { id, tenantId: user.tenantId } });
+  if (!staff) redirect("/dashboard/staff?error=1");
+
+  await db.staff.update({
+    where: { id },
+    data: { jobTitle, workingHours: JSON.stringify({ start, end, days }) },
   });
   revalidatePath("/dashboard/staff");
 }

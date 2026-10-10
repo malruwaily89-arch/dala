@@ -1,4 +1,6 @@
 import { randomInt } from "crypto";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 // رقم حجز فريد للعرض: SY-4XK9Q2
 export function generateBookingCode(): string {
@@ -52,4 +54,8 @@ const PRO_PLANS = new Set(["BASIC_PRO", "PRO_PRO", "ADVANCED_PRO"]);
 export function isProPlan(plan: string | null | undefined): boolean {
   if (!plan) return false;
   return PRO_PLANS.has(plan.toUpperCase());
+}
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { logoutAction } from "@/app/actions/auth";
@@ -20,8 +21,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
-            <Link href="/admin" className="text-xl font-extrabold text-brand">
-              دلال — لوحة المشرف
+            <Link href="/admin" aria-label="دلال" className="flex items-center gap-2">
+              <Image src="/dalal-logo.png" alt="دلال" width={100} height={64} className="h-auto w-16" priority />
+              <span className="text-lg font-extrabold text-brand">لوحة المشرف</span>
             </Link>
           </div>
           <div className="flex items-center gap-4">

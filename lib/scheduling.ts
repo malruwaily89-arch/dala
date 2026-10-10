@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { generateBookingCode, addMinutes, overlaps } from "./utils";
 
-interface WorkingHours {
+export interface WorkingHours {
   start: string; // "09:00"
   end: string; // "21:00"
   days: number[]; // 0=الأحد .. 6=السبت
@@ -12,10 +12,85 @@ export function parseWorkingHours(json: string): WorkingHours {
     const parsed = JSON.parse(json) as WorkingHours;
     if (parsed?.start && parsed?.end && Array.isArray(parsed.days)) return parsed;
   } catch {}
-  return { start: "09:00", end: "21:00", days: [0, 1, 2, 3, 4, 6] };
+  return { start: "00:00", end: "23:59", days: [0, 1, 2, 3, 4, 5, 6] };
 }
 
-const SLOT_STEP_MIN = 30;
+export const SLOT_STEP_MIN = 30;
+
+/**
+ * حدود ساعات عمل موظفة ليوم معيّن، كتاريخين (بداية/نهاية).
+ * لو النهاية <= البداية (مثال: تبدأ ٤:٠٠ م وتنتهي ١٢:٠٠ ص) فهذه نوبة تمتد لما بعد
+ * منتصف الليل — النهاية الفعلية تكون اليوم التالي.
+ */
+export function dayWorkWindow(day: Date, hours: Pick<WorkingHours, "start" | "end">) {
+  const [h1, m1] = hours.start.split(":").map(Number);
+  const [h2, m2] = hours.end.split(":").map(Number);
+  const start = new Date(day);
+  start.setHours(h1, m1, 0, 0);
+  const end = new Date(day);
+  end.setHours(h2, m2, 0, 0);
+  if (end.getTime() <= start.getTime()) {
+    end.setDate(end.getDate() + 1);
+  }
+  return { start, end };
+}
+
+/** إجمالي ساعات عمل الموظفة أسبوعياً: ساعات اليوم الواحد × عدد أيام العمل */
+export function weeklyCapacityHours(hours: WorkingHours): number {
+  if (hours.days.length === 0) return 0;
+  const { start, end } = dayWorkWindow(new Date(2000, 0, 3), hours); // أي يوم مرجعي — المدة فقط هي المهمة
+  const dailyHours = (end.getTime() - start.getTime()) / 3_600_000;
+  return dailyHours * hours.days.length;
+}
+
+export type DayTimelineRow<T> = { kind: "appt"; appt: T } | { kind: "gap"; start: Date; end: Date };
+
+/**
+ * يبني جدول اليوم الكامل: مواعيد فعلية تتخللها فراغات "متاح"، تغطي كامل ساعات العمل.
+ * لأغراض العرض فقط (لا يستثني الأوقات الماضية) — ‏getAvailableSlots‏/‏countAvailableSlotsForDay‏ هما المرجع للحجز الفعلي.
+ */
+export function buildDayTimeline<T extends { startsAt: Date; endsAt: Date }>(
+  day: Date,
+  hours: Pick<WorkingHours, "start" | "end">,
+  dayAppts: T[]
+): DayTimelineRow<T>[] {
+  const { start: workStart, end: workEnd } = dayWorkWindow(day, hours);
+  const rows: DayTimelineRow<T>[] = [];
+  let cursor = workStart;
+  for (const appt of dayAppts) {
+    if (appt.startsAt > cursor) rows.push({ kind: "gap", start: cursor, end: appt.startsAt });
+    rows.push({ kind: "appt", appt });
+    if (appt.endsAt > cursor) cursor = appt.endsAt;
+  }
+  if (workEnd > cursor) rows.push({ kind: "gap", start: cursor, end: workEnd });
+  return rows;
+}
+
+/**
+ * عدد الأوقات الفارغة في يوم معيّن — على نفس شبكة الـ٣٠ دقيقة المُثبّتة على بداية الدوام
+ * التي يستخدمها ‏getAvailableSlots‏ فعليًا للحجز، خانة بخانة (لا حساب مدة الفراغ ثم قسمتها
+ * على ٣٠، لأن فراغًا غير مُحاذٍ للشبكة — مثلاً بعد خدمة ٤٥ دقيقة — كان يُحتسب خانة زائدة
+ * لا تقابل أي وقت حجز فعلي قابل للعرض للعميلة).
+ */
+export function countAvailableSlotsForDay(
+  day: Date,
+  hours: WorkingHours,
+  dayAppts: { startsAt: Date; endsAt: Date }[],
+  now: Date = new Date()
+): number {
+  if (!hours.days.includes(day.getDay())) return 0;
+  const { start, end } = dayWorkWindow(day, hours);
+
+  let count = 0;
+  for (let t = start.getTime(); t + SLOT_STEP_MIN * 60_000 <= end.getTime(); t += SLOT_STEP_MIN * 60_000) {
+    const slotStart = new Date(t);
+    const slotEnd = new Date(t + SLOT_STEP_MIN * 60_000);
+    if (slotStart.getTime() <= now.getTime()) continue; // لا حجوزات في الماضي
+    const busy = dayAppts.some((a) => slotStart < a.endsAt && a.startsAt < slotEnd);
+    if (!busy) count++;
+  }
+  return count;
+}
 
 /**
  * المواعيد الفارغة لموظفة معينة في يوم معين لخدمة معينة.
@@ -29,31 +104,27 @@ export async function getAvailableSlots(params: {
 }): Promise<Date[]> {
   const { tenantId, staffId, serviceId, date } = params;
 
-  const [staff, service, dayAppointments] = await Promise.all([
+  const [staff, service] = await Promise.all([
     db.staff.findFirst({ where: { id: staffId, tenantId, isActive: true } }),
     db.service.findFirst({ where: { id: serviceId, tenantId, isActive: true } }),
-    db.appointment.findMany({
-      where: {
-        tenantId,
-        staffId,
-        status: { in: ["pending_deposit", "confirmed"] },
-        startsAt: { gte: startOfDay(date), lt: endOfDay(date) },
-      },
-      select: { startsAt: true, endsAt: true },
-    }),
   ]);
 
   if (!staff || !service) return [];
   const hours = parseWorkingHours(staff.workingHours);
   if (!hours.days.includes(date.getDay())) return [];
 
-  const [h1, m1] = hours.start.split(":").map(Number);
-  const [h2, m2] = hours.end.split(":").map(Number);
+  // النطاق الفعلي لساعات العمل — يمتد لليوم التالي تلقائياً لو النوبة تعبر منتصف الليل
+  const { start: workStart, end: workEnd } = dayWorkWindow(date, hours);
 
-  const workStart = new Date(date);
-  workStart.setHours(h1, m1, 0, 0);
-  const workEnd = new Date(date);
-  workEnd.setHours(h2, m2, 0, 0);
+  const dayAppointments = await db.appointment.findMany({
+    where: {
+      tenantId,
+      staffId,
+      status: { in: ["pending_deposit", "confirmed"] },
+      startsAt: { gte: workStart, lt: workEnd },
+    },
+    select: { startsAt: true, endsAt: true },
+  });
 
   const now = new Date();
   const slots: Date[] = [];

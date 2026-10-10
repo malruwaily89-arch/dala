@@ -5,16 +5,17 @@ import {
   updateSalonStatusAction,
   recordManualPaymentAction,
 } from "@/app/actions/admin";
+import { DeleteSalonForm, DeleteUserForm } from "./DangerZoneForms";
 
 const PLANS = ["BASIC", "PRO", "ADVANCED", "BASIC_PRO", "PRO_PRO", "ADVANCED_PRO"];
 
 export default async function SalonsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ok?: string; error?: string }>;
+  searchParams: Promise<{ ok?: string; error?: string; deleted?: string }>;
 }) {
   const salons = await getSalonsForManagement();
-  const { ok, error } = await searchParams;
+  const { ok, error, deleted } = await searchParams;
 
   return (
     <div className="space-y-8">
@@ -30,7 +31,12 @@ export default async function SalonsPage({
       )}
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-800">
-          {error === "exists" ? "الرابط أو البريد مستخدم مسبقاً." : "تحقق من الحقول المطلوبة."}
+          {error === "exists" ? "الرابط أو البريد مستخدم مسبقاً." : "تحقق من الحقول المطلوبة، أو أن هذا الإجراء غير مسموح (مثل حذف آخر سوبر أدمن)."}
+        </div>
+      )}
+      {deleted && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+          تم الحذف بنجاح.
         </div>
       )}
 
@@ -113,6 +119,9 @@ export default async function SalonsPage({
           {salons.map((s) => (
             <details key={s.id} className="rounded-lg border border-zinc-200 p-4">
               <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2">
+                <span dir="ltr" className="rounded-full bg-brand-gold/15 px-2 py-0.5 text-xs font-bold text-brand-gold">
+                  D{s.sequenceNumber}
+                </span>
                 <span className="font-bold">{s.name}</span>
                 <span dir="ltr" className="text-xs text-zinc-400">/b/{s.slug}</span>
                 <span className="text-xs text-zinc-500">{s.ownerEmail}</span>
@@ -181,6 +190,16 @@ export default async function SalonsPage({
                     </button>
                   </div>
                 </form>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
+                <p className="text-xs font-bold text-rose-700">منطقة الخطر — الحذف نهائي ولا يمكن التراجع عنه</p>
+                <div className="flex flex-wrap gap-2">
+                  {s.ownerUserId && (
+                    <DeleteUserForm userId={s.ownerUserId} userEmail={s.ownerEmail} />
+                  )}
+                  <DeleteSalonForm tenantId={s.id} tenantName={s.name} />
+                </div>
               </div>
             </details>
           ))}

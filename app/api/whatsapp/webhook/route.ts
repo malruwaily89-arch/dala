@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
 import { getWhatsAppVersion } from "@/lib/whatsapp";
 
@@ -10,6 +11,10 @@ import { getWhatsAppVersion } from "@/lib/whatsapp";
  * إعداد الـ URL في Meta App Dashboard:
  *   Callback URL: https://<نطاقك>/api/whatsapp/webhook
  *   Verify token: نفس WHATSAPP_WEBHOOK_VERIFY_TOKEN في .env
+ *
+ * أمان: كل POST يُتحقق من توقيعه عبر هيدر X-Hub-Signature-256 (HMAC-SHA256
+ * على الجسم الخام باستخدام App Secret) — بدونه أي طرف يقدر يزوّر رسائل واردة
+ * أو حالات تسليم. راجع WHATSAPP_APP_SECRET في .env (App Dashboard → Settings → Basic).
  */
 
 // GET — تحقق اشتراك Meta
@@ -39,9 +44,39 @@ interface GraphWebhookPayload {
   }[];
 }
 
+/** يتحقق من توقيع Meta على الجسم الخام. يرفض الطلب إن كان WHATSAPP_APP_SECRET مُعرّفاً والتوقيع غير مطابق. */
+function isValidMetaSignature(rawBody: string, signatureHeader: string | null): boolean {
+  const appSecret = process.env.WHATSAPP_APP_SECRET;
+  // لو ما تم تجهيز App Secret بعد (وضع تجربة أولي)، نسمح بالمرور مع تسجيل تحذير
+  // بدل كسر الويبهوك — لكن يجب تفعيله قبل الإطلاق الفعلي.
+  if (!appSecret) {
+    console.warn("[whatsapp webhook] WHATSAPP_APP_SECRET غير مُعرّف — التحقق من التوقيع معطّل");
+    return true;
+  }
+  if (!signatureHeader || !signatureHeader.startsWith("sha256=")) return false;
+
+  const expected = createHmac("sha256", appSecret).update(rawBody, "utf8").digest("hex");
+  const expectedBuf = Buffer.from(expected, "hex");
+  const providedBuf = Buffer.from(signatureHeader.slice("sha256=".length), "hex");
+  if (expectedBuf.length !== providedBuf.length) return false;
+  return timingSafeEqual(expectedBuf, providedBuf);
+}
+
 // POST — الرسائل الواردة وحالات التسليم
 export async function POST(request: NextRequest) {
-  const payload = (await request.json()) as GraphWebhookPayload;
+  const rawBody = await request.text();
+
+  if (!isValidMetaSignature(rawBody, request.headers.get("x-hub-signature-256"))) {
+    console.warn("[whatsapp webhook] توقيع غير صالح — تم رفض الطلب");
+    return NextResponse.json({ ok: false, error: "invalid signature" }, { status: 401 });
+  }
+
+  let payload: GraphWebhookPayload;
+  try {
+    payload = JSON.parse(rawBody) as GraphWebhookPayload;
+  } catch {
+    return NextResponse.json({ ok: false, error: "invalid body" }, { status: 400 });
+  }
 
   for (const entry of payload.entry ?? []) {
     for (const change of entry.changes ?? []) {
