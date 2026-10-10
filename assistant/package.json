@@ -12,7 +12,8 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.133.0"
+    "@anthropic-ai/sdk": "^0.133.0",
+    "exceljs": "^4.4.0"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
