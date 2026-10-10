@@ -38,7 +38,8 @@ export async function createSession(userId: string): Promise<void> {
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    // نطلب خاصية Secure فقط عندما يعمل الموقع على https، وإلا يرفض المتصفح الكوكي على http
+    secure: (process.env.APP_URL ?? "").startsWith("https://"),
     path: "/",
     expires: expiresAt,
   });
