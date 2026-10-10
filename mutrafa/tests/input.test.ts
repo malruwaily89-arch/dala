@@ -6,12 +6,14 @@ import { isFreeCancellation, effectiveCancellationHours } from "../lib/cancellat
 import { entitlementsFor } from "../lib/plans";
 import { generateBookingCode, isBookingCode } from "../lib/booking-code";
 
-test("أرقام الجوال: تقبل الصيغ السعودية وتوحّدها على 9665XXXXXXXX", () => {
+test("أرقام الجوال: 9 أرقام تبدأ بـ 5 بعد +966، والصيغ الملصوقة مقبولة", () => {
+  assert.equal(normalizeSaPhone("512345678"), "966512345678", "الإدخال الرسمي");
   assert.equal(normalizeSaPhone("0512345678"), "966512345678");
   assert.equal(normalizeSaPhone("+966 51 234 5678"), "966512345678");
   assert.equal(normalizeSaPhone("966512345678"), "966512345678");
-  assert.equal(normalizeSaPhone("0412345678"), null, "يجب أن يبدأ بـ 05");
-  assert.equal(normalizeSaPhone("051234567"), null, "9 أرقام فقط غير صالح");
+  assert.equal(normalizeSaPhone("412345678"), null, "يجب أن يبدأ بالرقم 5");
+  assert.equal(normalizeSaPhone("51234567"), null, "أقل من 9 أرقام غير صالح");
+  assert.equal(normalizeSaPhone("5123456789"), null, "أكثر من 9 أرقام غير صالح");
   assert.equal(displayPhone("966512345678"), "0512345678");
 });
 

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { getSlotsAction, publicBookingAction } from "@/app/actions/public";
 import { formatSar } from "@/lib/money";
-import { Banner, btnPrimary, btnGhost, Card, inputCls } from "./ui";
+import { Banner, btnPrimary, btnGhost, Card, inputCls, PhoneField } from "./ui";
 
 export interface WizardService {
   id: string;
@@ -201,9 +201,8 @@ export function BookingWizard({
             <input name="name" required minLength={2} className={inputCls} />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold">الجوال</span>
-            <input name="phone" type="tel" dir="ltr" required placeholder="05XXXXXXXX" className={inputCls} />
           </label>
+          <PhoneField name="phone" label="الجوال" />
 
           <div className="rounded-xl bg-zinc-50 p-4 text-sm">
             <p className="mb-2 font-bold text-ink">ملخص الحجز</p>

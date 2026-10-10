@@ -6,7 +6,7 @@ import { hasFeature } from "@/lib/plans";
 import { localDayKey, addDays, formatLocalDate } from "@/lib/time";
 import { BookingWizard, type WizardDay } from "@/components/booking-wizard";
 import { joinWaitlistAction } from "@/app/actions/public";
-import { Banner, Card, Field, btnPrimary } from "@/components/ui";
+import { Banner, Card, Field, PhoneField, btnPrimary } from "@/components/ui";
 import { isSlugAvailableFormat } from "@/lib/reserved";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ error?: string; waitlist?: string }> };
@@ -82,7 +82,7 @@ export default async function SalonBookingPage({ params, searchParams }: Props) 
           <form action={joinWaitlistAction} className="grid gap-3 md:grid-cols-2">
             <input type="hidden" name="slug" value={salon.slug} />
             <Field label="الاسم" name="name" required />
-            <Field label="الجوال" name="phone" type="tel" required />
+            <PhoneField name="phone" label="الجوال" />
             <label className="block md:col-span-2">
               <span className="mb-1.5 block text-sm font-semibold">الخدمة</span>
               <select name="serviceId" required className="w-full rounded-xl border border-zinc-300 bg-white px-3.5 py-2.5 text-sm">

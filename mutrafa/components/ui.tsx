@@ -92,6 +92,40 @@ export function Field({
   );
 }
 
+/** حقل جوال: رمز +966 ثابت، و9 أرقام تبدأ بـ 5 */
+export function PhoneField({
+  name,
+  label = "رقم الجوال",
+  defaultValue,
+  required = true,
+}: {
+  name: string;
+  label?: string;
+  defaultValue?: string;
+  required?: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-semibold text-ink">{label}</span>
+      <span dir="ltr" className="flex">
+        <span className="flex items-center rounded-s-xl border border-e-0 border-zinc-300 bg-zinc-50 px-3 text-sm font-bold text-zinc-600">+966</span>
+        <input
+          name={name}
+          type="tel"
+          inputMode="numeric"
+          pattern="5[0-9]{8}"
+          maxLength={9}
+          required={required}
+          placeholder="5XXXXXXXX"
+          defaultValue={defaultValue}
+          className={`${inputCls} rounded-s-none`}
+        />
+      </span>
+      <span className="mt-1 block text-xs text-zinc-500">9 أرقام بعد رمز الدولة، تبدأ بالرقم 5</span>
+    </label>
+  );
+}
+
 export function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <Card>

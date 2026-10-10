@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { signupAction } from "@/app/actions/auth";
-import { Banner, Field, btnPrimary, Card, inputCls } from "@/components/ui";
+import { Banner, Field, PhoneField, btnPrimary, Card, inputCls } from "@/components/ui";
 import { MarketingShell } from "@/components/marketing/shell";
 import { PLANS, PLAN_CODES, TRIAL_DAYS, isPlanCode, type PlanCode } from "@/lib/plans";
 
@@ -35,7 +35,7 @@ export default async function SignupPage({
                 placeholder="lumina"
                 hint="سيكون رابط حجزك: mutrafa.d-alal.com/اسم-الرابط — أحرف إنجليزية صغيرة وأرقام وشرطة (3–30)"
               />
-              <Field label="رقم واتساب الصالون" name="whatsapp" type="tel" required placeholder="05XXXXXXXX" hint="يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" />
+              <PhoneField name="whatsapp" label="رقم واتساب الصالون" />
             </fieldset>
 
             <fieldset className="space-y-4">

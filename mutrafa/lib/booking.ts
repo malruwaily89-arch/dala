@@ -49,7 +49,7 @@ interface BookingInput {
  */
 export async function createBooking(input: BookingInput, ctx: SalonContext) {
   const phone = normalizeSaPhone(input.customerPhone);
-  if (!phone) throw new BookingError("رقم الجوال غير صالح. يجب أن يبدأ بـ 05 ويتكون من 10 أرقام.");
+  if (!phone) throw new BookingError("رقم الجوال غير صالح. اكتبي 9 أرقام تبدأ بـ 5 بعد رمز الدولة +966.");
   if (input.customerName.trim().length < 2) throw new BookingError("يرجى إدخال الاسم.");
 
   if (!ctx.bookingsOpen) throw new BookingError("الحجز متوقف مؤقتاً. يرجى المحاولة لاحقاً.");
@@ -76,6 +76,7 @@ export async function createBooking(input: BookingInput, ctx: SalonContext) {
   // الموعد يجب أن يكون ضمن الفتحات المتاحة فعلاً (ساعات العمل + الشبكة + غير مشغول)
   const now = new Date();
   const dayKey = localDayKey(input.startsAt, salon.timezone);
+  // لوحة التحكم تسمح بالدقة الواحدة (5 دقائق)، والحجز العام يلتزم بشبكة 30 دقيقة
   const slots = await availableSlotsFor({
     salonId: input.salonId,
     calendarId: calendar.id,
@@ -85,6 +86,7 @@ export async function createBooking(input: BookingInput, ctx: SalonContext) {
     now,
     durationMinutes: service.durationMinutes,
     workingHours: calendar.workingHours,
+    stepMinutes: input.source === "DASHBOARD" ? 5 : 30,
   });
   if (!slots.some((s) => s.getTime() === input.startsAt.getTime())) {
     throw new BookingError("عذراً، هذا الموعد لم يعد متاحاً. اختاري وقتاً آخر.");
@@ -295,6 +297,7 @@ export async function availableSlotsFor(params: {
   now?: Date;
   durationMinutes?: number;
   workingHours?: unknown;
+  stepMinutes?: number;
 }) {
   const service = params.durationMinutes
     ? { durationMinutes: params.durationMinutes }
@@ -325,6 +328,7 @@ export async function availableSlotsFor(params: {
     durationMinutes: service.durationMinutes,
     busy,
     now: params.now ?? new Date(),
+    stepMinutes: params.stepMinutes,
   });
 }
 

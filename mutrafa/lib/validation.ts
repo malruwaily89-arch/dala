@@ -11,7 +11,7 @@ const text = (min: number, max: number, label: string) =>
     .min(min, `${label}: ${min} أحرف على الأقل`)
     .max(max, `${label}: ${max} حرفاً كحد أقصى`);
 
-const phone = z.string().refine(isValidSaPhone, "رقم الجوال غير صالح. يجب أن يبدأ بـ 05 ويتكون من 10 أرقام.");
+const phone = z.string().refine(isValidSaPhone, "رقم الجوال غير صالح. اكتبي 9 أرقام تبدأ بـ 5 بعد رمز الدولة +966.");
 
 export const signupSchema = z
   .object({

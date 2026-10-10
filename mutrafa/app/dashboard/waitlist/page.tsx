@@ -4,7 +4,7 @@ import { requireDashboardUser, canUse } from "@/lib/guard";
 import { hasFeature } from "@/lib/plans";
 import { formatLocalDate } from "@/lib/time";
 import { addWaitlistAction } from "@/app/actions/appointments";
-import { Badge, Banner, Card, EmptyState, Field, PageHeader, btnPrimary, inputCls } from "@/components/ui";
+import { Badge, Banner, Card, EmptyState, Field, PageHeader, PhoneField, btnPrimary, inputCls } from "@/components/ui";
 import { UpgradeCard } from "@/components/dashboard/upgrade";
 
 export const metadata: Metadata = { title: "قائمة الانتظار" };
@@ -47,7 +47,7 @@ export default async function WaitlistPage({ searchParams }: { searchParams: Pro
         <h2 className="mb-4 font-bold text-ink">إضافة عميلة</h2>
         <form action={addWaitlistAction} className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <Field label="الاسم" name="customerName" required />
-          <Field label="الجوال" name="customerPhone" type="tel" required />
+          <PhoneField name="customerPhone" label="الجوال" />
           <Field label="الخدمة">
             <select name="serviceId" required className={inputCls}>
               {services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}

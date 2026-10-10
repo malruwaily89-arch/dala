@@ -8,7 +8,7 @@ import { formatSar } from "@/lib/money";
 import { displayPhone } from "@/lib/phone";
 import { createDashboardBookingAction } from "@/app/actions/appointments";
 import { AppointmentActions } from "@/components/dashboard/appointment-actions";
-import { Badge, Banner, Card, EmptyState, Field, PageHeader, btnPrimary, inputCls } from "@/components/ui";
+import { Badge, Banner, Card, EmptyState, Field, PageHeader, PhoneField, btnPrimary, inputCls } from "@/components/ui";
 
 export const metadata: Metadata = { title: "المواعيد" };
 
@@ -100,7 +100,7 @@ export default async function AppointmentsPage({ searchParams }: Props) {
           ) : (
             <form action={createDashboardBookingAction} className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <Field label="اسم العميلة" name="customerName" required />
-              <Field label="الجوال" name="customerPhone" type="tel" required />
+              <PhoneField name="customerPhone" label="الجوال" />
               <Field label="الخدمة">
                 <select name="serviceId" required className={inputCls}>
                   {services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}

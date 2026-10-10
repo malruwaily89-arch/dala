@@ -1,17 +1,16 @@
 /**
  * أرقام الجوال السعودية.
- * المدخل المقبول: 05XXXXXXXX (10 أرقام) أو 9665XXXXXXXX أو +9665XXXXXXXX.
+ * الإدخال الرسمي: 9 أرقام تبدأ بـ 5 بعد رمز الدولة +966 (مثل 512345678).
+ * ويقبل أيضاً الصيغ الملصوقة: 05XXXXXXXX أو 966XXXXXXXXX أو +966 5XXXXXXXX.
  * المخرج الموحّد دائماً: 9665XXXXXXXX (صيغة Meta / واتساب).
  */
 
 export function normalizeSaPhone(raw: string): string | null {
-  const digits = raw.replace(/[^\d]/g, "");
-  let national: string | null = null;
-  if (/^05\d{8}$/.test(digits)) national = digits.slice(1);
-  else if (/^5\d{8}$/.test(digits)) national = digits;
-  else if (/^9665\d{8}$/.test(digits)) national = digits.slice(3);
-  if (!national) return null;
-  return `966${national}`;
+  let digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("00966")) digits = digits.slice(5);
+  else if (digits.startsWith("966")) digits = digits.slice(3);
+  else if (digits.startsWith("0")) digits = digits.slice(1);
+  return /^5\d{8}$/.test(digits) ? `966${digits}` : null;
 }
 
 export function isValidSaPhone(raw: string): boolean {

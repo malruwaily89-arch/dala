@@ -489,3 +489,20 @@ test("توافر الأيام المحلية: حدود اليوم بتوقيت �
   assert.equal(start.toISOString(), "2026-10-31T21:00:00.000Z");
   assert.equal(end.toISOString(), "2026-11-01T21:00:00.000Z");
 });
+
+test("حجز لوحة التحكم يقبل دقائق 5 (مثل 10:15) بينما الحجز العام يلتزم بشبكة 30 دقيقة", async () => {
+  const { salon, freeService, calendars } = await makeSalon({ plan: "GOLD", status: "ACTIVE", trialEndsAt: null });
+  const ctx = await loadSalonContext(salon.id);
+  const base = await firstFreeSlot(salon.id, calendars[0].id, freeService.id);
+  const offPlus15 = addMinutes(base, 15);
+
+  await assert.rejects(
+    createBooking({ ...(await bookingInput(salon.id, freeService.id, calendars[0].id, offPlus15, "0561111111")), source: "LINK" }, ctx),
+    BookingError
+  );
+  const appt = await createBooking(
+    { ...(await bookingInput(salon.id, freeService.id, calendars[0].id, offPlus15, "0561111112")), source: "DASHBOARD" },
+    ctx
+  );
+  assert.equal(appt.startsAt.getTime(), offPlus15.getTime());
+});
