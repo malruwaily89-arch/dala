@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import {
+  REGISTER_FILE,
+  copyInside,
   extensionFor,
+  receiveFile,
   listFiles,
   resolveExistingInside,
   resolveInside,
@@ -61,4 +64,35 @@ test("writeTextFile only writes text files inside the folder, and listFiles sees
   await assert.rejects(writeTextFile(root, "../x.md", "nope"), /خارج المجلد/);
   assert.match(await listFiles(root), /^notes\/مهام\.md — 1 KB — /);
   assert.equal(await listFiles(await tempRoot()), "المجلد فاضي.");
+});
+
+test("receiveFile stores identical content once and logs each new file in the register", async () => {
+  const root = await tempRoot();
+  const state = await tempRoot();
+  const now = new Date("2026-10-10T08:30:00Z");
+  const first = await receiveFile(root, state, Buffer.from("فاتورة"), "application/pdf", "document", "فاتورة 1.pdf", now);
+  const again = await receiveFile(root, state, Buffer.from("فاتورة"), "application/pdf", "document", "اسم ثاني.pdf", now);
+  const other = await receiveFile(root, state, Buffer.from("عقد"), "application/pdf", "document", "عقد.pdf", now);
+
+  assert.equal(first.duplicate, false);
+  assert.equal(again.duplicate, true);
+  assert.equal(again.path, first.path);
+  assert.equal(other.duplicate, false);
+  assert.equal(first.sha256.length, 64);
+  assert.deepEqual((await readdir(path.join(root, "inbox", "2026-10-10"))).sort(), ["عقد.pdf", "فاتورة 1.pdf"]);
+
+  const register = await readFile(path.join(root, REGISTER_FILE), "utf8");
+  const lines = register.trim().split("\n");
+  assert.ok(register.startsWith("﻿\"تاريخ الاستلام\""));
+  assert.equal(lines.length, 3);
+  assert.equal(lines[1], `"2026-10-10 11:30","فاتورة 1.pdf","inbox/2026-10-10/فاتورة 1.pdf","1","application/pdf","${first.sha256}"`);
+});
+
+test("copyInside keeps the original and never overwrites", async () => {
+  const root = await tempRoot();
+  await writeFile(path.join(root, "a.txt"), "أصل");
+  assert.equal(await copyInside(root, "a.txt", "منشأة/2026/a.txt"), "منشأة/2026/a.txt");
+  assert.equal(await readFile(path.join(root, "a.txt"), "utf8"), "أصل");
+  await assert.rejects(copyInside(root, "a.txt", "منشأة/2026/a.txt"), /فيه ملف بنفس الاسم/);
+  await assert.rejects(copyInside(root, "a.txt", "../a.txt"), /خارج المجلد/);
 });

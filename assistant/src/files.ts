@@ -1,5 +1,9 @@
-import { mkdir, readdir, realpath, stat, writeFile, access } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { constants } from "node:fs";
+import { access, appendFile, copyFile, mkdir, readFile, readdir, realpath, rename, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+
+export const REGISTER_FILE = "سجل الوارد.csv";
 
 const EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -109,6 +113,62 @@ export async function saveIncoming(
   }
   await writeFile(path.join(dir, candidate), data);
   return path.posix.join("inbox", day, candidate);
+}
+
+export interface ReceivedFile {
+  path: string;
+  sha256: string;
+  duplicate: boolean;
+}
+
+const csvField = (value: string) => `"${value.replaceAll('"', '""')}"`;
+
+/**
+ * Stores an incoming file once: identical content (by SHA-256) is not saved again. Each new file gets a row
+ * in the register CSV inside the folder; the hash index lives in stateDir so it isn't synced around.
+ */
+export async function receiveFile(
+  root: string,
+  stateDir: string,
+  data: Buffer,
+  mimeType: string,
+  kind: string,
+  originalName: string | undefined,
+  now = new Date(),
+): Promise<ReceivedFile> {
+  const sha256 = createHash("sha256").update(data).digest("hex");
+  const indexFile = path.join(stateDir, "inbox-index.json");
+  const index: Record<string, string> = JSON.parse(await readFile(indexFile, "utf8").catch(() => "{}"));
+  if (index[sha256] && (await exists(path.join(root, index[sha256])))) {
+    return { path: index[sha256], sha256, duplicate: true };
+  }
+
+  const saved = await saveIncoming(root, data, mimeType, kind, originalName, now);
+  const register = path.join(root, REGISTER_FILE);
+  if (!(await exists(register))) {
+    // The BOM makes Excel open the Arabic headers as UTF-8.
+    await writeFile(register, "﻿" + ["تاريخ الاستلام", "الملف", "المسار", "الحجم KB", "النوع", "SHA-256"].map(csvField).join(",") + "\n");
+  }
+  const p = Object.fromEntries(localParts.formatToParts(now).map((x) => [x.type, x.value]));
+  const received = `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
+  const row = [received, path.posix.basename(saved), saved, String(Math.ceil(data.length / 1024)), mimeType, sha256];
+  await appendFile(register, row.map(csvField).join(",") + "\n");
+
+  index[sha256] = saved;
+  await mkdir(stateDir, { recursive: true });
+  await writeFile(`${indexFile}.tmp`, JSON.stringify(index));
+  await rename(`${indexFile}.tmp`, indexFile);
+  return { path: saved, sha256, duplicate: false };
+}
+
+/** Copies a file to a new path inside root; never overwrites, so originals stay untouched. */
+export async function copyInside(root: string, from: string, to: string): Promise<string> {
+  const source = await resolveExistingInside(root, from);
+  const target = resolveInside(root, to);
+  if (await exists(target)) throw new PathError("فيه ملف بنفس الاسم في الوجهة؛ اختر اسماً آخر.");
+  await mkdir(path.dirname(target), { recursive: true });
+  await copyFile(source, target, constants.COPYFILE_EXCL);
+  return path.relative(root, target).split(path.sep).join("/");
 }
 
 export async function listFiles(root: string, folder = ".", limit = 300): Promise<string> {

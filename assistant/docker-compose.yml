@@ -13,6 +13,24 @@ services:
     networks:
       - caddy
 
+  # Optional: ./sync-setup.sh starts it to mirror the files folder to a laptop.
+  syncthing:
+    image: syncthing/syncthing:1
+    container_name: assistant-syncthing
+    profiles: ["sync"]
+    restart: unless-stopped
+    hostname: assistant-vps
+    environment:
+      PUID: "${HOST_UID:-1000}"
+      PGID: "${HOST_GID:-1000}"
+    volumes:
+      - ./syncthing:/var/syncthing/config
+      - ${FILES_HOST_DIR:-./files}:/var/syncthing/assistant-files
+    ports:
+      - "22000:22000/tcp"
+      - "22000:22000/udp"
+      - "127.0.0.1:8384:8384"
+
 networks:
   caddy:
     external: true

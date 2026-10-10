@@ -1,7 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createServer, type IncomingMessage as HttpRequest } from "node:http";
 import { Agent } from "./agent.js";
-import { TIME_ZONE, saveIncoming } from "./files.js";
+import { TIME_ZONE, receiveFile } from "./files.js";
+import { UsageMeter } from "./usage.js";
 import { WhatsAppClient, extractMessages, verifySignature, type IncomingMessage, type WhatsAppMedia } from "./whatsapp.js";
 
 function required(name: string): string {
@@ -12,6 +13,7 @@ function required(name: string): string {
 
 const PORT = Number(process.env.PORT ?? 3300);
 const FILES_DIR = process.env.FILES_DIR ?? "/data/files";
+const STATE_DIR = process.env.STATE_DIR ?? "/data/state";
 const PHONE_NUMBER_ID = required("WHATSAPP_PHONE_NUMBER_ID");
 const APP_SECRET = required("WHATSAPP_APP_SECRET");
 const VERIFY_TOKEN = required("WHATSAPP_VERIFY_TOKEN");
@@ -23,13 +25,15 @@ const whatsapp = new WhatsAppClient(
   PHONE_NUMBER_ID,
   process.env.WHATSAPP_API_VERSION ?? "v21.0",
 );
+const meter = new UsageMeter(`${STATE_DIR}/usage.json`, Number(process.env.MONTHLY_BUDGET_SAR ?? 300));
 const agent = new Agent({
   client: new Anthropic(),
   whatsapp,
-  model: process.env.AGENT_MODEL ?? "claude-opus-5-5",
+  model: process.env.AGENT_MODEL ?? "claude-haiku-5-5",
   ownerNumber: OWNER,
   filesDir: FILES_DIR,
-  stateDir: process.env.STATE_DIR ?? "/data/state",
+  stateDir: STATE_DIR,
+  meter,
 });
 
 const timeFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", {
@@ -59,10 +63,12 @@ async function toContent(message: IncomingMessage): Promise<Anthropic.Beta.BetaC
   if (!media || !(message.type in MEDIA_LABELS)) return null;
 
   const { data, mimeType } = await whatsapp.downloadMedia(media.id);
-  const saved = await saveIncoming(FILES_DIR, data, mimeType, message.type, media.filename);
+  const file = await receiveFile(FILES_DIR, STATE_DIR, data, mimeType, message.type, media.filename);
   const lines = [
     stamp,
-    `أرسل ${MEDIA_LABELS[message.type]} وانحفظ تلقائياً في: ${saved} (${Math.ceil(data.length / 1024)} KB)`,
+    file.duplicate
+      ? `أرسل ${MEDIA_LABELS[message.type]} مطابق تماماً لملف محفوظ سابقاً في: ${file.path} (ما انحفظ مرة ثانية، SHA-256: ${file.sha256})`
+      : `أرسل ${MEDIA_LABELS[message.type]} وانحفظ تلقائياً في: ${file.path} (${Math.ceil(data.length / 1024)} KB، SHA-256: ${file.sha256})`,
   ];
   if (message.type === "audio") lines.push("(ما تقدر تسمع الصوتيات؛ اطلب منه يكتب لك إذا احتجت المحتوى)");
   if (media.caption) lines.push(`تعليقه: ${media.caption}`);
@@ -87,7 +93,7 @@ async function handle(message: IncomingMessage): Promise<void> {
     await whatsapp.sendText(OWNER, "هذا النوع من الرسائل غير مدعوم حالياً.");
     return;
   }
-  await whatsapp.sendText(OWNER, await agent.runTurn(content));
+  await whatsapp.sendText(OWNER, await agent.runTurn(content, message.text?.body));
 }
 
 // One message at a time keeps the conversation history in order.
@@ -166,5 +172,6 @@ const server = createServer(async (req, res) => {
   res.writeHead(405).end();
 });
 
+await meter.load();
 await agent.init();
 server.listen(PORT, () => console.log(`Assistant listening on :${PORT}`));
