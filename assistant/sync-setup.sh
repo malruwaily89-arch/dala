@@ -36,6 +36,9 @@ st config folders list | grep -qx assistant-files ||
   st config folders add --id assistant-files --label "ملفات المساعد" --path /var/syncthing/assistant-files
 st config folders assistant-files devices list | grep -qx "$LAPTOP" ||
   st config folders assistant-files devices add --device-id "$LAPTOP"
+# Deleted files move to .stversions for 30 days instead of disappearing from both sides.
+st config folders assistant-files versioning type set trashcan
+st config folders assistant-files versioning params set cleanoutDays 30
 
 echo "✔ السيرفر جاهز يشارك $FILES_HOST_DIR مع اللابتوب"
 echo "معرّف السيرفر: $(st show system | sed -n 's/.*"myID": *"\([^"]*\)".*/\1/p')"
