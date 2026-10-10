@@ -62,6 +62,7 @@ WHATSAPP_API_VERSION=$WHATSAPP_API_VERSION
 OWNER_WHATSAPP_NUMBER=$OWNER_WHATSAPP_NUMBER
 FILES_HOST_DIR=$FILES_HOST_DIR
 MONTHLY_BUDGET_SAR=300
+BROWSER_ENABLED=true
 HOST_UID=$(id -u)
 HOST_GID=$(id -g)
 EOF
@@ -69,6 +70,8 @@ EOF
   echo "✔ انحفظت الإعدادات في .env (مقروءة لك فقط). رقمك المسجل: $OWNER_WHATSAPP_NUMBER"
 fi
 FILES_HOST_DIR=${FILES_HOST_DIR:-$HOME/assistant-files}
+grep -q '^MONTHLY_BUDGET_SAR=' .env || echo 'MONTHLY_BUDGET_SAR=300' >> .env
+grep -q '^BROWSER_ENABLED=' .env || echo 'BROWSER_ENABLED=true' >> .env
 GRAPH="https://graph.facebook.com/$WHATSAPP_API_VERSION"
 
 # Secrets go to curl through files/stdin, never on the command line.

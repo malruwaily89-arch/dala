@@ -14,6 +14,7 @@ import {
 } from "./files.js";
 import { excelAppendRows, excelRead, excelWrite, type CellInput, type CellWrite } from "./excel.js";
 import { MODEL_LABELS, UsageMeter, priceLine } from "./usage.js";
+import type { BrowserService } from "./browser.js";
 import type { WhatsAppClient } from "./whatsapp.js";
 
 type MessageParam = Anthropic.Beta.BetaMessageParam;
@@ -60,6 +61,11 @@ function operatingRules(baseModel: string): string {
 - تعمل افتراضياً على ${label(baseModel)} لتوفير التكلفة.
 - إذا احتاجت مهمة قدرة أعلى (تحليل مالي معقد، مستند طويل جداً، تقرير مهم)، استخدم request_stronger_model، ثم اطلب موافقة صاحبك ووضح السبب والتكلفة، ولا تنفذ المهمة قبل موافقته. بعد ما تخلص المهمة على النموذج الأعلى استخدم finish_stronger_model.
 - usage_status يعطيك المصروف التقديري هذا الشهر من عدّاد النظام. النظام ينبه صاحبك تلقائياً عند 70% و90% من السقف، ويوقف الطلبات عند بلوغه.
+
+# المتصفح
+- تقدر تفتح مواقع (browser_open) وتقرأ صفحتها (browser_read) وتكتب في حقولها (browser_fill) وتضغط عناصرها (browser_click). الأرقام بين الأقواس في القراءة هي فهارس العناصر.
+- ما تكتب كلمات المرور ولا أرقام البطاقات، ولا تتجاوز صفحات الدفع، ولا تفتح إلا المواقع اللي طلبها صاحبك.
+- الضغط على إرسال أو تأكيد، وكتابة بيانات شخصية، وفتح موقع جديد: كلها تحتاج موافقته. النظام يرسل له الطلب تلقائياً، فاشرح له وش بتسوي واستنى ردّه.
 
 # أسلوب الرد
 - ردود قصيرة ومناسبة لشاشة الجوال.
@@ -227,6 +233,48 @@ const TOOLS: Anthropic.Beta.BetaToolUnion[] = [
     description: "يعرض المصروف التقديري لهذا الشهر مقابل الميزانية، والنموذج المستخدم حالياً.",
     input_schema: { type: "object", properties: {} },
   },
+  {
+    name: "browser_open",
+    description: "يفتح رابط https في متصفح منفصل ويعرض صفحته ونص محتواها وعناصرها التفاعلية مع أرقامها. المواقع غير المسموحة تحتاج موافقة صاحبك أولاً.",
+    strict: true,
+    input_schema: {
+      type: "object",
+      properties: { url: { type: "string", description: "رابط كامل يبدأ بـ https://" } },
+      required: ["url"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "browser_read",
+    description: "يعرض الصفحة المفتوحة الحالية: نصها وعناصرها وأرقامها.",
+    strict: true,
+    input_schema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    name: "browser_fill",
+    description: "يكتب نصاً في حقل إدخال بالرقم (من قائمة العناصر). كلمات المرور وحقول الدفع مرفوضة؛ البيانات الشخصية تحتاج موافقة.",
+    strict: true,
+    input_schema: {
+      type: "object",
+      properties: {
+        index: { type: "integer", description: "رقم العنصر من قائمة الصفحة" },
+        value: { type: "string" },
+      },
+      required: ["index", "value"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "browser_click",
+    description: "يضغط عنصراً بالرقم (رابط أو زر أو خانة اختيار). الإرسال والتأكيد يحتاجان موافقة صاحبك.",
+    strict: true,
+    input_schema: {
+      type: "object",
+      properties: { index: { type: "integer", description: "رقم العنصر من قائمة الصفحة" } },
+      required: ["index"],
+      additionalProperties: false,
+    },
+  },
   // The basic web search version, since the tool list must stay identical across model switches.
   { type: "web_search_20250305", name: "web_search", max_uses: 5 },
 ];
@@ -260,6 +308,7 @@ export interface AgentOptions {
   filesDir: string;
   stateDir: string;
   meter: UsageMeter;
+  browser?: BrowserService;
 }
 
 export class Agent {
@@ -468,6 +517,11 @@ export class Agent {
       case "finish_stronger_model":
         this.escalation = null;
         return `تم. من رسالته الجاية يرجع الشغل على ${label(this.opts.model)}.`;
+      case "browser_open":
+      case "browser_read":
+      case "browser_click":
+      case "browser_fill":
+        return this.browserTool(name, input);
       case "usage_status": {
         const minutes = this.escalation ? Math.max(0, Math.ceil((this.escalation.until - Date.now()) / 60000)) : 0;
         const current = minutes ? `${label(this.activeModel)} (بموافقة، باقي ${minutes} دقيقة)` : label(this.activeModel);
@@ -486,6 +540,21 @@ export class Agent {
       }
       default:
         throw new Error(`أداة غير معروفة: ${name}`);
+    }
+  }
+
+  private async browserTool(name: string, input: Record<string, string>): Promise<string> {
+    const browser = this.opts.browser;
+    if (!browser) return "المتصفح غير مفعل على هذا المساعد.";
+    switch (name) {
+      case "browser_open":
+        return browser.open(input.url);
+      case "browser_read":
+        return browser.read();
+      case "browser_click":
+        return browser.click(Number(input.index));
+      default:
+        return browser.fill(Number(input.index), input.value);
     }
   }
 

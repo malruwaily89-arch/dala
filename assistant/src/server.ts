@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createServer, type IncomingMessage as HttpRequest } from "node:http";
-import { Agent } from "./agent.js";
+import { Agent, isApproval } from "./agent.js";
+import { BrowserService } from "./browser.js";
 import { TIME_ZONE, receiveFile } from "./files.js";
 import { UsageMeter } from "./usage.js";
 import { WhatsAppClient, extractMessages, verifySignature, type IncomingMessage, type WhatsAppMedia } from "./whatsapp.js";
@@ -19,6 +20,7 @@ const APP_SECRET = required("WHATSAPP_APP_SECRET");
 const VERIFY_TOKEN = required("WHATSAPP_VERIFY_TOKEN");
 const OWNER = required("OWNER_WHATSAPP_NUMBER").replace(/\D/g, "");
 const RESET_COMMANDS = new Set(["/new", "/جديد"]);
+const REFUSALS = new Set(["لا", "لأ", "لاء", "الغ", "إلغاء", "الغاء", "cancel", "no"]);
 
 const whatsapp = new WhatsAppClient(
   required("WHATSAPP_ACCESS_TOKEN"),
@@ -26,6 +28,16 @@ const whatsapp = new WhatsAppClient(
   process.env.WHATSAPP_API_VERSION ?? "v21.0",
 );
 const meter = new UsageMeter(`${STATE_DIR}/usage.json`, Number(process.env.MONTHLY_BUDGET_SAR ?? 300));
+const browser =
+  process.env.BROWSER_ENABLED === "true"
+    ? new BrowserService({
+        profileDir: `${STATE_DIR}/browser-profile`,
+        policyFile: `${STATE_DIR}/browser-policy.json`,
+        pendingFile: `${STATE_DIR}/browser-pending.json`,
+        executablePath: process.env.CHROMIUM_PATH,
+        noSandbox: process.env.BROWSER_NO_SANDBOX === "1",
+      })
+    : undefined;
 const agent = new Agent({
   client: new Anthropic(),
   whatsapp,
@@ -34,6 +46,7 @@ const agent = new Agent({
   filesDir: FILES_DIR,
   stateDir: STATE_DIR,
   meter,
+  browser,
 });
 
 const timeFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", {
@@ -86,6 +99,19 @@ async function handle(message: IncomingMessage): Promise<void> {
     await agent.reset();
     await whatsapp.sendText(OWNER, "بدأنا محادثة جديدة.");
     return;
+  }
+
+  const text = message.type === "text" ? message.text?.body.trim() : undefined;
+  if (browser?.pendingText() && text) {
+    const word = text.split(/\s+/)[0]?.replace(/[.!،,؟?]+$/u, "").toLowerCase() ?? "";
+    if (isApproval(text)) {
+      await whatsapp.sendText(OWNER, await browser.approve());
+      return;
+    }
+    if (REFUSALS.has(word)) {
+      await whatsapp.sendText(OWNER, await browser.cancel());
+      return;
+    }
   }
 
   const content = await toContent(message);
@@ -173,5 +199,6 @@ const server = createServer(async (req, res) => {
 });
 
 await meter.load();
+await browser?.load();
 await agent.init();
 server.listen(PORT, () => console.log(`Assistant listening on :${PORT}`));
