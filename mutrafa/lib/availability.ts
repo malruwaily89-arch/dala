@@ -19,6 +19,9 @@ export const DEFAULT_WORKING_HOURS: WorkingHours = {
 
 const HHMM = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
+/** شبكة المواعيد: كل ربع ساعة (9:00 ثم 9:15 ثم 9:30 …) في الحجز العام ولوحة التحكم */
+export const SLOT_STEP_MINUTES = 15;
+
 /** يقرأ ساعات العمل من JSON مع التحقق؛ أي قيمة غير صالحة تعود للافتراضي */
 export function parseWorkingHours(raw: unknown): WorkingHours {
   if (!raw || typeof raw !== "object") return DEFAULT_WORKING_HOURS;
@@ -51,7 +54,7 @@ export interface SlotInput {
 
 /** بداية المواعيد المتاحة (لحظات UTC) على شبكة الخطوة المحددة (30 دقيقة افتراضياً) */
 export function computeAvailableSlots(input: SlotInput): Date[] {
-  const { dayKey, timeZone, hours, durationMinutes, busy, now, stepMinutes = 30 } = input;
+  const { dayKey, timeZone, hours, durationMinutes, busy, now, stepMinutes = SLOT_STEP_MINUTES } = input;
   if (!hours.days.includes(weekdayOfDayKey(dayKey))) return [];
 
   const [y, m, d] = dayKey.split("-").map(Number);

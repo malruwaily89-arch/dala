@@ -61,8 +61,10 @@ export function Field({
   defaultValue,
   dir,
   hint,
+  step,
   children,
 }: {
+  step?: number;
   label: string;
   name?: string;
   type?: string;
@@ -84,6 +86,7 @@ export function Field({
           placeholder={placeholder}
           defaultValue={defaultValue}
           dir={dir ?? (type === "tel" || type === "email" ? "ltr" : undefined)}
+          step={step}
           className={inputCls}
         />
       )}

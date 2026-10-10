@@ -112,7 +112,7 @@ export default async function AppointmentsPage({ searchParams }: Props) {
                 </select>
               </Field>
               <Field label="التاريخ" name="date" type="date" required defaultValue={dayKey} />
-              <Field label="الوقت" name="time" type="time" required />
+              <Field label="الوقت" name="time" type="time" required step={900} />
               <div className="flex items-end md:col-span-2 xl:col-span-2">
                 <button className={`${btnPrimary} w-full`}>إنشاء الحجز</button>
               </div>

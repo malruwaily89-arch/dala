@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { audit } from "./audit";
 import { loadSalonContext, type SalonContext } from "./salon-context";
-import { computeAvailableSlots, parseWorkingHours, type BusyInterval } from "./availability";
+import { computeAvailableSlots, parseWorkingHours, SLOT_STEP_MINUTES, type BusyInterval } from "./availability";
 import { generateBookingCode } from "./booking-code";
 import { createCheckout } from "./payments";
 import { effectiveCancellationHours, isFreeCancellation } from "./cancellation";
@@ -86,7 +86,7 @@ export async function createBooking(input: BookingInput, ctx: SalonContext) {
     now,
     durationMinutes: service.durationMinutes,
     workingHours: calendar.workingHours,
-    stepMinutes: input.source === "DASHBOARD" ? 5 : 30,
+    stepMinutes: SLOT_STEP_MINUTES,
   });
   if (!slots.some((s) => s.getTime() === input.startsAt.getTime())) {
     throw new BookingError("عذراً، هذا الموعد لم يعد متاحاً. اختاري وقتاً آخر.");

@@ -48,7 +48,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       .map((a) => ({ start: a.startsAt, end: a.endsAt }));
     const bookedMinutes = busy.reduce((sum, b) => sum + (b.end.getTime() - b.start.getTime()) / 60_000, 0);
     const slots = working
-      ? computeAvailableSlots({ dayKey, timeZone: tz, hours, durationMinutes: minDuration, busy, now, stepMinutes: 30 })
+      ? computeAvailableSlots({ dayKey, timeZone: tz, hours, durationMinutes: minDuration, busy, now })
       : [];
     return {
       id: c.id,

@@ -28,7 +28,9 @@ export async function createDashboardBookingAction(formData: FormData) {
     const { salon, ctx } = await requireCan("appointments.manage");
     const date = requireDate(formData.get("date"), "التاريخ");
     const time = String(formData.get("time") ?? "");
-    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new BookingError("يرجى اختيار الوقت");
+    if (!/^([01]\d|2[0-3]):(00|15|30|45)$/.test(time)) {
+      throw new BookingError("يرجى اختيار الوقت من المواعيد كل ربع ساعة (مثل 9:00 و9:15 و9:30)");
+    }
     const [y, m, d] = date.split("-").map(Number);
     const [hh, mm] = time.split(":").map(Number);
     await createBooking(
