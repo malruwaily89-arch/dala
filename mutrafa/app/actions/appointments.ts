@@ -134,3 +134,41 @@ export async function addWaitlistAction(formData: FormData) {
     redirect("/dashboard/waitlist?ok=added");
   }
 }
+
+/** حجز سريع من جدول الموظفة: يبقى المستخدم في الجدول بعد الحفظ */
+export async function createCalendarBookingAction(formData: FormData) {
+  const calendarId = String(formData.get("calendarId") ?? "");
+  const dayKey = String(formData.get("date") ?? "");
+  const time = String(formData.get("time") ?? "");
+  const back = `/dashboard/calendars/${encodeURIComponent(calendarId)}?date=${encodeURIComponent(dayKey)}`;
+  let done = false;
+  try {
+    const { salon, ctx } = await requireCan("appointments.manage");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dayKey)) throw new BookingError("التاريخ غير صالح");
+    if (!/^([01]\d|2[0-3]):(00|15|30|45)$/.test(time)) {
+      throw new BookingError("يرجى اختيار وقت من المواعيد كل ربع ساعة");
+    }
+    const [y, m, d] = dayKey.split("-").map(Number);
+    const [hh, mm] = time.split(":").map(Number);
+    await createBooking(
+      {
+        salonId: salon.id,
+        serviceId: String(formData.get("serviceId") ?? ""),
+        calendarId,
+        startsAt: zonedToUtc(y, m, d, hh, mm, salon.timezone),
+        customerName: String(formData.get("customerName") ?? ""),
+        customerPhone: String(formData.get("customerPhone") ?? ""),
+        source: "DASHBOARD",
+      },
+      ctx
+    );
+    done = true;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "حدث خطأ غير متوقع";
+    redirect(`${back}&error=${encodeURIComponent(message)}`);
+  }
+  if (done) {
+    revalidatePath(back);
+    redirect(`${back}&ok=booked`);
+  }
+}

@@ -9,17 +9,18 @@ import { localDayBounds, localDayKey, addDays, formatLocalDate, formatLocalTime 
 import { APPOINTMENT_STATUS } from "@/lib/labels";
 import { displayPhone } from "@/lib/phone";
 import { Badge, Banner, Card, PageHeader, btnGhost } from "@/components/ui";
+import { QuickBook } from "@/components/dashboard/quick-book";
 
 export const metadata: Metadata = { title: "جدول الموظفة" };
 
-type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ date?: string }> };
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ date?: string; ok?: string; error?: string }> };
 
 const ACTIVE = ["PENDING_DEPOSIT", "CONFIRMED", "COMPLETED", "NO_SHOW"] as const;
 
 export default async function CalendarDayPage({ params, searchParams }: Props) {
   const { salon } = await requireDashboardUser();
   const { id } = await params;
-  const { date } = await searchParams;
+  const { date, ok, error } = await searchParams;
   const tz = salon.timezone;
 
   const calendar = await db.calendar.findFirst({
@@ -66,6 +67,16 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
     now,
   });
   const workingDay = rows.length > 0;
+  // الخدمات التي تتسع فعلاً من كل خانة متاحة (لا تتجاوز الحجز التالي ولا نهاية الدوام)
+  const workEndMs = rows.length ? rows[rows.length - 1].start.getTime() + 15 * 60_000 : 0;
+  const activeServices = calendar.services
+    .filter((cs) => cs.service.isActive)
+    .map((cs) => ({ id: cs.service.id, name: cs.service.name, durationMinutes: cs.service.durationMinutes }));
+  const fittingServices = (startMs: number) =>
+    activeServices.filter((svc) => {
+      const endMs = startMs + svc.durationMinutes * 60_000;
+      return endMs <= workEndMs && !bookings.some((b) => startMs < b.end.getTime() && b.start.getTime() < endMs);
+    });
   const bookedMinutes = bookings.reduce((sum, b) => sum + (b.end.getTime() - b.start.getTime()) / 60_000, 0);
   const workMinutes = rows.length * 15;
   const occupancy = workMinutes > 0 ? Math.round((bookedMinutes / workMinutes) * 100) : 0;
@@ -87,6 +98,8 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
         }
       />
 
+      {ok === "booked" && <Banner tone="success">تم حفظ الحجز بنجاح ✅</Banner>}
+      {error && <Banner>{error}</Banner>}
       {!workingDay && <Banner tone="info">هذه الموظفة في إجازة في هذا اليوم.</Banner>}
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -147,12 +160,18 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
                 {row.status === "free" && (
                   <div className="flex flex-1 items-center justify-between gap-3">
                     <span className="text-sm font-semibold text-emerald-700">متاح</span>
-                    <Link
-                      href={`/dashboard/appointments?date=${dayKey}&calendarId=${calendar.id}&time=${row.label}`}
-                      className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
-                    >
-                      احجزي هذا الوقت
-                    </Link>
+                    {fittingServices(row.start.getTime()).length > 0 ? (
+                      <QuickBook
+                        calendarId={calendar.id}
+                        calendarName={calendar.name}
+                        dayLabel={dayLabel}
+                        dayKey={dayKey}
+                        time={row.label}
+                        services={fittingServices(row.start.getTime())}
+                      />
+                    ) : (
+                      <span className="text-xs text-zinc-400">لا تتسع لأي خدمة</span>
+                    )}
                   </div>
                 )}
 
