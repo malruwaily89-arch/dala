@@ -7,3 +7,4 @@ node_modules
 business-docs
 *.tsbuildinfo
 npm-debug.log*
+assistant

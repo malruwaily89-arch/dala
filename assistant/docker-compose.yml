@@ -1,0 +1,19 @@
+# Runs behind the existing Caddy container, which proxies agent.d-alal.com to assistant:3300.
+services:
+  assistant:
+    build: .
+    image: whatsapp-assistant:latest
+    container_name: assistant
+    restart: unless-stopped
+    env_file: .env
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    volumes:
+      - ${FILES_HOST_DIR:-./files}:/data/files
+      - ./state:/data/state
+    networks:
+      - caddy
+
+networks:
+  caddy:
+    external: true
+    name: ${CADDY_NETWORK:-mohammedalruwaily89_default}
