@@ -12,11 +12,11 @@ import { Badge, Banner, Card, EmptyState, Field, PageHeader, PhoneField, btnPrim
 
 export const metadata: Metadata = { title: "المواعيد" };
 
-type Props = { searchParams: Promise<{ date?: string; error?: string; ok?: string }> };
+type Props = { searchParams: Promise<{ date?: string; error?: string; ok?: string; calendarId?: string; time?: string }> };
 
 export default async function AppointmentsPage({ searchParams }: Props) {
   const { user, salon, ctx } = await requireDashboardUser();
-  const { date, error, ok } = await searchParams;
+  const { date, error, ok, calendarId: presetCalendar, time: presetTime } = await searchParams;
   const tz = salon.timezone;
   const dayKey = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : localDayKey(new Date(), tz);
   const { start, end } = localDayBounds(dayKey, tz);
@@ -107,12 +107,12 @@ export default async function AppointmentsPage({ searchParams }: Props) {
                 </select>
               </Field>
               <Field label="الموظفة">
-                <select name="calendarId" required className={inputCls}>
+                <select name="calendarId" required defaultValue={presetCalendar} className={inputCls}>
                   {calendars.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </Field>
               <Field label="التاريخ" name="date" type="date" required defaultValue={dayKey} />
-              <Field label="الوقت" name="time" type="time" required step={900} />
+              <Field label="الوقت" name="time" type="time" required step={900} defaultValue={presetTime} />
               <div className="flex items-end md:col-span-2 xl:col-span-2">
                 <button className={`${btnPrimary} w-full`}>إنشاء الحجز</button>
               </div>

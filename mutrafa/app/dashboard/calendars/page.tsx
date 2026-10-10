@@ -90,7 +90,7 @@ export default async function CalendarsPage({ searchParams }: { searchParams: Pr
               <li key={c.id}>
                 <Card className="flex flex-wrap items-center gap-4">
                   <div className="min-w-56 flex-1">
-                    <p className="font-bold">{c.name}</p>
+                    <Link href={`/dashboard/calendars/${c.id}`} className="font-bold text-brand hover:underline">{c.name}</Link>
                     <p className="text-sm text-zinc-600">
                       {hours.start} — {hours.end} · {hours.days.map((d) => DAY_NAMES[d]).join("، ")}
                       {commission && c.commissionBps > 0 && ` · عمولة ${c.commissionBps / 100}%`}

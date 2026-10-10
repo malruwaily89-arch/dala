@@ -29,3 +29,18 @@
     outline-offset: 2px;
   }
 }
+
+@media print {
+  aside,
+  nav,
+  footer,
+  .print\:hidden {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  body {
+    background: #fff;
+  }
+}

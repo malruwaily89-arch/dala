@@ -12,6 +12,9 @@ export function sarFromHalalas(halalas: number): number {
 
 export function formatSar(halalas: number): string {
   const sar = halalas / 100;
-  const formatted = Number.isInteger(sar) ? sar.toLocaleString("en-US") : sar.toFixed(2);
+  const formatted = sar.toLocaleString("en-US", {
+    minimumFractionDigits: Number.isInteger(sar) ? 0 : 2,
+    maximumFractionDigits: 2,
+  });
   return `${formatted} ر.س`;
 }

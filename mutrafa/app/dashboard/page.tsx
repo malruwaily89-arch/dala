@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { requireDashboardUser, canUse } from "@/lib/guard";
@@ -61,6 +62,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   });
 
   const usage = ctx.entitlements.monthlyBookings;
+  const totalFree = occupancy.reduce((sum, o) => sum + o.freeSlots, 0);
 
   return (
     <div>
@@ -69,7 +71,8 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         <Banner tone="success">أهلاً بك في مُترَفة 🌸 ابدئي بإضافة خدماتك ثم موظفاتك، وشاركي رابط حجزك مع عميلاتك.</Banner>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <Stat label="مواعيد متاحة اليوم" value={String(totalFree)} note="لكامل الصالون (حسب أقصر خدمة)" />
         <Stat label="مواعيد اليوم" value={String(appointments.length)} />
         <Stat label="مؤكدة" value={String(confirmed)} note={`${done} مكتملة`} />
         <Stat label="بانتظار العربون" value={String(pending)} />
@@ -84,14 +87,14 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
           {occupancy.map((o) => (
             <Card key={o.id}>
               <div className="flex items-center justify-between">
-                <p className="font-bold">{o.name}</p>
+                <Link href={`/dashboard/calendars/${o.id}`} className="font-bold text-brand hover:underline">{o.name}</Link>
                 {!o.working && <Badge className="bg-zinc-100 text-zinc-600">إجازة اليوم</Badge>}
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-100">
                 <div className="h-full rounded-full bg-gradient-to-l from-gold to-brand" style={{ width: `${o.percent}%` }} />
               </div>
               <p className="mt-2 text-xs text-zinc-600">
-                الإشغال {o.percent}% · مواعيد فارغة (كل 30 دقيقة): {o.freeSlots}
+                الإشغال {o.percent}% · مواعيد متاحة: {o.freeSlots}
                 {o.nextFree && ` · أقرب موعد فارغ ${o.nextFree}`}
               </p>
             </Card>

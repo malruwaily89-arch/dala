@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { localMonthBounds, addDays } from "./time";
+import { localMonthBounds, addDays, localDayKey } from "./time";
 
 /**
  * التقارير — كل التقارير تُحسب بتوقيت الصالون.
@@ -131,4 +131,33 @@ export async function commissionReport(salonId: string, timeZone: string, now = 
       commissionHalalas: Math.round((revenue * c.commissionBps) / 10_000),
     };
   });
+}
+
+/** عدد الحجوزات لكل يوم محلي في الفترة (الأيام بلا حجوزات تظهر بصفر) */
+export async function dailyBookings(
+  salonId: string,
+  from: Date,
+  to: Date,
+  timeZone: string
+): Promise<{ day: string; count: number; completed: number }[]> {
+  const rows = await db.appointment.findMany({
+    where: { salonId, startsAt: { gte: from, lt: to }, status: { notIn: ["CANCELLED", "EXPIRED"] } },
+    select: { startsAt: true, status: true },
+  });
+  const byDay = new Map<string, { count: number; completed: number }>();
+  for (const r of rows) {
+    const key = localDayKey(r.startsAt, timeZone);
+    const entry = byDay.get(key) ?? { count: 0, completed: 0 };
+    entry.count += 1;
+    if (r.status === "COMPLETED") entry.completed += 1;
+    byDay.set(key, entry);
+  }
+  const days: { day: string; count: number; completed: number }[] = [];
+  for (let cur = from; cur < to; cur = addDays(cur, 1)) {
+    const key = localDayKey(cur, timeZone);
+    if (days.length && days[days.length - 1].day === key) continue;
+    const entry = byDay.get(key) ?? { count: 0, completed: 0 };
+    days.push({ day: key, ...entry });
+  }
+  return days;
 }
