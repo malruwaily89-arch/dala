@@ -37,7 +37,7 @@ export async function periodSummary(
         status: true,
         priceHalalas: true,
         depositHalalas: true,
-        service: { select: { name: true } },
+        service: { select: { name: true, kind: true } },
         payments: { where: { status: "PAID" }, select: { amountHalalas: true } },
       },
     }),
@@ -59,6 +59,7 @@ export async function periodSummary(
   const serviceCounts = new Map<string, number>();
   for (const a of appointments) {
     if (a.status === "CANCELLED" || a.status === "EXPIRED") continue;
+    if (a.service.kind === "BLOCK") continue; // الأوقات الداخلية لا تُحسب خدمة
     serviceCounts.set(a.service.name, (serviceCounts.get(a.service.name) ?? 0) + 1);
   }
   const topServices = [...serviceCounts.entries()]

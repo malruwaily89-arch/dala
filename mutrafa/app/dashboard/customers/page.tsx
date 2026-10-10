@@ -32,7 +32,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
 
   const now = new Date();
   const customers = await db.customer.findMany({
-    where: { salonId: salon.id, ...(or.length ? { OR: or } : {}) },
+    where: { salonId: salon.id, phone: { not: "internal" }, ...(or.length ? { OR: or } : {}) },
     include: { appointments: { select: { status: true, startsAt: true, priceHalalas: true } } },
     orderBy: { name: "asc" },
     take: 300,

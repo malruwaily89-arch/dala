@@ -111,6 +111,7 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
 
       {ok === "booked" && <Banner tone="success">تم حفظ الحجز بنجاح ✅</Banner>}
       {ok === "services" && <Banner tone="success">تم حفظ خدمات الموظفة ومددها ✅</Banner>}
+      {ok === "freeform" && <Banner tone="success">تم الحفظ في الجدول ✅</Banner>}
       {error && <Banner>{error}</Banner>}
       {!workingDay && <Banner tone="info">هذه الموظفة في إجازة في هذا اليوم.</Banner>}
 
@@ -206,28 +207,26 @@ export default async function CalendarDayPage({ params, searchParams }: Props) {
                 )}
 
                 {row.status === "free" && (
-                  <div className="flex flex-1 items-center justify-between gap-3">
+                  <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
                     {fittingServices(row.start.getTime()).length > 0 ? (
                       <span className="text-sm font-semibold text-emerald-700">
                         متاح · فترة {gapMinutes(row.start.getTime())} دقيقة
                       </span>
                     ) : (
                       <span className="text-sm text-zinc-500">
-                        فارغة {gapMinutes(row.start.getTime())} دقيقة · لا تكفي لأي خدمة
+                        فارغة {gapMinutes(row.start.getTime())} دقيقة · لا تكفي لخدمة مسجلة
                       </span>
                     )}
-                    {fittingServices(row.start.getTime()).length > 0 ? (
-                      <QuickBook
-                        calendarId={calendar.id}
-                        calendarName={calendar.name}
-                        dayLabel={dayLabel}
-                        dayKey={dayKey}
-                        time={row.label}
-                        services={fittingServices(row.start.getTime())}
-                      />
-                    ) : (
-                      <span />
-                    )}
+                    <QuickBook
+                      calendarId={calendar.id}
+                      calendarName={calendar.name}
+                      dayLabel={dayLabel}
+                      dayKey={dayKey}
+                      time={row.label}
+                      services={fittingServices(row.start.getTime())}
+                      hasStandard={fittingServices(row.start.getTime()).length > 0}
+                      gapMinutes={gapMinutes(row.start.getTime())}
+                    />
                   </div>
                 )}
 

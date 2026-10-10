@@ -184,6 +184,7 @@ model Service {
   priceHalalas      Int
   depositHalalas    Int      @default(0)
   cancellationHours Int? // سياسة إلغاء مخصّصة للخدمة (الذهبية وما فوق)؛ null = سياسة الصالون
+  kind              String   @default("STANDARD") // STANDARD = من قائمة الخدمات | CUSTOM = خدمة غير مسجلة | BLOCK = وقت داخلي (استراحة/تنظيف)
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
 

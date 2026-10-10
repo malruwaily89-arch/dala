@@ -163,7 +163,7 @@ export async function updateCalendarServicesAction(formData: FormData) {
     const calendar = await db.calendar.findFirst({ where: { id: calendarId, salonId: salon.id }, select: { id: true } });
     if (!calendar) throw new BookingError("التقويم غير موجود");
 
-    const services = await db.service.findMany({ where: { salonId: salon.id, isActive: true } });
+    const services = await db.service.findMany({ where: { salonId: salon.id, isActive: true, kind: "STANDARD" } });
     const selected = new Set(formData.getAll("serviceIds").map(String));
     const rows: { calendarId: string; serviceId: string; durationMinutes: number | null }[] = [];
     for (const svc of services) {

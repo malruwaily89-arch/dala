@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireCan } from "@/lib/guard";
-import { createBooking, BookingError, confirmDepositManually, markAppointmentOutcome, cancelAppointment } from "@/lib/booking";
+import { createBooking, BookingError, confirmDepositManually, markAppointmentOutcome, cancelAppointment, createFreeformBooking } from "@/lib/booking";
 import { addToWaitlist } from "@/lib/waitlist";
 import { zonedToUtc } from "@/lib/time";
 import { isValidSaPhone } from "@/lib/phone";
@@ -170,5 +170,44 @@ export async function createCalendarBookingAction(formData: FormData) {
   if (done) {
     revalidatePath(back);
     redirect(`${back}&ok=booked`);
+  }
+}
+
+/** حجز خدمة غير مسجلة أو وقت داخلي (استراحة/تنظيف) من جدول الموظفة */
+export async function createFreeformBookingAction(formData: FormData) {
+  const calendarId = String(formData.get("calendarId") ?? "");
+  const dayKey = String(formData.get("date") ?? "");
+  const time = String(formData.get("time") ?? "");
+  const back = `/dashboard/calendars/${encodeURIComponent(calendarId)}?date=${encodeURIComponent(dayKey)}`;
+  let done = false;
+  try {
+    const { user, salon } = await requireCan("appointments.manage");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dayKey)) throw new BookingError("التاريخ غير صالح");
+    if (!/^([01]\d|2[0-3]):(00|15|30|45)$/.test(time)) throw new BookingError("الوقت يجب أن يكون كل ربع ساعة");
+    const kind = String(formData.get("kind") ?? "") === "BLOCK" ? "BLOCK" : "CUSTOM";
+    const [y, m, d] = dayKey.split("-").map(Number);
+    const [hh, mm] = time.split(":").map(Number);
+    const priceSar = kind === "BLOCK" ? 0 : Number(String(formData.get("priceSar") ?? "0").replace(",", "."));
+    if (!Number.isFinite(priceSar)) throw new BookingError("السعر غير صالح");
+    await createFreeformBooking({
+      salonId: salon.id,
+      userId: user.id,
+      calendarId,
+      startsAt: zonedToUtc(y, m, d, hh, mm, salon.timezone),
+      durationMinutes: Number(formData.get("durationMinutes")),
+      kind,
+      label: kind === "BLOCK" ? String(formData.get("blockLabel") ?? "استراحة") : String(formData.get("label") ?? ""),
+      priceHalalas: Math.round(priceSar * 100),
+      customerName: String(formData.get("customerName") ?? ""),
+      customerPhone: String(formData.get("customerPhone") ?? ""),
+    });
+    done = true;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "حدث خطأ غير متوقع";
+    redirect(`${back}&error=${encodeURIComponent(message)}`);
+  }
+  if (done) {
+    revalidatePath(back);
+    redirect(`${back}&ok=freeform`);
   }
 }

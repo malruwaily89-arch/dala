@@ -28,7 +28,7 @@ export default async function AppointmentsPage({ searchParams }: Props) {
       include: { customer: true, service: true, calendar: true },
       orderBy: { startsAt: "asc" },
     }),
-    db.service.findMany({ where: { salonId: salon.id, isActive: true }, orderBy: { name: "asc" } }),
+    db.service.findMany({ where: { salonId: salon.id, isActive: true, kind: "STANDARD" }, orderBy: { name: "asc" } }),
     db.calendar.findMany({
       where: { salonId: salon.id, isActive: true },
       include: { services: true },

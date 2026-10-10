@@ -6,7 +6,7 @@ import { generateBookingCode } from "./booking-code";
 import { createCheckout } from "./payments";
 import { effectiveCancellationHours, isFreeCancellation } from "./cancellation";
 import { hasFeature } from "./plans";
-import { addMinutes, localDayBounds, localDayKey, formatLocalDateTime } from "./time";
+import { addMinutes, localDayBounds, localDayKey, formatLocalDateTime, zonedToUtc, weekdayOfDayKey } from "./time";
 import { normalizeSaPhone } from "./phone";
 import { sendWhatsAppText } from "./whatsapp";
 import { bookingUrl } from "./env";
@@ -373,8 +373,135 @@ export function appointmentConfirmedMessage(
 }
 
 async function notifyCustomer(salonId: string, appointmentId: string | null, phone: string, body: string) {
+  // الحجز الداخلي (استراحة/تنظيف) لا يُرسل له شيء
+  if (phone === INTERNAL_PHONE) return;
   // لا يفشل أي إجراء بسبب واتساب: sendWhatsAppText يسجّل الفشل داخلياً
   await sendWhatsAppText({ salonId, appointmentId, toPhone: phone, body });
+}
+
+/** رقم العميلة الداخلية لحجوزات الاستراحة والتنظيف (لا يُرسل له واتساب) */
+export const INTERNAL_PHONE = "internal";
+
+/**
+ * حجز خارج قائمة الخدمات:
+ *  - CUSTOM: خدمة غير مسجلة باسم ومبلغ يكتبهما الموظفة، مع عميلة حقيقية.
+ *  - BLOCK : وقت داخلي (استراحة، تنظيف…) يشغل الجدول دون عميلة.
+ * يلتزم بساعات العمل وشبكة 15 دقيقة، ويمنع التعارض مع أي حجز نشط.
+ */
+export async function createFreeformBooking(params: {
+  salonId: string;
+  userId: string;
+  calendarId: string;
+  startsAt: Date;
+  durationMinutes: number;
+  kind: "CUSTOM" | "BLOCK";
+  label: string;
+  priceHalalas: number;
+  customerName?: string;
+  customerPhone?: string;
+}) {
+  const salon = await db.salon.findUniqueOrThrow({ where: { id: params.salonId } });
+  const calendar = await db.calendar.findFirst({ where: { id: params.calendarId, salonId: params.salonId, isActive: true } });
+  if (!calendar) throw new BookingError("التقويم غير متاح.");
+
+  const label = params.label.trim();
+  if (label.length < 2) throw new BookingError("اكتبي اسم الخدمة.");
+  if (params.priceHalalas < 0) throw new BookingError("السعر لا يكون سالباً.");
+  const d = params.durationMinutes;
+  if (!Number.isInteger(d) || d < 15 || d > 480 || d % 15 !== 0) {
+    throw new BookingError("المدة يجب أن تكون بين 15 و480 دقيقة، وبخطوة 15 دقيقة.");
+  }
+  if (params.startsAt.getTime() <= Date.now()) throw new BookingError("لا يمكن الحجز في وقت مضى.");
+
+  // ضمن ساعات عمل الموظفة بتوقيت الصالون
+  const tz = salon.timezone;
+  const dayKey = localDayKey(params.startsAt, tz);
+  const hours = parseWorkingHours(calendar.workingHours);
+  const [y, m, dd] = dayKey.split("-").map(Number);
+  const [sh, sm] = hours.start.split(":").map(Number);
+  const [eh, em] = hours.end.split(":").map(Number);
+  const workStart = zonedToUtc(y, m, dd, sh, sm, tz).getTime();
+  const workEnd = zonedToUtc(y, m, dd, eh, em, tz).getTime();
+  const endsAt = addMinutes(params.startsAt, d);
+  if (!hours.days.includes(weekdayOfDayKey(dayKey)) || params.startsAt.getTime() < workStart || endsAt.getTime() > workEnd) {
+    throw new BookingError("الوقت خارج ساعات عمل الموظفة.");
+  }
+
+  // تعارض مع أي حجز نشط
+  const clash = await db.appointment.findFirst({
+    where: {
+      calendarId: calendar.id,
+      status: { in: [...ACTIVE_STATUSES] },
+      startsAt: { lt: endsAt },
+      endsAt: { gt: params.startsAt },
+    },
+    select: { id: true },
+  });
+  if (clash) throw new BookingError("هذا الوقت مشغول. اختاري وقتاً آخر.");
+
+  // العميلة: حقيقية للخدمة الخاصة، وداخلية للاستراحة
+  let customer;
+  if (params.kind === "BLOCK") {
+    customer = await db.customer.upsert({
+      where: { salonId_phone: { salonId: params.salonId, phone: INTERNAL_PHONE } },
+      update: {},
+      create: { salonId: params.salonId, phone: INTERNAL_PHONE, name: "داخلي" },
+    });
+  } else {
+    const name = (params.customerName ?? "").trim();
+    const phone = normalizeSaPhone(params.customerPhone ?? "");
+    if (name.length < 2) throw new BookingError("يرجى إدخال اسم العميلة.");
+    if (!phone) throw new BookingError("رقم الجوال غير صالح.");
+    customer = await db.customer.upsert({
+      where: { salonId_phone: { salonId: params.salonId, phone } },
+      update: { name },
+      create: { salonId: params.salonId, phone, name },
+    });
+  }
+
+  try {
+    const appointment = await db.$transaction(async (tx) => {
+      const service = await tx.service.create({
+        data: {
+          salonId: params.salonId,
+          name: label,
+          durationMinutes: d,
+          priceHalalas: params.priceHalalas,
+          depositHalalas: 0,
+          kind: params.kind,
+          isActive: true,
+        },
+      });
+      return tx.appointment.create({
+        data: {
+          salonId: params.salonId,
+          code: await uniqueBookingCode(),
+          customerId: customer.id,
+          calendarId: calendar.id,
+          serviceId: service.id,
+          startsAt: params.startsAt,
+          endsAt,
+          status: "CONFIRMED",
+          confirmedAt: new Date(),
+          depositHalalas: 0,
+          priceHalalas: params.priceHalalas,
+          source: "DASHBOARD",
+        },
+      });
+    });
+    await audit({
+      salonId: params.salonId,
+      userId: params.userId,
+      action: params.kind === "BLOCK" ? "slot.blocked" : "appointment.custom_created",
+      entityType: "appointment",
+      entityId: appointment.id,
+      meta: { label, durationMinutes: d },
+    });
+    return appointment;
+  } catch (e) {
+    if (isOverlapError(e)) throw new BookingError("هذا الوقت مشغول. اختاري وقتاً آخر.");
+    throw e;
+  }
 }
 
 async function uniqueBookingCode(attempt = 0): Promise<string> {

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { expireStaleHolds } from "./booking";
+import { expireStaleHolds, INTERNAL_PHONE } from "./booking";
 import { sendWhatsAppText } from "./whatsapp";
 import { bookingUrl } from "./env";
 import { addHours, formatLocalDateTime } from "./time";
@@ -19,6 +19,7 @@ export async function runScheduledJobs(now: Date = new Date()) {
     where: {
       status: "CONFIRMED",
       reminderSentAt: null,
+      customer: { phone: { not: INTERNAL_PHONE } },
       startsAt: { gt: windowStart, lte: windowEnd },
     },
     include: { customer: true, service: true, salon: true },

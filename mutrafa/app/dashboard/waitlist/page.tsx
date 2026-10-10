@@ -31,7 +31,7 @@ export default async function WaitlistPage({ searchParams }: { searchParams: Pro
       orderBy: { createdAt: "asc" },
       take: 200,
     }),
-    db.service.findMany({ where: { salonId: salon.id, isActive: true }, orderBy: { name: "asc" } }),
+    db.service.findMany({ where: { salonId: salon.id, isActive: true, kind: "STANDARD" }, orderBy: { name: "asc" } }),
   ]);
 
   return (

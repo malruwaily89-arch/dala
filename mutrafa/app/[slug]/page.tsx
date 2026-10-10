@@ -26,7 +26,7 @@ export default async function SalonBookingPage({ params, searchParams }: Props) 
   const salon = await db.salon.findUnique({
     where: { slug },
     include: {
-      services: { where: { isActive: true }, orderBy: { createdAt: "asc" } },
+      services: { where: { isActive: true, kind: "STANDARD" }, orderBy: { createdAt: "asc" } },
       calendars: { where: { isActive: true }, include: { services: true }, orderBy: { createdAt: "asc" } },
     },
   });

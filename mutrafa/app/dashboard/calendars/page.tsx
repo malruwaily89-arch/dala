@@ -18,7 +18,7 @@ export default async function CalendarsPage({ searchParams }: { searchParams: Pr
 
   const [calendars, services] = await Promise.all([
     db.calendar.findMany({ where: { salonId: salon.id }, include: { services: true }, orderBy: [{ isActive: "desc" }, { name: "asc" }] }),
-    db.service.findMany({ where: { salonId: salon.id, isActive: true }, orderBy: { name: "asc" } }),
+    db.service.findMany({ where: { salonId: salon.id, isActive: true, kind: "STANDARD" }, orderBy: { name: "asc" } }),
   ]);
   const atLimit = ctx.remaining.calendars <= 0;
 

@@ -6,7 +6,7 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { db } from "../lib/db";
 import { loadSalonContext } from "../lib/salon-context";
-import { createBooking, startDepositPayment, cancelAppointment, markAppointmentOutcome, availableSlotsFor, BookingError, DEPOSIT_HOLD_MINUTES } from "../lib/booking";
+import { createBooking, createFreeformBooking, startDepositPayment, cancelAppointment, markAppointmentOutcome, availableSlotsFor, BookingError, DEPOSIT_HOLD_MINUTES } from "../lib/booking";
 import { markPaymentPaid, startPlanPurchase, startAddonPurchase, verifyMoyasarWebhookToken } from "../lib/payments";
 import { runScheduledJobs } from "../lib/jobs";
 import { monthlyReport, commissionReport } from "../lib/reports";
@@ -531,4 +531,40 @@ test("مدة الخدمة تختلف حسب الموظفة: الحجز ينته�
     timeZone: TZ,
   });
   assert.ok(slots.length > 0);
+});
+
+test("حجز داخلي واستراحة: يشغل الوقت، لا يُرسل واتساب، ويمنع التعارض", async () => {
+  const { salon, freeService, calendars } = await makeSalon({ plan: "GOLD", status: "ACTIVE", trialEndsAt: null });
+  const user = await db.user.create({ data: { salonId: salon.id, email: `b${RUN}${counter}@x.test`, passwordHash: "x", name: "م", role: "OWNER" } });
+  const day = addDays(new Date(), 3);
+  const dayKey = localDayKey(day, TZ);
+  const start = zonedToUtc(Number(dayKey.slice(0, 4)), Number(dayKey.slice(5, 7)), Number(dayKey.slice(8, 10)), 14, 0, TZ);
+
+  const block = await createFreeformBooking({
+    salonId: salon.id, userId: user.id, calendarId: calendars[0].id, startsAt: start,
+    durationMinutes: 30, kind: "BLOCK", label: "استراحة", priceHalalas: 0,
+  });
+  assert.equal(block.endsAt.getTime() - block.startsAt.getTime(), 30 * 60_000);
+  const sent = await db.messageLog.count({ where: { appointmentId: block.id } });
+  assert.equal(sent, 0, "الحجز الداخلي لا يُرسل رسائل");
+
+  await assert.rejects(
+    createFreeformBooking({
+      salonId: salon.id, userId: user.id, calendarId: calendars[0].id, startsAt: addMinutes(start, 15),
+      durationMinutes: 30, kind: "CUSTOM", label: "خدمة خاصة", priceHalalas: 15000,
+      customerName: "عميلة", customerPhone: "0551234567",
+    }),
+    BookingError
+  );
+
+  const custom = await createFreeformBooking({
+    salonId: salon.id, userId: user.id, calendarId: calendars[0].id, startsAt: addMinutes(start, 30),
+    durationMinutes: 60, kind: "CUSTOM", label: "علاج خاص", priceHalalas: 15000,
+    customerName: "عميلة", customerPhone: "0551234567",
+  });
+  const svc = await db.service.findUniqueOrThrow({ where: { id: custom.serviceId } });
+  assert.equal(svc.kind, "CUSTOM");
+  assert.equal(svc.name, "علاج خاص");
+  assert.equal(svc.priceHalalas, 15000);
+  void freeService;
 });

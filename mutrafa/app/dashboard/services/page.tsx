@@ -14,7 +14,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
   const { error, ok } = await searchParams;
   const canManage = canUse(user, ctx, "services.manage");
   const perService = hasFeature(ctx.entitlements, "cancellation.perService");
-  const services = await db.service.findMany({ where: { salonId: salon.id }, orderBy: [{ isActive: "desc" }, { name: "asc" }] });
+  const services = await db.service.findMany({ where: { salonId: salon.id, kind: "STANDARD" }, orderBy: [{ isActive: "desc" }, { name: "asc" }] });
 
   return (
     <div>
