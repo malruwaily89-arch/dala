@@ -19,9 +19,9 @@ function fail(path: string, error: unknown): never {
 
 /** رفع شعار الصالون — يُحفظ في قاعدة البيانات ويُعرض في الحجز وفي رسائل واتساب */
 export async function uploadLogoAction(formData: FormData) {
+  const { user, salon } = await requireCan("settings.manage");
   let done = false;
   try {
-    const { user, salon } = await requireCan("settings.manage");
     const file = formData.get("logo");
     if (!(file instanceof File) || file.size === 0) throw new BookingError("اختاري صورة الشعار أولاً");
     if (!LOGO_TYPES.has(file.type)) throw new BookingError("صيغة الشعار يجب أن تكون PNG أو JPG أو WEBP");
@@ -53,9 +53,9 @@ export async function removeLogoAction() {
 
 /** إضافة يوم إغلاق: لا تُقبل فيه حجوزات، ولا تظهر فيه فتحات */
 export async function addClosedDayAction(formData: FormData) {
+  const { user, salon } = await requireCan("settings.manage");
   let done = false;
   try {
-    const { user, salon } = await requireCan("settings.manage");
     const dayKey = String(formData.get("dayKey") ?? "");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dayKey)) throw new BookingError("يرجى اختيار تاريخ صحيح");
     const reason = String(formData.get("reason") ?? "").trim().slice(0, 80) || null;
@@ -85,9 +85,9 @@ export async function removeClosedDayAction(formData: FormData) {
 
 /** ملاحظات الصحة والحساسية — تظهر للموظفات قبل كل خدمة */
 export async function updateHealthNotesAction(formData: FormData) {
+  const { salon } = await requireCan("customers.manage");
   let done = false;
   try {
-    const { salon } = await requireCan("customers.manage");
     const customerId = String(formData.get("customerId") ?? "");
     const notes = String(formData.get("healthNotes") ?? "").trim().slice(0, 500) || null;
     const updated = await db.customer.updateMany({ where: { id: customerId, salonId: salon.id }, data: { healthNotes: notes } });
@@ -104,9 +104,9 @@ export async function updateHealthNotesAction(formData: FormData) {
 
 /** بيع باقة جلسات لعميلة: مثلاً 5 جلسات لخدمة بسعر مخفّض */
 export async function sellSessionPackAction(formData: FormData) {
+  const { salon } = await requireCan("customers.manage");
   let done = false;
   try {
-    const { salon } = await requireCan("customers.manage");
     const customerId = String(formData.get("customerId") ?? "");
     const serviceId = String(formData.get("serviceId") ?? "");
     const totalSessions = Math.round(Number(formData.get("totalSessions") ?? 0));

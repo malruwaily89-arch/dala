@@ -8,7 +8,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   return new Response(new Uint8Array(logo.data), {
     headers: {
       "Content-Type": logo.mime,
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": "public, max-age=60",
     },
   });
 }
