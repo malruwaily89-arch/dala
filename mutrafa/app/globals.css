@@ -1,0 +1,57 @@
+@import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Playfair+Display:wght@600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Tajawal", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Playfair Display", "Tajawal", serif;
+
+  --color-brand: #8a1538; /* burgundy — الهوية */
+  --color-brand-deep: #5e0c25;
+  --color-brand-soft: #f6eaee;
+  --color-gold: #b08d57;
+  --color-gold-soft: #f5efe4;
+  --color-ivory: #faf7f2;
+  --color-ink: #2a1a20;
+}
+
+@layer base {
+  html {
+    background: var(--color-ivory);
+    color: var(--color-ink);
+  }
+  body {
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* قائمة منسدلة بسهم مُصمَّم بدل السهم الافتراضي للمتصفح (الحشو يُضبط بالأدوات في selectCls) */
+  .field-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%238a1538' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 0.85rem center;
+    background-size: 1rem;
+  }
+}
+
+@media print {
+  aside,
+  nav,
+  footer,
+  .print\:hidden {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  body {
+    background: #fff;
+  }
+}
