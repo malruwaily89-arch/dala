@@ -90,6 +90,42 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           ) : (
             <p className="rounded-xl border border-dashed border-brand/25 p-4 text-sm text-zinc-500">لم يُرفع شعار بعد.</p>
           )}
+          <details className="group rounded-xl border border-brand/20 bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-bold text-brand">
+              معاينة الشعار كما تراه العميلات
+              <span className="text-sm font-normal text-zinc-500 group-open:hidden">اضغطي للعرض</span>
+              <span className="hidden text-sm font-normal text-zinc-500 group-open:inline">إخفاء المعاينة</span>
+            </summary>
+            <div className="grid gap-6 border-t border-brand/10 p-4 md:grid-cols-2">
+              <div>
+                <p className="mb-2 text-sm font-semibold text-ink">صفحة الحجز</p>
+                <div className="rounded-xl bg-ivory p-5 text-center">
+                  {logo ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={`/api/salon-logo/${salon.slug}`} alt="" className="mx-auto mb-3 h-20 w-20 rounded-2xl bg-white object-contain p-1 shadow-sm" />
+                  ) : (
+                    <p className="mb-3 text-xs text-zinc-500">بدون شعار: يظهر اسم الصالون فقط</p>
+                  )}
+                  <p className="font-bold text-ink">{salon.name}</p>
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-sm font-semibold text-ink">رسالة واتساب</p>
+                <div className="rounded-xl bg-[#e5ddd5] p-4">
+                  <div className="max-w-xs rounded-lg bg-white p-2 text-sm shadow-sm">
+                    {logo ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={`/api/salon-logo/${salon.slug}`} alt="" className="mb-2 h-28 w-full rounded-md bg-white object-contain" />
+                    ) : (
+                      <p className="mb-2 rounded-md bg-zinc-100 p-3 text-center text-xs text-zinc-500">ستظهر صورة الشعار هنا</p>
+                    )}
+                    <p className="whitespace-pre-line leading-relaxed text-ink">{`مرحباً بكِ في ${salon.name} ✨\nتم تأكيد موعدكِ، نراكِ قريباً.`}</p>
+                  </div>
+                  <p className="mt-2 text-xs text-zinc-600">تُرسل الصورة مع الرسالة فقط بعد تفعيل واتساب الفعلي وعند تشغيل الموقع بعنوان https.</p>
+                </div>
+              </div>
+            </div>
+          </details>
           <form action={uploadLogoAction} encType="multipart/form-data" className="space-y-4">
             <FileField
               name="logo"
