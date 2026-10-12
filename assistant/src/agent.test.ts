@@ -257,6 +257,6 @@ test("usage_status and copy_file", async () => {
 });
 
 test("isApproval reads only the first word", () => {
-  for (const yes of ["موافق", "موافق شغله", "نعم.", "OK", "تمام!"]) assert.equal(isApproval(yes), true, yes);
-  for (const no of ["لا", "مو موافق", "", undefined, "وش التكلفة؟"]) assert.equal(isApproval(no), false, String(no));
+  for (const yes of ["موافق", "موافق شغله", "نعم.", "OK", "تمام!", "ابشر", "أبشر، سوه"]) assert.equal(isApproval(yes), true, yes);
+  for (const no of ["لا", "مو موافق", "", undefined, "وش التكلفة؟", "طيب وش رأيك؟"]) assert.equal(isApproval(no), false, String(no));
 });

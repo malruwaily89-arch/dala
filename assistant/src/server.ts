@@ -2,7 +2,6 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createServer, type IncomingMessage as HttpRequest } from "node:http";
 import { Agent, isApproval } from "./agent.js";
 import { BrowserService } from "./browser.js";
-import { DEFAULT_TRUSTED_DOMAINS, parseDomainList } from "./browser-policy.js";
 import { TIME_ZONE, receiveFile } from "./files.js";
 import { UsageMeter } from "./usage.js";
 import { WhatsAppClient, extractMessages, verifySignature, type IncomingMessage, type WhatsAppMedia } from "./whatsapp.js";
@@ -21,7 +20,7 @@ const APP_SECRET = required("WHATSAPP_APP_SECRET");
 const VERIFY_TOKEN = required("WHATSAPP_VERIFY_TOKEN");
 const OWNER = required("OWNER_WHATSAPP_NUMBER").replace(/\D/g, "");
 const RESET_COMMANDS = new Set(["/new", "/جديد"]);
-const REFUSALS = new Set(["لا", "لأ", "لاء", "الغ", "إلغاء", "الغاء", "cancel", "no"]);
+const REFUSALS = new Set(["لا", "لأ", "لاء", "الغ", "الغي", "ألغي", "إلغي", "إلغاء", "الغاء", "cancel", "no"]);
 
 const whatsapp = new WhatsAppClient(
   required("WHATSAPP_ACCESS_TOKEN"),
@@ -33,11 +32,9 @@ const browser =
   process.env.BROWSER_ENABLED === "true"
     ? new BrowserService({
         profileDir: `${STATE_DIR}/browser-profile`,
-        policyFile: `${STATE_DIR}/browser-policy.json`,
         pendingFile: `${STATE_DIR}/browser-pending.json`,
         executablePath: process.env.CHROMIUM_PATH,
         noSandbox: process.env.BROWSER_NO_SANDBOX === "1",
-        trustedDomains: [...DEFAULT_TRUSTED_DOMAINS, ...parseDomainList(process.env.BROWSER_TRUSTED_DOMAINS)],
       })
     : undefined;
 const agent = new Agent({
@@ -99,7 +96,7 @@ async function handle(message: IncomingMessage): Promise<void> {
 
   if (message.type === "text" && RESET_COMMANDS.has(message.text?.body.trim() ?? "")) {
     await agent.reset();
-    await whatsapp.sendText(OWNER, "بدأنا محادثة جديدة.");
+    await whatsapp.sendText(OWNER, "بدينا محادثة جديدة.");
     return;
   }
 
@@ -118,7 +115,7 @@ async function handle(message: IncomingMessage): Promise<void> {
 
   const content = await toContent(message);
   if (!content) {
-    await whatsapp.sendText(OWNER, "هذا النوع من الرسائل غير مدعوم حالياً.");
+    await whatsapp.sendText(OWNER, "هذا النوع من الرسائل ما أقدر أتعامل معه الحين.");
     return;
   }
   await whatsapp.sendText(OWNER, await agent.runTurn(content, message.text?.body));

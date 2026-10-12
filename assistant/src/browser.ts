@@ -1,18 +1,9 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { chromium, type BrowserContext, type Page } from "playwright-core";
-import {
-  classifyControl,
-  DEFAULT_TRUSTED_DOMAINS,
-  hostOf,
-  isHostApproved,
-  isPaymentPage,
-  type ControlInfo,
-  type Sensitivity,
-} from "./browser-policy.js";
+import { classifyControl, hostOf, isPaymentPage, isTextField, type ControlInfo, type Sensitivity } from "./browser-policy.js";
 
 export type PendingAction =
-  | { kind: "domain"; host: string; url: string }
   | { kind: "click"; index: number; label: string; url: string; host: string }
   | { kind: "fill"; index: number; label: string; value: string; url: string; host: string };
 
@@ -22,18 +13,13 @@ interface Control extends ControlInfo {
   value?: string;
 }
 
-interface Policy {
-  domains: string[];
-}
-
 export interface BrowserOptions {
   profileDir: string;
-  policyFile: string;
   pendingFile: string;
   executablePath?: string;
   noSandbox: boolean;
-  /** Sites opened without asking. Defaults to DEFAULT_TRUSTED_DOMAINS. */
-  trustedDomains?: string[];
+  /** Tests only: the local test server uses a self-signed certificate. */
+  ignoreCertificateErrors?: boolean;
   idleMs?: number;
 }
 
@@ -41,6 +27,7 @@ const PAGE_TEXT_LIMIT = 4000;
 const NAV_TIMEOUT_MS = 30_000;
 const ACTION_TIMEOUT_MS = 10_000;
 const CARD_NUMBER = /(?:\d[ -]?){13,19}/;
+const PAYMENT_STOP = "هذي صفحة دفع، توقفت هنا ولا أنفذ فيها أي خطوة.";
 
 // Marks interactive elements with data-ai-idx and returns them with their visible labels.
 const SNAPSHOT_JS = `(() => {
@@ -91,27 +78,27 @@ export class BrowserService {
   private context: BrowserContext | null = null;
   private page: Page | null = null;
   private controls: Control[] = [];
-  private policy: Policy = { domains: [] };
   private pending: PendingAction | null = null;
-  private blocked: { host: string; url: string } | null = null;
   private paymentBlocked = false;
+  /** Set when a navigation to a plain-http address was refused during the last action. */
+  private blockedUrl: string | null = null;
   private idleTimer: NodeJS.Timeout | null = null;
   private bodyText = "";
 
   constructor(private readonly opts: BrowserOptions) {}
 
   async load(): Promise<void> {
-    await mkdir(path.dirname(this.opts.policyFile), { recursive: true });
-    this.policy = JSON.parse(await readFile(this.opts.policyFile, "utf8").catch(() => '{"domains":[]}'));
-    this.pending = JSON.parse(await readFile(this.opts.pendingFile, "utf8").catch(() => "null"));
+    await mkdir(path.dirname(this.opts.pendingFile), { recursive: true });
+    const saved = JSON.parse(await readFile(this.opts.pendingFile, "utf8").catch(() => "null")) as PendingAction | null;
+    // Requests saved by an older version are dropped.
+    this.pending = saved?.kind === "click" || saved?.kind === "fill" ? saved : null;
   }
 
   pendingText(): string | null {
     const p = this.pending;
     if (!p) return null;
-    if (p.kind === "domain") return `أحتاج موافقتك لفتح ${p.host}. اكتب "موافق" أو "لا".`;
-    if (p.kind === "click") return `أحتاج موافقتك قبل الضغط على "${p.label}" في ${p.host}. اكتب "موافق" أو "لا".`;
-    return `أحتاج موافقتك لكتابة قيمة في حقل "${p.label}" في ${p.host}. اكتب "موافق" أو "لا".`;
+    if (p.kind === "click") return `أحتاج موافقتك قبل ما أضغط على "${p.label}" في ${p.host}. اكتب "موافق" أو "لا".`;
+    return `أحتاج موافقتك قبل ما أكتب قيمة في حقل "${p.label}" في ${p.host}. اكتب "موافق" أو "لا".`;
   }
 
   async cancel(): Promise<string> {
@@ -120,22 +107,23 @@ export class BrowserService {
     return "تم الإلغاء.";
   }
 
+  /** Any https site opens without asking. Plain http is refused. */
   async open(url: string): Promise<string> {
     this.touch();
-    if (!/^https?:\/\//i.test(url) || !hostOf(url)) return "الرابط غير صالح؛ لازم يبدأ بـ https://";
     const host = hostOf(url);
-    if (!this.allowed(host)) {
-      await this.setPending({ kind: "domain", host, url });
-      return this.pendingText() ?? "";
-    }
+    if (!/^https:\/\//i.test(url) || !host) return "الرابط غير صالح؛ لازم يبدأ بـ https://";
     const page = await this.ensurePage();
-    this.blocked = null;
+    this.blockedUrl = null;
     const failure = await page
       .goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS })
       .then(() => null, firstLine);
-    // A blocked redirect also fails the load; afterNavigation turns that into an approval request.
-    if (failure && !this.blocked) return `تعذر فتح ${host}: ${failure}`;
-    return this.afterNavigation();
+    if (this.blockedUrl) {
+      const refused = this.blockedUrl;
+      this.blockedUrl = null;
+      return `ما أفتح ${refused} لأنه غير مشفر (http)، ولا أفتح إلا روابط https.`;
+    }
+    if (failure) return `تعذر فتح ${host}: ${failure}`;
+    return this.snapshotText();
   }
 
   async read(): Promise<string> {
@@ -150,7 +138,8 @@ export class BrowserService {
     if (check) return check;
     const control = this.controls[index]!;
     const kind: Sensitivity = classifyControl(control);
-    if (kind === "password" || kind === "payment") return "ما أتعامل مع هذا الحقل.";
+    if (kind === "password") return "ما أضغط على حقول كلمات المرور.";
+    if (kind === "payment") return "هذا زر أو حقل دفع، ما أنفذ عمليات الدفع ولا الشراء. أكمل بنفسك إذا تبي.";
     if (kind === "submit") {
       await this.setPending({ kind: "click", index, label: control.label ?? "", url: this.currentUrl(), host: this.currentHost() });
       return this.pendingText() ?? "";
@@ -164,8 +153,8 @@ export class BrowserService {
     if (check) return check;
     const control = this.controls[index]!;
     const kind: Sensitivity = classifyControl(control);
-    if (kind === "password") return "ما أكتب كلمات المرور؛ هذي تدخلها بنفسك.";
-    if (kind === "payment") return "هذا حقل دفع، ما أكتب فيه.";
+    if (kind === "password") return "ما أكتب كلمات المرور ولا رموز التحقق؛ هذي تدخلها بنفسك.";
+    if (kind === "payment") return "هذا حقل بطاقة أو دفع، ما أكتب فيه.";
     if (control.tag !== "input" && control.tag !== "textarea") return "هذا العنصر ما يُعبّأ بالكتابة.";
     if (CARD_NUMBER.test(value)) return "ما أكتب أرقام بطاقات.";
     if (kind === "personal") {
@@ -181,13 +170,6 @@ export class BrowserService {
     const p = this.pending;
     if (!p) return "ما فيه خطوة تنتظر موافقتك.";
     await this.setPending(null);
-    if (p.kind === "domain") {
-      if (!this.policy.domains.includes(p.host)) {
-        this.policy.domains.push(p.host);
-        await this.savePolicy();
-      }
-      return this.open(p.url);
-    }
     if (!this.page || this.currentUrl() !== p.url) return "الصفحة تغيّرت، ألغيت الخطوة. أعد طلبها من جديد.";
     await this.refreshControls();
     const control = this.controls[p.index];
@@ -203,11 +185,6 @@ export class BrowserService {
     this.context = null;
     this.page = null;
     this.controls = [];
-  }
-
-  /** Trusted sites plus the ones the owner approved before. */
-  private allowed(host: string): boolean {
-    return isHostApproved(host, [...(this.opts.trustedDomains ?? DEFAULT_TRUSTED_DOMAINS), ...this.policy.domains]);
   }
 
   private touch(): void {
@@ -232,20 +209,19 @@ export class BrowserService {
         acceptDownloads: false,
         serviceWorkers: "block",
         permissions: [],
+        ignoreHTTPSErrors: this.opts.ignoreCertificateErrors ?? false,
       });
     } catch (err) {
       // The full error goes to `docker logs`; the owner gets its first line.
       console.error("Browser launch failed:", err);
       throw new Error(`تعذر تشغيل المتصفح: ${firstLine(err)}`);
     }
+    // Pages reached by a click or a redirect must also be https.
     await this.context.route("**/*", (route) => {
       const req = route.request();
-      if (req.isNavigationRequest() && req.frame().parentFrame() === null) {
-        const host = hostOf(req.url());
-        if (!this.allowed(host) && req.url() !== "about:blank") {
-          this.blocked = { host, url: req.url() };
-          return route.abort("blockedbyclient");
-        }
+      if (req.isNavigationRequest() && req.frame().parentFrame() === null && !/^(https:|about:blank)/i.test(req.url())) {
+        this.blockedUrl = req.url();
+        return route.abort("blockedbyclient");
       }
       return route.continue();
     });
@@ -255,32 +231,35 @@ export class BrowserService {
 
   private preflight(index: number): string | null {
     if (!this.page) return "افتح صفحة أولاً.";
-    if (this.paymentBlocked) return "هذي صفحة دفع، توقفت هنا ولا أنفذ فيها أي خطوة.";
+    if (this.paymentBlocked) return PAYMENT_STOP;
     if (!this.controls[index]) return "رقم العنصر غير معروف؛ اقرأ الصفحة من جديد.";
     return null;
   }
 
-  private async afterNavigation(): Promise<string> {
-    if (this.blocked) {
-      const { host, url } = this.blocked;
-      this.blocked = null;
-      await this.setPending({ kind: "domain", host, url });
-      return `الموقع ${host} غير مسموح حالياً. ${this.pendingText() ?? ""}`;
+  private async performClick(index: number): Promise<string> {
+    const page = this.page!;
+    if (this.paymentBlocked) return PAYMENT_STOP;
+    this.blockedUrl = null;
+    await page.locator(`[data-ai-idx="${index}"]`).first().click({ timeout: ACTION_TIMEOUT_MS });
+    await page.waitForLoadState("domcontentloaded", { timeout: NAV_TIMEOUT_MS }).catch(() => undefined);
+    if (this.blockedUrl) {
+      // Chromium shows its error page for a refused navigation; go back so the owner sees the previous page.
+      await page.goBack({ timeout: ACTION_TIMEOUT_MS }).catch(() => null);
+      return this.refusedHttp();
     }
     return this.snapshotText();
   }
 
-  private async performClick(index: number): Promise<string> {
-    const page = this.page!;
-    if (this.paymentBlocked) return "هذي صفحة دفع، توقفت هنا.";
-    await page.locator(`[data-ai-idx="${index}"]`).first().click({ timeout: ACTION_TIMEOUT_MS });
-    await page.waitForLoadState("domcontentloaded", { timeout: NAV_TIMEOUT_MS }).catch(() => undefined);
-    return this.afterNavigation();
+  /** Reply for a refused plain-http navigation, followed by the page the owner is still on. */
+  private async refusedHttp(): Promise<string> {
+    const url = this.blockedUrl;
+    this.blockedUrl = null;
+    return `ما أفتح ${url} لأنه غير مشفر (http)، ولا أفتح إلا روابط https.\n\n${await this.snapshotText()}`;
   }
 
   private async performFill(index: number, value: string): Promise<string> {
     const page = this.page!;
-    if (this.paymentBlocked) return "هذي صفحة دفع، توقفت هنا.";
+    if (this.paymentBlocked) return PAYMENT_STOP;
     const control = this.controls[index]!;
     await page.locator(`[data-ai-idx="${index}"]`).first().fill(value, { timeout: ACTION_TIMEOUT_MS });
     return `كتبت في حقل «${control.label || control.name || "بدون اسم"}».`;
@@ -291,18 +270,27 @@ export class BrowserService {
     const page = this.page!;
     const facts = {
       url: page.url(),
-      hasCardFields: this.controls.some((c) => classifyControl(c) === "payment"),
+      hasCardFields: this.controls.some((c) => isTextField(c) && classifyControl(c) === "payment"),
       frameUrls: page.frames().map((f) => f.url()),
     };
     this.paymentBlocked = isPaymentPage(facts);
     const title = await page.title().catch(() => "");
     if (this.paymentBlocked) {
-      return `وصلت لصفحة دفع (${facts.url})، توقفت هنا ولن أنفذ أي خطوة فيها. أكمل بنفسك إذا أردت.`;
+      return `وصلت لصفحة دفع (${facts.url})، توقفت هنا ولن أنفذ أي خطوة فيها. أكمل بنفسك إذا تبي.`;
     }
     const lines = this.controls.map((c) => {
       const kind = classifyControl(c);
       const tag = c.type ? `${c.tag} ${c.type}` : c.tag;
-      const note = kind === "submit" ? " (يحتاج موافقتك)" : kind === "personal" ? " (بيانات شخصية، يحتاج موافقتك)" : kind === "password" ? " (كلمة مرور، لا أكتب فيه)" : "";
+      const note =
+        kind === "submit"
+          ? " (يحتاج موافقتك)"
+          : kind === "personal"
+            ? " (بيانات شخصية، يحتاج موافقتك)"
+            : kind === "password"
+              ? " (كلمة مرور، ما أكتب فيه)"
+              : kind === "payment"
+                ? " (دفع أو بطاقة، ما أنفذه)"
+                : "";
       return `[${c.index}] ${tag}: ${c.label || c.name || "بدون اسم"}${note}`;
     });
     return [`الصفحة: ${title}`, `الرابط: ${facts.url}`, "", "النص:", this.bodyText, "", "العناصر:", ...lines].join("\n");
@@ -328,10 +316,6 @@ export class BrowserService {
   private async setPending(p: PendingAction | null): Promise<void> {
     this.pending = p;
     await writeJson(this.opts.pendingFile, p);
-  }
-
-  private async savePolicy(): Promise<void> {
-    await writeJson(this.opts.policyFile, this.policy);
   }
 }
 
