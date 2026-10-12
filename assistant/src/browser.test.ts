@@ -68,6 +68,25 @@ test("policy: payment, password, submit and personal controls are classified", (
   assert.deepEqual(parseDomainList(" https://Shop.example/path , b.sa:443 ,, "), ["shop.example", "b.sa"]);
 });
 
+test("browser: a launch failure is reported with its reason", async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), "assistant-browser-"));
+  const browser = new BrowserService({
+    profileDir: path.join(dir, "profile"),
+    policyFile: path.join(dir, "policy.json"),
+    pendingFile: path.join(dir, "pending.json"),
+    executablePath: path.join(dir, "no-such-chromium"),
+    noSandbox: true,
+    trustedDomains: ["127.0.0.1"],
+    idleMs: 60_000,
+  });
+  await browser.load();
+  try {
+    await assert.rejects(browser.open("http://127.0.0.1:9/"), /تعذر تشغيل المتصفح: .+/);
+  } finally {
+    await browser.close();
+  }
+});
+
 test("browser: trusted sites open without approval, other sites still ask, load errors are reported", { skip: !CHROMIUM && "set CHROMIUM_PATH to run" }, async () => {
   const dir = await mkdtemp(path.join(tmpdir(), "assistant-browser-"));
   const { port, close } = await startServer([]);

@@ -132,7 +132,7 @@ export class BrowserService {
     this.blocked = null;
     const failure = await page
       .goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS })
-      .then(() => null, (err: Error) => err.message.split("\n")[0]);
+      .then(() => null, firstLine);
     // A blocked redirect also fails the load; afterNavigation turns that into an approval request.
     if (failure && !this.blocked) return `تعذر فتح ${host}: ${failure}`;
     return this.afterNavigation();
@@ -221,17 +221,23 @@ export class BrowserService {
     await mkdir(this.opts.profileDir, { recursive: true });
     const args = ["--password-store=basic", "--disable-save-password-bubble", "--disable-notifications"];
     if (this.opts.noSandbox) args.push("--no-sandbox");
-    this.context = await chromium.launchPersistentContext(this.opts.profileDir, {
-      executablePath: this.opts.executablePath,
-      headless: true,
-      args,
-      viewport: { width: 1280, height: 900 },
-      locale: "ar-SA",
-      timezoneId: "Asia/Riyadh",
-      acceptDownloads: false,
-      serviceWorkers: "block",
-      permissions: [],
-    });
+    try {
+      this.context = await chromium.launchPersistentContext(this.opts.profileDir, {
+        executablePath: this.opts.executablePath,
+        headless: true,
+        args,
+        viewport: { width: 1280, height: 900 },
+        locale: "ar-SA",
+        timezoneId: "Asia/Riyadh",
+        acceptDownloads: false,
+        serviceWorkers: "block",
+        permissions: [],
+      });
+    } catch (err) {
+      // The full error goes to `docker logs`; the owner gets its first line.
+      console.error("Browser launch failed:", err);
+      throw new Error(`تعذر تشغيل المتصفح: ${firstLine(err)}`);
+    }
     await this.context.route("**/*", (route) => {
       const req = route.request();
       if (req.isNavigationRequest() && req.frame().parentFrame() === null) {
@@ -327,6 +333,10 @@ export class BrowserService {
   private async savePolicy(): Promise<void> {
     await writeJson(this.opts.policyFile, this.policy);
   }
+}
+
+function firstLine(err: unknown): string {
+  return ((err instanceof Error ? err.message : String(err)).split("\n")[0] ?? "").trim();
 }
 
 async function writeJson(file: string, value: unknown): Promise<void> {
