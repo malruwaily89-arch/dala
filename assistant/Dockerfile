@@ -13,6 +13,8 @@ ENV NODE_ENV=production
 ENV CHROMIUM_PATH=/usr/bin/chromium
 # Chromium's sandbox needs privileges a container doesn't have; the container itself is the isolation.
 ENV BROWSER_NO_SANDBOX=1
+# The container user has no home directory, so HOME falls back to /, which it cannot write to.
+ENV HOME=/tmp
 COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
