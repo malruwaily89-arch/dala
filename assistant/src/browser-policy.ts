@@ -64,3 +64,17 @@ export function isHostApproved(host: string, approved: readonly string[]): boole
   const h = host.toLowerCase();
   return approved.some((a) => h === a || h.endsWith(`.${a}`));
 }
+
+/**
+ * Sites the assistant opens without asking: Saudi government and well-known reference sites.
+ * Opening one is only a page load. Forms, personal data, payments and passwords keep their own rules.
+ */
+export const DEFAULT_TRUSTED_DOMAINS = ["gov.sa", "wikipedia.org", "google.com", "microsoft.com", "anthropic.com"];
+
+/** Turns a list like "https://a.example/x, b.sa" into bare lowercase hostnames. */
+export function parseDomainList(raw: string | undefined): string[] {
+  return (raw ?? "")
+    .split(",")
+    .map((d) => d.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/[/:].*$/, ""))
+    .filter(Boolean);
+}

@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createServer, type IncomingMessage as HttpRequest } from "node:http";
 import { Agent, isApproval } from "./agent.js";
 import { BrowserService } from "./browser.js";
+import { DEFAULT_TRUSTED_DOMAINS, parseDomainList } from "./browser-policy.js";
 import { TIME_ZONE, receiveFile } from "./files.js";
 import { UsageMeter } from "./usage.js";
 import { WhatsAppClient, extractMessages, verifySignature, type IncomingMessage, type WhatsAppMedia } from "./whatsapp.js";
@@ -36,6 +37,7 @@ const browser =
         pendingFile: `${STATE_DIR}/browser-pending.json`,
         executablePath: process.env.CHROMIUM_PATH,
         noSandbox: process.env.BROWSER_NO_SANDBOX === "1",
+        trustedDomains: [...DEFAULT_TRUSTED_DOMAINS, ...parseDomainList(process.env.BROWSER_TRUSTED_DOMAINS)],
       })
     : undefined;
 const agent = new Agent({

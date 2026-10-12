@@ -1,7 +1,15 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { chromium, type BrowserContext, type Page } from "playwright-core";
-import { classifyControl, hostOf, isHostApproved, isPaymentPage, type ControlInfo, type Sensitivity } from "./browser-policy.js";
+import {
+  classifyControl,
+  DEFAULT_TRUSTED_DOMAINS,
+  hostOf,
+  isHostApproved,
+  isPaymentPage,
+  type ControlInfo,
+  type Sensitivity,
+} from "./browser-policy.js";
 
 export type PendingAction =
   | { kind: "domain"; host: string; url: string }
@@ -24,6 +32,8 @@ export interface BrowserOptions {
   pendingFile: string;
   executablePath?: string;
   noSandbox: boolean;
+  /** Sites opened without asking. Defaults to DEFAULT_TRUSTED_DOMAINS. */
+  trustedDomains?: string[];
   idleMs?: number;
 }
 
@@ -114,13 +124,17 @@ export class BrowserService {
     this.touch();
     if (!/^https?:\/\//i.test(url) || !hostOf(url)) return "الرابط غير صالح؛ لازم يبدأ بـ https://";
     const host = hostOf(url);
-    if (!isHostApproved(host, this.policy.domains)) {
+    if (!this.allowed(host)) {
       await this.setPending({ kind: "domain", host, url });
       return this.pendingText() ?? "";
     }
     const page = await this.ensurePage();
     this.blocked = null;
-    await page.goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS }).catch(() => undefined);
+    const failure = await page
+      .goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS })
+      .then(() => null, (err: Error) => err.message.split("\n")[0]);
+    // A blocked redirect also fails the load; afterNavigation turns that into an approval request.
+    if (failure && !this.blocked) return `تعذر فتح ${host}: ${failure}`;
     return this.afterNavigation();
   }
 
@@ -191,6 +205,11 @@ export class BrowserService {
     this.controls = [];
   }
 
+  /** Trusted sites plus the ones the owner approved before. */
+  private allowed(host: string): boolean {
+    return isHostApproved(host, [...(this.opts.trustedDomains ?? DEFAULT_TRUSTED_DOMAINS), ...this.policy.domains]);
+  }
+
   private touch(): void {
     if (this.idleTimer) clearTimeout(this.idleTimer);
     this.idleTimer = setTimeout(() => void this.close(), this.opts.idleMs ?? 10 * 60_000);
@@ -217,7 +236,7 @@ export class BrowserService {
       const req = route.request();
       if (req.isNavigationRequest() && req.frame().parentFrame() === null) {
         const host = hostOf(req.url());
-        if (!isHostApproved(host, this.policy.domains) && req.url() !== "about:blank") {
+        if (!this.allowed(host) && req.url() !== "about:blank") {
           this.blocked = { host, url: req.url() };
           return route.abort("blockedbyclient");
         }

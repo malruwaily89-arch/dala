@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { BrowserService } from "./browser.js";
-import { classifyControl, isHostApproved, isPaymentPage } from "./browser-policy.js";
+import { classifyControl, DEFAULT_TRUSTED_DOMAINS, isHostApproved, isPaymentPage, parseDomainList } from "./browser-policy.js";
 
 const CHROMIUM = process.env.CHROMIUM_PATH;
 
@@ -62,6 +62,43 @@ test("policy: payment, password, submit and personal controls are classified", (
   assert.equal(isPaymentPage({ url: "https://shop.example/about", hasCardFields: false, frameUrls: [] }), false);
   assert.equal(isHostApproved("api.shop.example", ["shop.example"]), true);
   assert.equal(isHostApproved("evilshop.example", ["shop.example"]), false);
+  assert.equal(isHostApproved("zatca.gov.sa", DEFAULT_TRUSTED_DOMAINS), true);
+  assert.equal(isHostApproved("gov.sa.evil.example", DEFAULT_TRUSTED_DOMAINS), false);
+  assert.equal(isHostApproved("notgoogle.com", DEFAULT_TRUSTED_DOMAINS), false);
+  assert.deepEqual(parseDomainList(" https://Shop.example/path , b.sa:443 ,, "), ["shop.example", "b.sa"]);
+});
+
+test("browser: trusted sites open without approval, other sites still ask, load errors are reported", { skip: !CHROMIUM && "set CHROMIUM_PATH to run" }, async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), "assistant-browser-"));
+  const { port, close } = await startServer([]);
+  const browser = new BrowserService({
+    profileDir: path.join(dir, "profile"),
+    policyFile: path.join(dir, "policy.json"),
+    pendingFile: path.join(dir, "pending.json"),
+    executablePath: CHROMIUM,
+    noSandbox: true,
+    trustedDomains: ["127.0.0.1"],
+    idleMs: 60_000,
+  });
+  await browser.load();
+
+  try {
+    // Trusted host: the page opens straight away, no approval request.
+    assert.match(await browser.open(`http://127.0.0.1:${port}/form`), /الصفحة: طلب/);
+    assert.equal(browser.pendingText(), null);
+
+    // Same server under another host name is not trusted, so the owner is asked.
+    assert.match(await browser.open(`http://localhost:${port}/form`), /أحتاج موافقتك لفتح localhost/);
+    assert.match(await browser.cancel(), /تم الإلغاء/);
+
+    // A failed load is reported, not shown as an empty page.
+    const gone = await startServer([]);
+    gone.close();
+    assert.match(await browser.open(`http://127.0.0.1:${gone.port}/`), /تعذر فتح 127\.0\.0\.1: .*net::ERR_/);
+  } finally {
+    await browser.close();
+    close();
+  }
 });
 
 test("browser: approvals, payment stop, password refusal and domain gating", { skip: !CHROMIUM && "set CHROMIUM_PATH to run" }, async () => {
